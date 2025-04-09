@@ -1,0 +1,31 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+  "name": "Flutter",
+  "image": "ghcr.io/thephaseless/devcontainers/flutter:latest",
+  "features": {
+	"ghcr.io/devcontainers-extra/features/firebase-cli:2": {}
+  },
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  // "features": {},
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Configure tool-specific properties.
+  // "customizations": {},
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+    "customizations": {
+      "vscode": {
+        "extensions": [
+           "toroxx.vscode-avdmanager",
+           "ritwickdey.LiveServer",
+           "dbaeumer.vscode-eslint",
+           "esbenp.prettier-vscode",
+           "MS-vsliveshare.vsliveshare",
+           "toba.vsfire",
+           "mhutchie.git-graph",
+           "Postman.postman-for-vscode"
+        ]
+      }
+    },
+    "forwardPorts": [3000]
+  }
