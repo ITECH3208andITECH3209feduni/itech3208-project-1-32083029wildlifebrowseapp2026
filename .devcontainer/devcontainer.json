@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
   "name": "Flutter",
-  "image": "ghcr.io/thephaseless/devcontainers/flutter:latest",
+  "image": "ghcr.io/devcontainers/templates/javascript-node-postgres:4.0.2",
   "features": {
 	"ghcr.io/devcontainers-extra/features/firebase-cli:2": {}
   },
@@ -16,6 +16,8 @@
     "customizations": {
       "vscode": {
         "extensions": [
+           "dart-code.flutter",
+           "dart-code.dart-code",
            "toroxx.vscode-avdmanager",
            "ritwickdey.LiveServer",
            "dbaeumer.vscode-eslint",
