@@ -1,122 +1,209 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const BrowseApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BrowseApp extends StatelessWidget {
+  const BrowseApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Browse',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        listTileTheme: const ListTileThemeData(textColor: Colors.white),
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(title: 'Request Board'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.title});
+  
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _ListTileState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ListTileState extends State<HomePage> with TickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
   }
 
   @override
+void initState() {
+  super.initState();
+  _fadeController = AnimationController(
+    duration: const Duration(seconds: 1),
+    vsync: this,
+  );
+  _fadeAnimation = CurvedAnimation(
+    parent: _fadeController,
+    curve: Curves.easeIn,
+  );
+  
+  // Start animations
+  _fadeController.forward();
+}
+
+  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    const String appTitle = 'Browse';
+    return MaterialApp(
+      title: appTitle,
+      // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
+      home: SafeArea(
+        minimum: const EdgeInsets.all(12.0),
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            title: Text(appTitle),
+          ),
+body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Hero(
+            tag: 'ListTile-Hero',
+            child: Material(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/koala.jpg'),
+                  radius: 20,
+                ),
+                title: const Text('Koala'),
+                subtitle: const Text('5 years\nEucalyptus Leaves\nCanadian\t5m ago'),
+                tileColor: const Color.fromARGB(235, 245, 246, 246),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<Widget>(
+                      builder: (BuildContext context) {
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('Koala request')),
+                          body: Center(
+                            child: Hero(
+                              tag: 'ListTile-Hero',
+                              child: Material(
+                                child: ListTile(
+                                  title: const Text(
+                                    'Close request',
+                                    style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),),
+                                  tileColor: const Color.fromRGBO(255, 255, 255, 0.853),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(height: 5,),
+          Hero(
+            tag: 'ListTile-Hero',
+            child: Material(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/egKangaroo.jpg'),
+                  radius: 20,
+                ),
+                title: const Text('Eastern Grey Kangaroo'),
+                subtitle: const Text('3 years\nGrass and Fruit\nWendouree\t25m ago'),
+                tileColor: Color.fromARGB(235, 245, 246, 246),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<Widget>(
+                      builder: (BuildContext context) {
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('Eastern Grey Kangaroo')),
+                          body: Center(
+                            child: Hero(
+                              tag: 'ListTile-Hero',
+                              child: Material(
+                                child: ListTile(
+                                  title: const Text(
+                                    'Close request',
+                                    style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),),
+                                  tileColor: const Color.fromRGBO(255, 255, 255, 0.853),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 5,),
+          Hero(
+            tag: 'ListTile-Hero',
+            child: Material(
+              child: ListTile(
+                  leading: CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/barenosedWombat.jpg'),
+                  radius: 20,
+                ),
+                title: const Text('Bare-Nosed Wombat'),
+                subtitle: const Text('4 years\nGrass\nInvermay Park\t45m ago'),
+                tileColor: Color.fromARGB(235, 245, 246, 246),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<Widget>(
+                      builder: (BuildContext context) {
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('Bare-Nosed Wombat')),
+                          body: Center(
+                            child: Hero(
+                              tag: 'ListTile-Hero',
+                              child: Material(
+                                child: ListTile(
+                                  title: const Text(
+                                    'Close request',
+                                    style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),),
+                                  tileColor: const Color.fromRGBO(255, 255, 255, 0.853),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    )));
   }
 }
