@@ -77,43 +77,57 @@ body: Column(
           Hero(
             tag: 'ListTile-Hero',
             child: Material(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: AssetImage('assets/images/koala.jpg'),
-                  radius: 20,
-                ),
-                title: const Text('Koala'),
-                subtitle: const Text('5 years\nEucalyptus Leaves\nCanadian\t5m ago'),
-                tileColor: const Color.fromARGB(235, 245, 246, 246),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<Widget>(
-                      builder: (BuildContext context) {
-                        return Scaffold(
-                          appBar: AppBar(title: const Text('Koala request')),
-                          body: Center(
-                            child: Hero(
-                              tag: 'ListTile-Hero',
-                              child: Material(
-                                child: ListTile(
-                                  title: const Text(
-                                    'Close request',
-                                    style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),),
-                                  tileColor: const Color.fromRGBO(255, 255, 255, 0.853),
-                                  onTap: () {
-                                    Navigator.pop(context);
-                                  },
+              child:
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: AssetImage('assets/images/koala.jpg'),
+                      radius: 20,
+                    ),
+                    title: const Text('Koala'),
+                    subtitle: const Text('5 years\nEucalyptus Leaves\nCanadian'),
+                    trailing: const Text('5m ago'),
+                    tileColor: const Color.fromARGB(235, 245, 246, 246),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<Widget>(
+                          builder: (BuildContext context) {
+                            return Scaffold(
+                              appBar: AppBar(title: const Text('Koala request')),
+                              body: Center(
+                                child: Hero(
+                                  tag: 'ListTile-Hero',
+                                  child: Material(
+                                    // Close request button, could potentially remove Align class once populate the rest of the screen
+                                    child: Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: FractionallySizedBox(
+                                          widthFactor: 0.3,
+                                          child: Padding(
+                                            padding: EdgeInsets.all(15.0),
+                                            child: ListTile(
+                                              title: Text(
+                                              'Close request',
+                                              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+                                              textAlign: TextAlign.center,
+                                              ),
+                                            tileColor: const Color.fromRGBO(255, 255, 255, 0.853),
+                                            onTap: () {
+                                            Navigator.pop(context);
+                                            },
+                                          ), 
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
             ),
           ),
           SizedBox(height: 5,),
@@ -126,7 +140,8 @@ body: Column(
                   radius: 20,
                 ),
                 title: const Text('Eastern Grey Kangaroo'),
-                subtitle: const Text('3 years\nGrass and Fruit\nWendouree\t25m ago'),
+                subtitle: const Text('3 years\nGrass and Fruit\nWendouree'),
+                trailing: const Text('25m ago'),
                 tileColor: Color.fromARGB(235, 245, 246, 246),
                 onTap: () {
                   Navigator.push(
@@ -169,7 +184,8 @@ body: Column(
                   radius: 20,
                 ),
                 title: const Text('Bare-Nosed Wombat'),
-                subtitle: const Text('4 years\nGrass\nInvermay Park\t45m ago'),
+                subtitle: const Text('4 years\nGrass\nInvermay Park'),
+                trailing: const Text('45m ago'),
                 tileColor: Color.fromARGB(235, 245, 246, 246),
                 onTap: () {
                   Navigator.push(
