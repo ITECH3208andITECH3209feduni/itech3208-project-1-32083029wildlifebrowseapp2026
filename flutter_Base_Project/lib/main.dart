@@ -94,7 +94,29 @@ body: Column(
                           builder: (BuildContext context) {
                             return Scaffold(
                               appBar: AppBar(title: const Text('Koala request')),
-                              body: Center(
+                              body: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundImage: AssetImage('assets/images/koala.jpg'),
+                                    radius: 1
+                                  ),
+                                  title: const Text('Koala'),
+                                  subtitle: const Text('5 years'),
+                                  textColor: Color.fromARGB(235, 16, 17, 17),
+                                ),
+                                Text(
+                                  "Browse",
+                                  textAlign: TextAlign.left,
+                                  ),
+                                Text(
+                                  "Eucalyptus leaves",
+                                  textAlign: TextAlign.left,),
+                                Icon(
+                                  Icons.place
+                                ),
+                                Center(
                                 child: Hero(
                                   tag: 'ListTile-Hero',
                                   child: Material(
@@ -122,7 +144,7 @@ body: Column(
                                   ),
                                 ),
                               ),
-                            );
+                            ]));
                           },
                         ),
                       );
