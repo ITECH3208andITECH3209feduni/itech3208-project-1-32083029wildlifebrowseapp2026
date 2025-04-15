@@ -1,0 +1,43 @@
+-- Plant Table
+CREATE TABLE Plant (
+    plant_ID SERIAL PRIMARY KEY,
+    plant_Name VARCHAR(100) NOT NULL
+);
+
+-- DeliveryRequest Table
+CREATE TABLE DeliveryRequest (
+    delivery_ID SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(200) NOT NULL,
+    specifications VARCHAR(250) NOT NULL
+);
+
+-- DeliveryItem Table
+CREATE TABLE DeliveryItem (
+    item_ID SERIAL PRIMARY KEY,
+    delivery_ID INT NOT NULL,
+    plant_ID INT NOT NULL,
+    quantity SMALLINT CHECK (quantity >= 1),
+
+    FOREIGN KEY (delivery_ID) REFERENCES DeliveryRequest(delivery_ID) ON DELETE CASCADE,
+    FOREIGN KEY (plant_ID) REFERENCES Plant(plant_ID)
+);
+
+-- Insert Base Plants
+INSERT INTO Plant (plant_Name) VALUES 
+('Eucalyptus'),
+('Silverbeet'),
+('Wattle');
+
+-- Insert Base DeliveryRequest
+INSERT INTO DeliveryRequest (name, address, specifications) VALUES 
+('Ballarat Wildlife', '123 Wildlife Way, Ballarat VIC', 'Urgent browse for koalas'),
+('Native Animal Rescue', '456 Bush Way, Ballarat VIC', 'Daily feed supply for wombats'),
+('Reginalds Rescue', '789 Morgan St, Ballarat VIC', 'Lightweight browse, no toxic species');
+
+-- Insert Base DeliveryItems
+INSERT INTO DeliveryItem (delivery_ID, plant_ID, quantity) VALUES 
+(1, 1, 15),  -- Ballarat Wildlife gets 15 Eucalyptus
+(1, 2, 10),  -- Ballarat Wildlife gets 10 Silverbeet
+(2, 3, 5),   -- Bush Animal Rehab gets 5 Wattle
+(3, 2, 10);  -- Reginalds Rescue gets 10 Silverbeet

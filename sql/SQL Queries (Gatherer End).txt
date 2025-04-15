@@ -1,0 +1,47 @@
+-- Unsure if JSON is a desired Output will see if this is the go with flutter
+SELECT 
+    dr.delivery_ID,
+    dr.name AS requester_name,
+    dr.address,
+    dr.specifications,
+    GROUP_CONCAT(CONCAT(p.plant_Name, ' x', di.quantity) SEPARATOR ', ') AS items_delivered
+FROM 
+    DeliveryRequest dr
+JOIN 
+    DeliveryItem di ON dr.delivery_ID = di.delivery_ID
+JOIN 
+    Plant p ON di.plant_ID = p.plant_ID
+GROUP BY 
+    dr.delivery_ID, dr.name, dr.address, dr.specifications
+ORDER BY 
+    dr.delivery_ID;
+
+
+
+
+-- Basic JSON output for all deliveries (Will be broken into standard JSON formatting, with al appropiate names) 
+
+
+SELECT jsonb_build_object(
+  'delivery_ID', dr.delivery_ID,
+  'name', dr.name,
+  'address', dr.address,
+  'specifications', dr.specifications,
+  'items', jsonb_agg(
+    jsonb_build_object(
+      'plant_ID', p.plant_ID,
+      'plant_Name', p.plant_Name,
+      'quantity', di.quantity
+    )
+  )
+) AS delivery_json
+FROM DeliveryRequest dr
+JOIN DeliveryItem di ON dr.delivery_ID = di.delivery_ID
+JOIN Plant p ON di.plant_ID = p.plant_ID
+GROUP BY dr.delivery_ID;
+
+
+-- Return Max On Delivery_ID (Not the way that we should check if we have a new addition, not sure actually how that should be done)
+-- Return the Highest delivery_ID (for finding if there is a newer instance (store inside the Program? and recheck every 30Seconds))
+SELECT MAX(delivery_ID) AS highest_delivery_id
+FROM DeliveryRequest;
