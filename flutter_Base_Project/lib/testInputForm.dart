@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -55,14 +54,17 @@ class _MyHomePageState extends State<MyHomePage> {
       TextEditingController();
 
   final List<String> animalList = ['Koala', 'Wombat', 'Kangaroo', "Other"];
-  final List<String> browseList = ['Eculptus', 'Treee', 'Wood', "Bush", "Other"]; 
-  
+  final List<String> browseList = ['Eucalyptus','Silverbeet','Wattle'];
+
+ 
+
+
   String? _selectedAnimal;
   String? _selectedBrowse;
 
-  // List of delivery items 
+  // List of delivery items
   final List<DeliveryItem> _deliveryItems = [
-    DeliveryItem(browseName: "Eculptus", browseQuantity: "1"),
+    DeliveryItem(browseName: "Eucalyptus", browseQuantity: "1"),
   ];
 
   @override
@@ -110,7 +112,6 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }),
 
-
       ElevatedButton(
         onPressed: () {
           print("Delivery Item Added");
@@ -118,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
             _deliveryItems.add(
               DeliveryItem(
                 browseName: "$_selectedBrowse",
-                browseQuantity: _quantityBrowseController.text
+                browseQuantity: _quantityBrowseController.text,
               ),
             );
           });
@@ -126,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Text('Add Delivery Item'),
       ),
 
+      // NEEDS TO BE MADE
       ElevatedButton(
         onPressed: () {
           print("Delivery Item Removed");
@@ -140,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       SizedBox(height: 32),
-
+      // Button to send data to terminal so its properly being read
       ElevatedButton(
         onPressed: () {
           print("Full Name: ${_firstNameController.text}");
@@ -155,8 +157,58 @@ class _MyHomePageState extends State<MyHomePage> {
             print('     ${i + 1}. ${_deliveryItems[i].browseName}(Index: $browseIndex):${_deliveryItems[i].browseQuantity}m³');
           }
         },
-        child: Text('Submit Complete Form'),
+        child: Text('Test Complete Form To Terminal'),
       ),
+
+
+      SizedBox(height: 12),
+      
+      // Button to send data to the PostgreS Server Through Node.JS
+      ElevatedButton(
+        onPressed: () async {
+          // Build your items list from _deliveryItems
+          List<Map<String, dynamic>> items =
+              _deliveryItems
+                  .map(
+                    (item) => {
+                      'plant_ID': browseList.indexOf(item.browseName) + 1, // Assuming browseName comes from browseList
+                      'quantity': item.browseQuantity,
+                    },
+                  )
+                  .toList();
+
+          // Build the final JSON body
+          Map<String, dynamic> deliveryData = {
+            "name": _firstNameController.text,
+            "address": _addressController.text,
+            "specifications": _specificationsController.text,
+            "items": items,
+          };
+
+          try {
+            // Send HTTP POST request
+            final response = await http.post(
+              Uri.parse('http://localhost:3000/create-delivery'),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode(deliveryData),
+            );
+
+            if (response.statusCode == 201) {
+              final responseData = jsonDecode(response.body);
+              print('Delivery Created ID: ${responseData['delivery_ID']}');
+            } else {
+              print('Server Error: ${response.statusCode}');
+              print(response.body);
+            }
+          } catch (error) {
+            print('Failed Send Delivery: $error');
+          }
+        },
+        child: Text('Submit Complete Form To PostGres'),
+      ),
+
+
+
     ],
   );
 
@@ -176,40 +228,48 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   ListTile animalDropdown() => ListTile(
-  title: DropdownButtonFormField<String>(
-    decoration: InputDecoration(
-      labelText: 'Animal',
-      border: OutlineInputBorder(),
+    title: DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: 'Animal',
+        border: OutlineInputBorder(),
+      ),
+      value: _selectedAnimal,
+      items:
+          animalList
+              .map(
+                (animal) =>
+                    DropdownMenuItem(value: animal, child: Text(animal)),
+              )
+              .toList(),
+      onChanged: (newValue) {
+        setState(() {
+          _selectedAnimal = newValue;
+        });
+      },
     ),
-    value: _selectedAnimal,
-    items: animalList
-        .map((animal) => DropdownMenuItem(value: animal, child: Text(animal)))
-        .toList(),
-    onChanged: (newValue) {
-      setState(() {
-        _selectedAnimal = newValue;
-      });
-    },
-  ),
-);
+  );
 
-ListTile browseDropdown() => ListTile(
-  title: DropdownButtonFormField<String>(
-    decoration: InputDecoration(
-      labelText: 'Browse',
-      border: OutlineInputBorder(),
+  ListTile browseDropdown() => ListTile(
+    title: DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: 'Browse',
+        border: OutlineInputBorder(),
+      ),
+      value: _selectedBrowse,
+      items:
+          browseList
+              .map(
+                (browse) =>
+                    DropdownMenuItem(value: browse, child: Text(browse)),
+              )
+              .toList(),
+      onChanged: (newValue) {
+        setState(() {
+          _selectedBrowse = newValue;
+        });
+      },
     ),
-    value: _selectedBrowse,
-    items: browseList
-        .map((browse) => DropdownMenuItem(value: browse, child: Text(browse)))
-        .toList(),
-    onChanged: (newValue) {
-      setState(() {
-        _selectedBrowse = newValue;
-      });
-    },
-  ),
-);
+  );
 
   @override
   Widget build(BuildContext context) {
