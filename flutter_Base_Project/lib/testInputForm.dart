@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 void main() {
   runApp(const MyApp());
@@ -51,6 +54,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _quantityBrowseController =
       TextEditingController();
 
+  final List<String> animalList = ['Koala', 'Wombat', 'Kangaroo', "Other"];
+  final List<String> browseList = ['Eculptus', 'Treee', 'Wood', "Bush", "Other"]; 
+  
   String? _selectedAnimal;
   String? _selectedBrowse;
 
@@ -140,11 +146,13 @@ class _MyHomePageState extends State<MyHomePage> {
           print("Full Name: ${_firstNameController.text}");
           print("Address: ${_addressController.text}");
           print("Specifications: ${_specificationsController.text}");
-          print("Selected Animal: $_selectedAnimal");
+          int animalIndex = _selectedAnimal != null ? animalList.indexOf(_selectedAnimal!) : -1;
+          print("Selected Animal: $_selectedAnimal (Index: $animalIndex)");
           print("Animal Age: ${_selectedAnimalAgeController.text}");
           print("DeliveryItems:");
           for (int i = 0; i < _deliveryItems.length; i++) {
-            print('     ${i + 1}. ${_deliveryItems[i].browseName}:${_deliveryItems[i].browseQuantity}m³');
+            int browseIndex = _selectedBrowse != null ? browseList.indexOf(_selectedBrowse!) : -1;
+            print('     ${i + 1}. ${_deliveryItems[i].browseName}(Index: $browseIndex):${_deliveryItems[i].browseQuantity}m³');
           }
         },
         child: Text('Submit Complete Form'),
@@ -168,48 +176,40 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   ListTile animalDropdown() => ListTile(
-    title: DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Animal',
-        border: OutlineInputBorder(),
-      ),
-      value: _selectedAnimal,
-      items:
-          ['Koala', 'Wombat', 'Kangaroo', "Other"]
-              .map(
-                (animal) =>
-                    DropdownMenuItem(value: animal, child: Text(animal)),
-              )
-              .toList(),
-      onChanged: (newValue) {
-        setState(() {
-          _selectedAnimal = newValue;
-        });
-      },
+  title: DropdownButtonFormField<String>(
+    decoration: InputDecoration(
+      labelText: 'Animal',
+      border: OutlineInputBorder(),
     ),
-  );
+    value: _selectedAnimal,
+    items: animalList
+        .map((animal) => DropdownMenuItem(value: animal, child: Text(animal)))
+        .toList(),
+    onChanged: (newValue) {
+      setState(() {
+        _selectedAnimal = newValue;
+      });
+    },
+  ),
+);
 
-  ListTile browseDropdown() => ListTile(
-    title: DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Browse',
-        border: OutlineInputBorder(),
-      ),
-      value: _selectedBrowse,
-      items:
-          ['Eculptus', 'Treee', 'Wood', "Bush", "Other"]
-              .map(
-                (browse) =>
-                    DropdownMenuItem(value: browse, child: Text(browse)),
-              )
-              .toList(),
-      onChanged: (newValue) {
-        setState(() {
-          _selectedBrowse = newValue;
-        });
-      },
+ListTile browseDropdown() => ListTile(
+  title: DropdownButtonFormField<String>(
+    decoration: InputDecoration(
+      labelText: 'Browse',
+      border: OutlineInputBorder(),
     ),
-  );
+    value: _selectedBrowse,
+    items: browseList
+        .map((browse) => DropdownMenuItem(value: browse, child: Text(browse)))
+        .toList(),
+    onChanged: (newValue) {
+      setState(() {
+        _selectedBrowse = newValue;
+      });
+    },
+  ),
+);
 
   @override
   Widget build(BuildContext context) {
