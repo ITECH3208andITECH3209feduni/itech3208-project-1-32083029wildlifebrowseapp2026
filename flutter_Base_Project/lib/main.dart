@@ -113,9 +113,14 @@ body: Column(
                                 Text(
                                   "Eucalyptus leaves",
                                   textAlign: TextAlign.left,),
-                                Icon(
-                                  Icons.place
-                                ),
+                                RichText(text: TextSpan(
+                                  children: [
+                                    WidgetSpan(child: Icon(Icons.place, size: 14)),
+                                    TextSpan(
+                                      text: "231 Way, Ballarat Central, 3350",
+                                    ),
+                                  ]
+                                )),
                                 Center(
                                 child: Hero(
                                   tag: 'ListTile-Hero',
