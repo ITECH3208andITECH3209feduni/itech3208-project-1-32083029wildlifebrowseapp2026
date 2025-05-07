@@ -27,6 +27,7 @@ SELECT jsonb_build_object(
   'name', dr.name,
   'address', dr.address,
   'specifications', dr.specifications,
+  'animal_ID', dr.animal_ID,
   'items', jsonb_agg(
     jsonb_build_object(
       'plant_ID', p.plant_ID,

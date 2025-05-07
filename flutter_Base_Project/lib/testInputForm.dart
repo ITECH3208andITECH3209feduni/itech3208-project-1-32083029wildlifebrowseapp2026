@@ -167,6 +167,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ElevatedButton(
         onPressed: () async {
           // Build your items list from _deliveryItems
+          int? animalIndex = _selectedAnimal != null ? animalList.indexOf(_selectedAnimal!) : null;
+
           List<Map<String, dynamic>> items =
               _deliveryItems
                   .map(
@@ -183,6 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
             "address": _addressController.text,
             "specifications": _specificationsController.text,
             "items": items,
+            "animal_ID": animalIndex != null ? animalIndex + 1 : null,
           };
 
           try {
