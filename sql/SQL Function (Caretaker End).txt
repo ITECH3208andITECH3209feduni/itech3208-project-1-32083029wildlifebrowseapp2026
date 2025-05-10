@@ -44,6 +44,7 @@ CREATE OR REPLACE FUNCTION create_full_delivery(
     in_name VARCHAR,
     in_address VARCHAR,
     in_specifications VARCHAR,
+    in_animal_id INT,
     in_items delivery_item_type[]
 ) RETURNS INTEGER
 LANGUAGE plpgsql
@@ -53,8 +54,8 @@ DECLARE
     item delivery_item_type;
 BEGIN
     -- Insert the Delivery Request and capture its ID
-    INSERT INTO DeliveryRequest (name, address, specifications)
-    VALUES (in_name, in_address, in_specifications)
+    INSERT INTO DeliveryRequest (name, address, specifications,animal_ID)
+    VALUES (in_name, in_address, in_specifications,in_animal_ID)
     RETURNING delivery_ID INTO new_delivery_id;
 
     -- Loop over each item and insert into DeliveryItem
@@ -76,6 +77,7 @@ SELECT create_full_delivery(
     'Wildlife Park',
     '22 Leaf Street, Ballarat VIC',
     'Koala daily feed',
+    1,
     ARRAY[
         ROW(1, 20)::delivery_item_type,  -- Eucalyptus, 20
         ROW(2, 15)::delivery_item_type   -- Silverbeet, 15
