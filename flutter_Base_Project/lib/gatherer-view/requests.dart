@@ -59,6 +59,75 @@ class _RequestBoardState extends State<GathererHomePage>
 
   String selectedPage = '';
 
+  GestureTapCallback drawerButton(String page) {
+    return () {
+      setState(() {
+        selectedPage = page;
+      });
+      Navigator.pop(context);
+    };
+  }
+
+  Widget _gathererDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Color.fromRGBO(46, 165, 107, 1)),
+            child: Text(
+              'Hi David',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.message),
+            title: const Text('Messages'),
+            onTap: drawerButton('Messages'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_circle),
+            title: const Text('Profile'),
+            onTap: drawerButton('Profile'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: drawerButton('Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget RequestTile(String animal) {
+    return Hero(
+      tag: animal,
+      child: Material(
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundImage: AssetImage('assets/images/$animal.jpg'),
+            radius: 20,
+          ),
+          title: Text(animal),
+          subtitle: const Text('Eucalyptus Leaves\nCanadian'),
+          trailing: const Text('5m ago'),
+          tileColor: const Color.fromARGB(235, 245, 246, 246),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<Widget>(
+                builder:
+                    (BuildContext context) =>
+                        const DetailedRequest(title: 'Request Details'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const String appTitle = 'Requests';
@@ -84,77 +153,11 @@ class _RequestBoardState extends State<GathererHomePage>
               ),
             ],
           ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                const DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(46, 165, 107, 1),
-                  ),
-                  child: Text(
-                    'Hi David',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.message),
-                  title: const Text('Messages'),
-                  onTap: () {
-                    setState(() {
-                      selectedPage = 'Messages';
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.account_circle),
-                  title: const Text('Profile'),
-                  onTap: () {
-                    setState(() {
-                      selectedPage = 'Profile';
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
-                  onTap: () {
-                    setState(() {
-                      selectedPage = 'Settings';
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
+          drawer: _gathererDrawer(),
           // Request board
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Hero(
-                tag: 'Koala',
-                child: Material(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: AssetImage('assets/images/koala.jpg'),
-                      radius: 20,
-                    ),
-                    title: const Text('Koala'),
-                    subtitle: const Text('Eucalyptus Leaves\nCanadian'),
-                    trailing: const Text('5m ago'),
-                    tileColor: const Color.fromARGB(235, 245, 246, 246),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<Widget>(
-                          builder: (BuildContext context) => const DetailedRequest(title: 'Request Details'),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
+            children: <Widget>[RequestTile('Koala'), RequestTile('Kangaroo')],
           ),
         ),
       ),
@@ -191,6 +194,160 @@ class DetailedRequest extends StatefulWidget {
 class _DetailedRequestState extends State<DetailedRequest> {
   bool _showAddress = false;
 
+  Widget header(String animal) {
+    return Row(
+      children: <Widget>[
+        SizedBox(
+          width: 100,
+          height: 100,
+          child: Image(
+            image: AssetImage('assets/images/$animal.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        Column(
+          children: <Widget>[
+            Text(
+              animal, // TODO Need to give proper padding
+              style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget browsePanel() {
+    return Align(
+      alignment:
+          Alignment.bottomLeft, // TODO fix formatting, implement differently?
+      child: Column(
+        children: [
+          Text("Browse", textAlign: TextAlign.left),
+          Text("Eucalyptus leaves", textAlign: TextAlign.left),
+        ],
+      ),
+    );
+  }
+
+  Widget deliveryAddress() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            WidgetSpan(child: Icon(Icons.place, size: 14)),
+            _showAddress
+                ? TextSpan(text: "Delivery address\n231 Way, Canadian, 3350")
+                // Will probably reimplement this to dynamically call for address once request accepted for security
+                : TextSpan(text: "Delivery address\n******** Canadian, 3350"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget directionsPanel() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            WidgetSpan(child: Icon(Icons.place, size: 14)),
+            TextSpan(text: "Nearest browse\n"),
+            WidgetSpan(
+              child: GestureDetector(
+                onTap: () async {
+                  const url = 'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
+                  try {
+                    await launchUrl(Uri.parse(url));
+                  } catch (e) {
+                    print(
+                      'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
+                    );
+                  }
+                },
+                child: const Text(
+                  "View on google maps",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget timelapse() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
+            TextSpan(text: "Submitted 2h ago"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget requestButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Flexible(
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Color.fromARGB(218, 166, 247, 146),
+              minimumSize: Size(101, 38),
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(7)),
+              ),
+            ),
+            onPressed: () {
+              // Accept button action
+              setState(() {
+                _showAddress = true;
+              });
+            },
+            child: Text(
+              'Accept',
+              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        Flexible(
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Color.fromARGB(218, 250, 250, 250),
+              side: BorderSide(color: Colors.black12),
+              minimumSize: Size(101, 38),
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(7)),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Close',
+              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,157 +358,25 @@ class _DetailedRequestState extends State<DetailedRequest> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: Image(
-                    image: AssetImage('assets/images/koala.jpg'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Column(
-                  children: <Widget>[
-                    Text(
-                      '  Koala', // TODO Need to give proper padding
-                      style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            header('Koala'),
             SizedBox(
               height: 20.0,
             ), // TODO May need to change this to a relative unit
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Browse", textAlign: TextAlign.left),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Eucalyptus leaves", textAlign: TextAlign.left),
-            ),
+            browsePanel(),
             const SizedBox(
               height: 15.0,
             ), // TODO May need to change this to a relative unit
-            Align(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    WidgetSpan(child: Icon(Icons.place, size: 14)),
-                    _showAddress
-                        ? TextSpan(
-                          text:
-                              "Delivery address\n231 Way, Ballarat Central, 3350",
-                        )
-                        : TextSpan(text: "Delivery address\nHidden"),
-                  ],
-                ),
-              ),
-            ),
+            deliveryAddress(),
             const SizedBox(
               height: 10.0,
             ), // TODO May need to change this to a relative unit
-            Align(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    WidgetSpan(child: Icon(Icons.place, size: 14)),
-                    TextSpan(text: "Nearest browse\n"),
-                    WidgetSpan(
-                      child: GestureDetector(
-                        onTap: () async {
-                          const url =
-                              'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
-                          try {
-                            await launchUrl(Uri.parse(url));
-                          } catch (e) {
-                            print(
-                              'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
-                            );
-                          }
-                        },
-                        child: const Text(
-                          "View on google maps",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            directionsPanel(),
             const SizedBox(
               height: 10.0,
             ), // TODO May need to change this to a relative unit
-            Align(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
-                    TextSpan(text: "Submitted 2h ago"),
-                  ],
-                ),
-              ),
-            ),
+            timelapse(),
             const SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Flexible(
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Color.fromARGB(218, 166, 247, 146),
-                      minimumSize: Size(101, 38),
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(7)),
-                      ),
-                    ),
-                    onPressed: () {
-                      // Accept button action
-                      // Navigator.pop(context);
-                      setState(() {
-                        _showAddress = true;
-                      });
-                    },
-                    child: Text(
-                      'Accept',
-                      style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Flexible(
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Color.fromARGB(218, 250, 250, 250),
-                      side: BorderSide(color: Colors.black12),
-                      minimumSize: Size(101, 38),
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(7)),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Close',
-                      style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            requestButtons(),
           ],
         ),
       ),
