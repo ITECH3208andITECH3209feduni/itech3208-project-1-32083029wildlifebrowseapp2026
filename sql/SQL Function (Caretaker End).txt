@@ -43,6 +43,7 @@ SELECT insert_delivery_items(
 CREATE OR REPLACE FUNCTION create_full_delivery(
     in_name VARCHAR,
     in_address VARCHAR,
+    in_postcode VARCHAR,
     in_specifications VARCHAR,
     in_animal_id INT,
     in_items delivery_item_type[]
@@ -54,8 +55,8 @@ DECLARE
     item delivery_item_type;
 BEGIN
     -- Insert the Delivery Request and capture its ID
-    INSERT INTO DeliveryRequest (name, address, specifications,animal_ID)
-    VALUES (in_name, in_address, in_specifications,in_animal_ID)
+    INSERT INTO DeliveryRequest (name, address,postcode, specifications,animal_ID)
+    VALUES (in_name, in_address,in_postcode, in_specifications,in_animal_ID)
     RETURNING delivery_ID INTO new_delivery_id;
 
     -- Loop over each item and insert into DeliveryItem
@@ -76,6 +77,7 @@ $$;
 SELECT create_full_delivery(
     'Wildlife Park',
     '22 Leaf Street, Ballarat VIC',
+    3350,
     'Koala daily feed',
     1,
     ARRAY[

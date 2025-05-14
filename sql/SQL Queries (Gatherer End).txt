@@ -3,6 +3,7 @@ SELECT
     dr.delivery_ID,
     dr.name AS requester_name,
     dr.address,
+    dr.postcode,
     dr.specifications,
     GROUP_CONCAT(CONCAT(p.plant_Name, ' x', di.quantity) SEPARATOR ', ') AS items_delivered
 FROM 
@@ -26,8 +27,12 @@ SELECT jsonb_build_object(
   'delivery_ID', dr.delivery_ID,
   'name', dr.name,
   'address', dr.address,
+  'postcode' dr.postcode,
   'specifications', dr.specifications,
-  'animal_ID', dr.animal_ID,
+  'animal', jsonb_build_object(
+      'animal_ID', a.animal_ID,
+      'animal_Name', a.animal_Name
+  ),
   'items', jsonb_agg(
     jsonb_build_object(
       'plant_ID', p.plant_ID,
@@ -37,9 +42,10 @@ SELECT jsonb_build_object(
   )
 ) AS delivery_json
 FROM DeliveryRequest dr
+LEFT JOIN Animal a ON dr.animal_ID = a.animal_ID
 JOIN DeliveryItem di ON dr.delivery_ID = di.delivery_ID
 JOIN Plant p ON di.plant_ID = p.plant_ID
-GROUP BY dr.delivery_ID;
+GROUP BY dr.delivery_ID, a.animal_ID;
 
 
 -- Return Max On Delivery_ID (Not the way that we should check if we have a new addition, not sure actually how that should be done)
