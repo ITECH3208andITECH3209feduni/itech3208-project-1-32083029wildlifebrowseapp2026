@@ -1,14 +1,20 @@
 const testRequestJson = {
-  "delivery_ID": 1,
-  "name": "Ballarat Wildlife",
-  "address": "123 Wildlife Way, Ballarat VIC",
-  "specifications": "Urgent browse for koalas",
-  "animal_ID": 1,
-  "animal_name": "Koala",
+  "name": "Reginalds Rescue",
   "items": [
-    {"plant_ID": 1, "plant_Name": "Eucalyptus", "quantity": 15},
-    {"plant_ID": 2, "plant_Name": "Silverbeet", "quantity": 10}
-  ]
+    {
+      "plant_ID": 2,
+      "quantity": 10,
+      "plant_Name": "Silverbeet"
+    }
+  ],
+  "animal": {
+    "animal_ID": 3,
+    "animal_Name": "Kangaroo"
+  },
+  "address": "789 Morgan St, Ballarat VIC",
+  "postcode": "3350",
+  "delivery_ID": 3,
+  "specifications": "Lightweight browse, no toxic species"
 };
 // Use this Improt to test the mock data
 // import 'test_data.dart';
