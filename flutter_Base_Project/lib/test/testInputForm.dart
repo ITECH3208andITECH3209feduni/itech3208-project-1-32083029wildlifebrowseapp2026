@@ -46,12 +46,16 @@ class DeliveryItem {
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _postcodeAddressController =
+      TextEditingController();
   final TextEditingController _specificationsController =
       TextEditingController();
   final TextEditingController _selectedAnimalAgeController =
       TextEditingController();
   final TextEditingController _quantityBrowseController =
       TextEditingController();
+   
+      
 
   final List<String> animalList = ['Koala', 'Wombat', 'Kangaroo', "Other"];
   final List<String> browseList = ['Eucalyptus','Silverbeet','Wattle'];
@@ -71,6 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     _firstNameController.dispose();
     _addressController.dispose();
+    _postcodeAddressController.dispose();
     _specificationsController.dispose();
     _selectedAnimalAgeController.dispose();
     _quantityBrowseController.dispose();
@@ -83,6 +88,8 @@ class _MyHomePageState extends State<MyHomePage> {
       inputField("Full Name", _firstNameController),
       SizedBox(height: 32),
       inputField("Address", _addressController),
+      SizedBox(height: 32),
+       inputField("Postcode", _postcodeAddressController),
       SizedBox(height: 32),
       inputField("Specifications", _specificationsController),
       SizedBox(height: 32),
@@ -147,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           print("Full Name: ${_firstNameController.text}");
           print("Address: ${_addressController.text}");
+          print("Postcode: ${_postcodeAddressController.text}");
           print("Specifications: ${_specificationsController.text}");
           int animalIndex = _selectedAnimal != null ? animalList.indexOf(_selectedAnimal!) : -1;
           print("Selected Animal: $_selectedAnimal (Index: $animalIndex)");
@@ -183,6 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Map<String, dynamic> deliveryData = {
             "name": _firstNameController.text,
             "address": _addressController.text,
+            "postcode": _postcodeAddressController.text,
             "specifications": _specificationsController.text,
             "items": items,
             "animal_ID": animalIndex != null ? animalIndex + 1 : null,
