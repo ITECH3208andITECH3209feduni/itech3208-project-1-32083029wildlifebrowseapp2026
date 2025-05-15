@@ -77,7 +77,7 @@ $$;
 SELECT create_full_delivery(
     'Wildlife Park',
     '22 Leaf Street, Ballarat VIC',
-    3350,
+    '3350',
     'Koala daily feed',
     1,
     ARRAY[

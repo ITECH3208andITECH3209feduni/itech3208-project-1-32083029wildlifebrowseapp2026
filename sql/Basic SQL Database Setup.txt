@@ -1,4 +1,3 @@
--- Plant Table
 CREATE TABLE Plant (
     plant_ID SERIAL PRIMARY KEY,
     plant_Name VARCHAR(40) NOT NULL
@@ -13,7 +12,7 @@ CREATE TABLE DeliveryRequest (
     delivery_ID SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     address VARCHAR(100) NOT NULL,
-    postcode VARCHAR(4)
+    postcode VARCHAR(4),
     specifications VARCHAR(200) NOT NULL,
     animal_ID INT NULL,
     FOREIGN KEY (animal_ID) REFERENCES Animal(animal_ID) ON DELETE SET NULL
@@ -44,10 +43,10 @@ INSERT INTO Plant (plant_Name) VALUES
 ('Wattle');
 
 -- Insert Base DeliveryRequest
-INSERT INTO DeliveryRequest (name,address,specifications,animal_ID) VALUES 
-('Ballarat Wildlife','123 Wildlife Way, Ballarat VIC',3350,'Urgent browse for koalas',1), --koala
-('Native Animal Rescue','456 Bush Way, Ballarat VIC',3350,'Daily feed supply for wombats',2),  --wombat
-('Reginalds Rescue','789 Morgan St, Ballarat VIC',3350,'Lightweight browse, no toxic species',3); --kangaroo
+INSERT INTO DeliveryRequest (name,address,postcode,specifications,animal_ID) VALUES 
+('Ballarat Wildlife','123 Wildlife Way, Ballarat VIC','3350','Urgent browse for koalas',1), --koala
+('Native Animal Rescue','456 Bush Way, Ballarat VIC','3350','Daily feed supply for wombats',2),  --wombat
+('Reginalds Rescue','789 Morgan St, Ballarat VIC','3350','Lightweight browse, no toxic species',3); --kangaroo
 
 -- Insert Base DeliveryItems
 INSERT INTO DeliveryItem (delivery_ID, plant_ID, quantity) VALUES 
@@ -55,4 +54,3 @@ INSERT INTO DeliveryItem (delivery_ID, plant_ID, quantity) VALUES
 (1, 2, 10),  -- Ballarat Wildlife gets 10 Silverbeet
 (2, 3, 5),   -- Bush Animal Rehab gets 5 Wattle
 (3, 2, 10);  -- Reginalds Rescue gets 10 Silverbeet
-
