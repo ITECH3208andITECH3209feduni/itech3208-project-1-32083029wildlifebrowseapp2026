@@ -23,14 +23,14 @@ app.post('/create-delivery', async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { name, address,postcode,specifications,animal_ID, items } = req.body;
+    const { name, address, postcode, specifications, animal_ID, items } = req.body;
 
     // Map JavaScript objects to PostgreSQL composite type text format
     const pgItemsArray = items.map(item => `(${item.plant_ID},${item.quantity})`);
 
     const result = await client.query(
       `SELECT create_full_delivery($1, $2, $3, $4, $5, $6::delivery_item_type[]) AS delivery_id`,
-      [name, address,postcode, specifications,animal_ID, pgItemsArray]
+      [name, address, postcode, specifications, animal_ID, pgItemsArray]
     );
 
     const delivery_ID = result.rows[0].delivery_id;
@@ -39,6 +39,22 @@ app.post('/create-delivery', async (req, res) => {
   } catch (error) {
     console.error("Error processing delivery:", error);
     res.status(500).send('Server error while creating delivery.');
+  } finally {
+    client.release();
+  }
+});
+
+// New endpoint: Get latest delivery JSON
+app.get('/latest-delivery', async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(`SELECT get_latest_delivery_json() AS delivery_json`);
+    const deliveryJson = result.rows[0].delivery_json;
+    res.status(200).json(deliveryJson);
+  } catch (error) {
+    console.error("Error fetching latest delivery:", error);
+    res.status(500).send('Server error while fetching latest delivery.');
   } finally {
     client.release();
   }

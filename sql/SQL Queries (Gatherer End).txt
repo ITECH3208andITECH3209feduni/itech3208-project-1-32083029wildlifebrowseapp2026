@@ -52,3 +52,45 @@ GROUP BY dr.delivery_ID, a.animal_ID;
 -- Return the Highest delivery_ID (for finding if there is a newer instance (store inside the Program? and recheck every 30Seconds))
 SELECT MAX(delivery_ID) AS highest_delivery_id
 FROM DeliveryRequest;
+
+
+
+
+CREATE OR REPLACE FUNCTION get_latest_delivery_json()
+RETURNS jsonb AS $$
+DECLARE
+  result jsonb;
+BEGIN
+  WITH latest_delivery AS (
+    SELECT MAX(delivery_ID) AS max_id
+    FROM DeliveryRequest
+  )
+  SELECT jsonb_build_object(
+    'delivery_ID', dr.delivery_ID,
+    'name', dr.name,
+    'address', dr.address,
+    'postcode', dr.postcode,
+    'specifications', dr.specifications,
+    'animal', jsonb_build_object(
+        'animal_ID', a.animal_ID,
+        'animal_Name', a.animal_Name
+    ),
+    'items', jsonb_agg(
+      jsonb_build_object(
+        'plant_ID', p.plant_ID,
+        'plant_Name', p.plant_Name,
+        'quantity', di.quantity
+      )
+    )
+  )
+  INTO result
+  FROM DeliveryRequest dr
+  LEFT JOIN Animal a ON dr.animal_ID = a.animal_ID
+  JOIN DeliveryItem di ON dr.delivery_ID = di.delivery_ID
+  JOIN Plant p ON di.plant_ID = p.plant_ID
+  JOIN latest_delivery ld ON dr.delivery_ID = ld.max_id
+  GROUP BY dr.delivery_ID, a.animal_ID;
+
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
