@@ -1,0 +1,146 @@
+CREATE TABLE Plant (
+    plant_ID SERIAL PRIMARY KEY,
+    plant_Name VARCHAR(40) NOT NULL
+);
+-- Table Animals
+CREATE TABLE Animal (
+    animal_ID SERIAL PRIMARY KEY,
+    animal_Name VARCHAR(40) NOT NULL
+);
+-- DeliveryRequest Table
+CREATE TABLE DeliveryRequest (
+    delivery_ID SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    address VARCHAR(100) NOT NULL,
+    postcode VARCHAR(4),
+    specifications VARCHAR(200) NOT NULL,
+    animal_ID INT NULL,
+    FOREIGN KEY (animal_ID) REFERENCES Animal(animal_ID) ON DELETE SET NULL
+);
+
+-- DeliveryItem Table
+CREATE TABLE DeliveryItem (
+    item_ID SERIAL PRIMARY KEY,
+    delivery_ID INT NOT NULL,
+    plant_ID INT NOT NULL,
+    quantity SMALLINT CHECK (quantity >= 1),
+    FOREIGN KEY (delivery_ID) REFERENCES DeliveryRequest(delivery_ID) ON DELETE CASCADE,
+    FOREIGN KEY (plant_ID) REFERENCES Plant(plant_ID)
+);
+
+-- Insert Base Animals
+INSERT INTO Animal (animal_Name) VALUES 
+('Koala'),
+('Wombat'),
+('Kangaroo'),
+('Other');
+
+
+-- Insert Base Plants
+INSERT INTO Plant (plant_Name) VALUES 
+('Eucalyptus'),
+('Silverbeet'),
+('Wattle');
+
+-- Insert Base DeliveryRequest
+INSERT INTO DeliveryRequest (name,address,postcode,specifications,animal_ID) VALUES 
+('Ballarat Wildlife','123 Wildlife Way, Ballarat VIC','3350','Urgent browse for koalas',1), --koala
+('Native Animal Rescue','456 Bush Way, Ballarat VIC','3350','Daily feed supply for wombats',2),  --wombat
+('Reginalds Rescue','789 Morgan St, Ballarat VIC','3350','Lightweight browse, no toxic species',3); --kangaroo
+
+-- Insert Base DeliveryItems
+INSERT INTO DeliveryItem (delivery_ID, plant_ID, quantity) VALUES 
+(1, 1, 15),  -- Ballarat Wildlife gets 15 Eucalyptus
+(1, 2, 10),  -- Ballarat Wildlife gets 10 Silverbeet
+(2, 3, 5),   -- Bush Animal Rehab gets 5 Wattle
+(3, 2, 10);  -- Reginalds Rescue gets 10 Silverbeet                                                                                          -- For use in the Loops to define what a plant_id and quantity input go into
+CREATE TYPE delivery_item_type AS (
+    plant_id INT,
+    quantity SMALLINT
+);
+
+
+
+-- Procedure to Insert Delivery Items into Specific Request (For Editing maybe)
+CREATE OR REPLACE FUNCTION insert_delivery_items(
+    in_delivery_id INT,
+    in_items delivery_item_type[]
+) RETURNS VOID AS $$
+DECLARE
+    item delivery_item_type;
+BEGIN
+    -- Loop over each item in the input array
+    FOREACH item IN ARRAY in_items
+    LOOP
+        INSERT INTO DeliveryItem (delivery_ID, plant_ID, quantity)
+        VALUES (in_delivery_id, item.plant_id, item.quantity);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;                                                                                                                                 CREATE OR REPLACE FUNCTION create_full_delivery(
+    in_name VARCHAR,
+    in_address VARCHAR,
+    in_postcode VARCHAR,
+    in_specifications VARCHAR,
+    in_animal_id INT,
+    in_items delivery_item_type[]
+) RETURNS INTEGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_delivery_id INTEGER;
+    item delivery_item_type;
+BEGIN
+    -- Insert the Delivery Request and capture its ID
+    INSERT INTO DeliveryRequest (name, address,postcode, specifications,animal_ID)
+    VALUES (in_name, in_address,in_postcode, in_specifications,in_animal_ID)
+    RETURNING delivery_ID INTO new_delivery_id;
+
+    -- Loop over each item and insert into DeliveryItem
+    FOREACH item IN ARRAY in_items
+    LOOP
+        INSERT INTO DeliveryItem (delivery_ID, plant_ID, quantity)
+        VALUES (new_delivery_id, item.plant_id, item.quantity);
+    END LOOP;
+
+    -- Basic return for delivery_ID (For Refrence)
+    RETURN new_delivery_id;
+END;
+$$;
+ CREATE OR REPLACE FUNCTION get_latest_delivery_json()
+RETURNS jsonb AS $$
+DECLARE
+  result jsonb;
+BEGIN
+  WITH latest_delivery AS (
+    SELECT MAX(delivery_ID) AS max_id
+    FROM DeliveryRequest
+  )
+  SELECT jsonb_build_object(
+    'delivery_ID', dr.delivery_ID,
+    'name', dr.name,
+    'address', dr.address,
+    'postcode', dr.postcode,
+    'specifications', dr.specifications,
+    'animal', jsonb_build_object(
+        'animal_ID', a.animal_ID,
+        'animal_Name', a.animal_Name
+    ),
+    'items', jsonb_agg(
+      jsonb_build_object(
+        'plant_ID', p.plant_ID,
+        'plant_Name', p.plant_Name,
+        'quantity', di.quantity
+      )
+    )
+  )
+  INTO result
+  FROM DeliveryRequest dr
+  LEFT JOIN Animal a ON dr.animal_ID = a.animal_ID
+  JOIN DeliveryItem di ON dr.delivery_ID = di.delivery_ID
+  JOIN Plant p ON di.plant_ID = p.plant_ID
+  JOIN latest_delivery ld ON dr.delivery_ID = ld.max_id
+  GROUP BY dr.delivery_ID, a.animal_ID;
+
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
