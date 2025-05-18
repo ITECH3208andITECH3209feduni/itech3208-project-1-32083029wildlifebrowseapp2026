@@ -22,12 +22,12 @@ class CaretakerRoute extends StatelessWidget {
 class DeliveryItem {
   final String browseName;
   final String browseQuantity;
-  bool selected;
+  bool isSelected;
 
   DeliveryItem({
     required this.browseName,
     required this.browseQuantity,
-    this.selected = false,
+    this.isSelected = false,
   });
 }
 
@@ -40,20 +40,19 @@ class CaretakerHomePage extends StatefulWidget {
 }
 
 class _CaretakerHomePageState extends State<CaretakerHomePage> {
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _deliveryAddressController =
+      TextEditingController();
   final TextEditingController _specificationsController =
       TextEditingController();
-  final TextEditingController _selectedAnimalAgeController =
-      TextEditingController();
-  final TextEditingController _quantityBrowseController =
+  final TextEditingController _browseQuantityController =
       TextEditingController();
 
-  final List<String> animalList = ['Koala', 'Wombat', 'Kangaroo', "Other"];
-  final List<String> browseList = ['Eucalyptus', 'Silverbeet', 'Wattle'];
+  final List<String> _animalOptions = ['Koala', 'Wombat', 'Kangaroo', "Other"];
+  final List<String> _browseOptions = ['Eucalyptus', 'Silverbeet', 'Wattle'];
 
   String? _selectedAnimal;
-  String? _selectedBrowse;
+  String? _selectedBrowseItem;
 
   // List of delivery items
   final List<DeliveryItem> _deliveryItems = [
@@ -62,15 +61,55 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _addressController.dispose();
+    _fullNameController.dispose();
+    _deliveryAddressController.dispose();
     _specificationsController.dispose();
-    _selectedAnimalAgeController.dispose();
-    _quantityBrowseController.dispose();
+    _browseQuantityController.dispose();
     super.dispose();
   }
 
-  String selectedPage = '';
+  String selectedDrawerPage = '';
+
+  GestureTapCallback drawerButton(String page) {
+    return () {
+      setState(() {
+        selectedDrawerPage = page;
+      });
+      Navigator.pop(context);
+    };
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Color.fromRGBO(46, 165, 107, 1)),
+            child: Text(
+              'Hi David',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.message),
+            title: const Text('Messages'),
+            onTap: drawerButton('Messages'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_circle),
+            title: const Text('Profile'),
+            onTap: drawerButton('Profile'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: drawerButton('Settings'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,66 +133,22 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
               ),
             ],
           ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                const DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(46, 165, 107, 1),
-                  ),
-                  child: Text(
-                    'Hi David',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.message),
-                  title: const Text('Messages'),
-                  onTap: () {
-                    setState(() {
-                      selectedPage = 'Messages';
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.account_circle),
-                  title: const Text('Profile'),
-                  onTap: () {
-                    setState(() {
-                      selectedPage = 'Profile';
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
-                  onTap: () {
-                    setState(() {
-                      selectedPage = 'Settings';
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
+          drawer: _buildDrawer(),
           body: ListView(
             children: [
-              inputField("Full Name", _firstNameController),
+              inputField("Full Name", _fullNameController),
               SizedBox(height: 32),
-              inputField("Address", _addressController),
+              inputField("Address", _deliveryAddressController),
               SizedBox(height: 32),
               inputField("Specifications", _specificationsController),
               SizedBox(height: 32),
               animalDropdown(),
               SizedBox(height: 32),
-              inputField("Animal Age", _selectedAnimalAgeController),
-              SizedBox(height: 32),
               browseDropdown(),
               SizedBox(height: 12),
               inputField(
                 "Quantity Of Browse",
-                _quantityBrowseController,
+                _browseQuantityController,
                 hint: "m³",
               ),
               SizedBox(height: 12),
@@ -165,10 +160,10 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                   title: Text("${item.browseName}: ${item.browseQuantity}m³"),
 
                   trailing: Checkbox(
-                    value: item.selected,
+                    value: item.isSelected,
                     onChanged: (bool? newValue) {
                       setState(() {
-                        item.selected = newValue!;
+                        item.isSelected = newValue!;
                       });
                     },
                   ),
@@ -181,10 +176,13 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                   setState(() {
                     _deliveryItems.add(
                       DeliveryItem(
-                        browseName: "$_selectedBrowse",
-                        browseQuantity: _quantityBrowseController.text,
+                        browseName: "$_selectedBrowseItem",
+                        browseQuantity: _browseQuantityController.text,
                       ),
                     );
+                    // Clears the browse selection and quantity input after adding
+                    _selectedBrowseItem = null;
+                    _browseQuantityController.clear();
                   });
                 },
                 child: Text('Add Delivery Item'),
@@ -193,37 +191,36 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
               // NEEDS TO BE MADE
               ElevatedButton(
                 onPressed: () {
-                  print("Delivery Item Removed");
+                  print("Delivery Item/s Removed");
                   if (_deliveryItems.isNotEmpty) {
                     setState(() {
-                      // Currently Just removes the last item in the List
-                      _deliveryItems.removeLast();
+                      // Removes all delivery items that are currently selected
+                      _deliveryItems.removeWhere((item) => item.isSelected);
                     });
                   }
                 },
-                child: Text('Remove Delivery Item'),
+                child: const Text('Remove Selected Items'),
               ),
 
               SizedBox(height: 32),
               // Button to send data to terminal so its properly being read
               ElevatedButton(
                 onPressed: () {
-                  print("Full Name: ${_firstNameController.text}");
-                  print("Address: ${_addressController.text}");
+                  print("Full Name: ${_fullNameController.text}");
+                  print("Address: ${_deliveryAddressController.text}");
                   print("Specifications: ${_specificationsController.text}");
                   int animalIndex =
                       _selectedAnimal != null
-                          ? animalList.indexOf(_selectedAnimal!)
+                          ? _animalOptions.indexOf(_selectedAnimal!)
                           : -1;
                   print(
                     "Selected Animal: $_selectedAnimal (Index: $animalIndex)",
                   );
-                  print("Animal Age: ${_selectedAnimalAgeController.text}");
                   print("DeliveryItems:");
                   for (int i = 0; i < _deliveryItems.length; i++) {
                     int browseIndex =
-                        _selectedBrowse != null
-                            ? browseList.indexOf(_selectedBrowse!)
+                        _selectedBrowseItem != null
+                            ? _browseOptions.indexOf(_selectedBrowseItem!)
                             : -1;
                     print(
                       '     ${i + 1}. ${_deliveryItems[i].browseName}(Index: $browseIndex):${_deliveryItems[i].browseQuantity}m³',
@@ -241,7 +238,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                   // Build your items list from _deliveryItems
                   int? animalIndex =
                       _selectedAnimal != null
-                          ? animalList.indexOf(_selectedAnimal!)
+                          ? _animalOptions.indexOf(_selectedAnimal!)
                           : null;
 
                   List<Map<String, dynamic>> items =
@@ -249,17 +246,17 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                           .map(
                             (item) => {
                               'plant_ID':
-                                  browseList.indexOf(item.browseName) +
+                                  _browseOptions.indexOf(item.browseName) +
                                   1, // Assuming browseName comes from browseList
                               'quantity': item.browseQuantity,
                             },
                           )
                           .toList();
 
-                  // Build the final JSON body
+                  // Build the final JSON payload
                   Map<String, dynamic> deliveryData = {
-                    "name": _firstNameController.text,
-                    "address": _addressController.text,
+                    "name": _fullNameController.text,
+                    "address": _deliveryAddressController.text,
                     "specifications": _specificationsController.text,
                     "items": items,
                     "animal_ID": animalIndex != null ? animalIndex + 1 : null,
@@ -273,11 +270,20 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                       body: jsonEncode(deliveryData),
                     );
 
+                    // Checks if request was successful (status code 201)
                     if (response.statusCode == 201) {
                       final responseData = jsonDecode(response.body);
                       print(
                         'Delivery Created ID: ${responseData['delivery_ID']}',
                       );
+                      // Clears form on successful submission
+                      setState(() {
+                        _fullNameController.clear();
+                        _deliveryAddressController.clear();
+                        _specificationsController.clear();
+                        _selectedAnimal = null;
+                        _deliveryItems.clear();
+                      });
                     } else {
                       print('Server Error: ${response.statusCode}');
                       print(response.body);
@@ -318,7 +324,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
       ),
       value: _selectedAnimal,
       items:
-          animalList
+          _animalOptions
               .map(
                 (animal) =>
                     DropdownMenuItem(value: animal, child: Text(animal)),
@@ -338,9 +344,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
         labelText: 'Browse',
         border: OutlineInputBorder(),
       ),
-      value: _selectedBrowse,
+      value: _selectedBrowseItem,
       items:
-          browseList
+          _browseOptions
               .map(
                 (browse) =>
                     DropdownMenuItem(value: browse, child: Text(browse)),
@@ -348,7 +354,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
               .toList(),
       onChanged: (newValue) {
         setState(() {
-          _selectedBrowse = newValue;
+          _selectedBrowseItem = newValue;
         });
       },
     ),

@@ -57,18 +57,18 @@ class _RequestBoardState extends State<GathererHomePage>
     _fadeController.forward();
   }
 
-  String selectedPage = '';
+  String selectedDrawerPage = '';
 
   GestureTapCallback drawerButton(String page) {
     return () {
       setState(() {
-        selectedPage = page;
+        selectedDrawerPage = page;
       });
       Navigator.pop(context);
     };
   }
 
-  Widget _gathererDrawer() {
+  Widget _buildDrawer() {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -100,7 +100,7 @@ class _RequestBoardState extends State<GathererHomePage>
     );
   }
 
-  Widget RequestTile(String animal) {
+  Widget requestTile(String animal) {
     return Hero(
       tag: animal,
       child: Material(
@@ -153,11 +153,11 @@ class _RequestBoardState extends State<GathererHomePage>
               ),
             ],
           ),
-          drawer: _gathererDrawer(),
+          drawer: _buildDrawer(),
           // Request board
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[RequestTile('Koala'), RequestTile('Kangaroo')],
+            children: <Widget>[requestTile('Koala'), requestTile('Kangaroo')],
           ),
         ),
       ),
