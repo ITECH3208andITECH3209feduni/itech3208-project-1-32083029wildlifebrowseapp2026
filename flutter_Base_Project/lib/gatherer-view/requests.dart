@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../test/test_data.dart';
 
 class GathererRoute extends StatelessWidget {
   const GathererRoute({super.key});
@@ -29,6 +32,221 @@ class GathererHomePage extends StatefulWidget {
   @override
   State<GathererHomePage> createState() => _RequestBoardState();
 }
+
+class Request {
+  Request({
+    required this.name,
+    required this.items,
+    required this.animal,
+    required this.address,
+    required this.postcode,
+    required this.delivery_ID,
+    this.specifications,
+  });
+
+  final String name;
+  final List<Items> items;
+  final Animal animal;
+  final String address;
+  final int postcode;
+  final int delivery_ID;
+  final String? specifications;
+
+  factory Request.fromJson(Map<String, dynamic> testRequestJson) {
+    try {
+    final name = testRequestJson['name'];
+    if (name is! String) {
+      // will throw if name is missing or not a String
+      throw FormatException(
+        'Invalid JSON: required "name" field of type String in $testRequestJson',
+      );
+    }
+
+    final itemsData = testRequestJson['items'];
+    if (itemsData is! List<dynamic>) {
+      // will throw if items is missing or not a List
+      throw FormatException(
+        'Invalid JSON: required "items" array of type List<dynamic> in $testRequestJson',
+      );
+    }
+
+    final animalsData = testRequestJson['animal'];
+    // if (animalsData is! Animal) {
+    //   // will throw if animal is missing or not a object
+    //   throw FormatException(
+    //     'Invalid JSON: required "animal" object of type Animal in $testRequestJson',
+    //   );
+    // }
+
+    final address = testRequestJson['address'];
+    if (address is! String) {
+      // will throw if address is missing or not a String
+      throw FormatException(
+        'Invalid JSON: required "address" field of type int in $testRequestJson',
+      );
+    }
+
+    final postcode = testRequestJson['postcode'];
+    if (postcode is! int) {
+      // will throw if postcode is missing or not a Int
+      throw FormatException(
+        'Invalid JSON: required "postcode" field of type int in $testRequestJson',
+      );
+    }
+
+    final delivery_ID = testRequestJson['delivery_ID'];
+    if (delivery_ID is! int) {
+      // will throw if delivery_ID is missing or not a Int
+      throw FormatException(
+        'Invalid JSON: required "delivery_ID" field of type int in $testRequestJson',
+      );
+    }
+
+    final specifications = testRequestJson['specifications'];
+    if (specifications is! String) {
+      // will throw if specifications is missing or not a String
+      throw FormatException(
+        'Invalid JSON: required "specifications" field of type int in $testRequestJson',
+      );
+    }
+
+    final items = itemsData.map((itemData) {
+      if (itemData is! Map<String, dynamic>) {
+        throw FormatException('Invalid JSON: required "items" array of type Map<String, dynamic> in $testRequestJson');
+      }
+      return Items.fromJson(itemData);
+    }).toList();
+
+    return Request(
+      name: name,
+      items: items,
+      animal: animalsData,
+      address: address,
+      postcode: postcode,
+      delivery_ID: delivery_ID,
+      specifications: specifications,
+    );
+    } catch (e) {
+      throw FormatException('Failed to parse Request: $e');
+    }
+  }
+}
+
+class Items {
+  Items({
+    required this.plant_ID,
+    required this.quantity,
+    required this.plant_Name,
+  });
+
+  final int plant_ID;
+  final int quantity;
+  final String plant_Name;
+
+  factory Items.fromJson(Map<String, dynamic> testRequestJson) {
+    final plant_ID = testRequestJson['plant_ID']; 
+    if (plant_ID is! int) {
+      // will throw if plant_ID is missing or not a Int
+      throw FormatException(
+        'Invalid JSON: required "plant_ID" field of type int in $testRequestJson',
+      );
+    }
+
+    final quantity = testRequestJson['quantity']; 
+    if (quantity is! int) {
+      // will throw if quantity is missing or not a Int
+      throw FormatException(
+        'Invalid JSON: required "quantity" field of type int in $testRequestJson',
+      );
+    }
+
+    final plant_Name = testRequestJson['plant_Name'];
+    if (plant_Name is! String) {
+      // will throw if plant_Name is missing or not a String
+      throw FormatException(
+        'Invalid JSON: required "plant_Name" field of type int in $testRequestJson',
+      );
+    }
+
+    return Items(
+      plant_ID: plant_ID,
+      quantity: quantity,
+      plant_Name: plant_Name,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'plant_ID': plant_ID,
+      'quantity': quantity,
+      'plant_Name': plant_Name,
+    };
+  }
+}
+
+
+class Animal {
+  int? animalID;
+  String? animalName;
+
+  Animal({this.animalID, this.animalName});
+
+  Animal.fromJson(Map<String, dynamic> json) {
+    animalID = json['animal_ID'];
+    animalName = json['animal_Name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['animal_ID'] = this.animalID;
+    data['animal_Name'] = this.animalName;
+    return data;
+  }
+}
+
+// class Animal {
+//   int? animalID;
+//   String? animalName;
+
+//   Animal({this.animalID, this.animalName})
+
+//   Animal.fromJson(Map<String, dynamic> json) {
+//     animalID = json['animal_ID'];
+//     animalName = json['animal_Name'];
+//   }
+
+//   Map<String, dynamic> toJson() {
+//     final Map<String, dynamic> data = new Map<String, dynamic>();
+//     data['animal_ID'] = this.animalID;
+//     data['animal_Name'] = this.animalName;
+//     return data;
+//   }
+
+//   // factory Animal.fromJson(Map<String, dynamic> testRequestJson) {
+//     // final animal_ID = testRequestJson['animal_ID']; 
+//     // if (animal_ID is! int) {
+//     //   // will throw if animal_ID is missing or not a Int
+//     //   throw FormatException(
+//     //     'Invalid JSON: required "animal_ID" field of type int in $testRequestJson',
+//     //   );
+//     // }
+
+//     // final animal_Name = testRequestJson['animal_Name'];
+//     // if (animal_Name is! String) {
+//     //   // will throw if animal_Name is missing or not a String
+//     //   throw FormatException(
+//     //     'Invalid JSON: required "animal_Name" field of type int in $testRequestJson',
+//     //   );
+//     // }
+
+//     // return Animal(animal_ID: animal_ID, animal_Name: animal_Name);
+
+//   // }
+
+//   // Map<String, dynamic> toJson() => {
+//   //   'animal_ID': animal_ID, 
+//   //   'animal_Name': animal_Name};
+// }
 
 class _RequestBoardState extends State<GathererHomePage>
     with TickerProviderStateMixin {
@@ -130,7 +348,13 @@ class _RequestBoardState extends State<GathererHomePage>
 
   @override
   Widget build(BuildContext context) {
+    final parsedJson = jsonDecode(testRequestJson) as Map<String, dynamic>;
+    final request = Request.fromJson(parsedJson);
+    final item = Items.fromJson(parsedJson);
+    final animal = Animal.fromJson(parsedJson);
+
     const String appTitle = 'Requests';
+
     return MaterialApp(
       title: appTitle,
       // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
@@ -157,7 +381,10 @@ class _RequestBoardState extends State<GathererHomePage>
           // Request board
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[requestTile('Koala'), requestTile('Kangaroo')],
+            children: <Widget>[
+              requestTile('Koala'),
+              // requestTile(animal.animal_Name),
+            ],
           ),
         ),
       ),

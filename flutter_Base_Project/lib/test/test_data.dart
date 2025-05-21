@@ -1,4 +1,5 @@
-const testRequestJson = {
+final testRequestJson = '''
+{
   "name": "Reginalds Rescue",
   "items": [
     {
@@ -15,7 +16,8 @@ const testRequestJson = {
   "postcode": "3350",
   "delivery_ID": 3,
   "specifications": "Lightweight browse, no toxic species"
-};
-// Use this Improt to test the mock data
+}
+''';
+// Use this Import to test the mock data
 // import 'test_data.dart';
 // Then refrence the testRequestJson in your code, refrencing its values as needed 
