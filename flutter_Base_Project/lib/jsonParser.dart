@@ -1,5 +1,4 @@
 import 'dart:convert';
-import '../test/test_data.dart';
 
 (Request, Items, Animal) jsonParser(String data) {
     final parsedJson = jsonDecode(data) as Map<String, dynamic>;

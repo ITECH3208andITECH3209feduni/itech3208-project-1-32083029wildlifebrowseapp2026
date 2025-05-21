@@ -145,6 +145,8 @@ class _RequestBoardState extends State<GathererHomePage>
   Widget build(BuildContext context) {
     // *************************************
     // JSON parsed and variables initialised
+    // Set json file to parse here
+    // Args across gatherer's side of app are updated from here
     // *************************************
     var (request, item, animal) = jsonParser(testRequestJson);
 
@@ -187,24 +189,6 @@ class _RequestBoardState extends State<GathererHomePage>
     );
   }
 }
-
-// class DetailedRequestRoute extends StatelessWidget {
-//   const DetailedRequestRoute({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     var (request, item, animal) = jsonParser(testRequestJson);
-//     return MaterialApp(
-//       title: 'Request Details',
-//       theme: ThemeData(
-//         colorScheme: ColorScheme.fromSeed(
-//           seedColor: const Color.fromRGBO(46, 165, 107, 1),
-//         ),
-//       ),
-//       home: DetailedRequest(title: 'Request Details', request: request),
-//     );
-//   }
-// }
 
 class DetailedRequest extends StatefulWidget {
   const DetailedRequest({super.key, required this.title, required this.request, required this.item, required this.animal});
