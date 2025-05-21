@@ -4,18 +4,16 @@ import 'gatherer-view/requests.dart';
 import 'caretaker-view/order.dart';
 import 'landowner-view/overview.dart';
 
-
-import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart';
-import '../test/test_data.dart';
-
 void main() {
   runApp(
     MaterialApp(
       initialRoute: '/',
       routes: {
         '/': (context) => const GathererRoute(),
-        '/detailed-request': (context) => const DetailedRequest(title: 'Request Details'),
+        '/detailed-request': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return DetailedRequest(title: args['Request Details'], request: args['request'], item: args['item'], animal: args['animal']);
+        },
         '/caretaker': (context) => const CaretakerRoute(),
         '/landowner': (context) => const LandOwnerRoute(),
       },

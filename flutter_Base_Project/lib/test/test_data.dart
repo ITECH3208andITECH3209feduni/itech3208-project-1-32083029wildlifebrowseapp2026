@@ -11,7 +11,7 @@ final testRequestJson = '''
     "animal": [
         {
             "animal_ID": 3,
-            "animal_Name": "Kangaroo"
+            "animal_Name": "Koala"
         }
     ],
     "address": "789 Morgan St, Ballarat VIC",

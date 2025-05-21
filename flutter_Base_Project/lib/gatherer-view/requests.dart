@@ -1,7 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../jsonParser.dart';
 import '../test/test_data.dart';
 
 class GathererRoute extends StatelessWidget {
@@ -24,6 +24,7 @@ class GathererRoute extends StatelessWidget {
   }
 }
 
+
 class GathererHomePage extends StatefulWidget {
   const GathererHomePage({super.key, required this.title});
 
@@ -31,192 +32,6 @@ class GathererHomePage extends StatefulWidget {
 
   @override
   State<GathererHomePage> createState() => _RequestBoardState();
-}
-
-class Request {
-  Request({
-    required this.name,
-    required this.items,
-    required this.animal,
-    required this.address,
-    required this.postcode,
-    required this.delivery_ID,
-    this.specifications,
-  });
-
-  final String name;
-  final List<Items> items;
-  final List<Animal> animal;
-  final String address;
-  final int postcode;
-  final int delivery_ID;
-  final String? specifications;
-
-  factory Request.fromJson(Map<String, dynamic> testRequestJson) {
-    final name = testRequestJson['name'] as String;
-    // if (name is! String) {
-    //   // will throw if name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "name" field of type String in $testRequestJson',
-    //   );
-    // }
-
-    final itemsData = testRequestJson['items'] as List<dynamic>;
-    // if (itemsData is! List<dynamic>) {
-    //   // will throw if items is missing or not a List
-    //   throw FormatException(
-    //     'Invalid JSON: required "items" array of type List<dynamic> in $testRequestJson',
-    //   );
-    // }
-
-    final animalsData = testRequestJson['animal'] as List<dynamic>;
-    // if (animalsData is! List<dynamic>) {
-    //   // will throw if animal is missing or not a object
-    //   throw FormatException(
-    //     'Invalid JSON: required "animal" object of type Animal in $testRequestJson',
-    //   );
-    // }
-
-    final address = testRequestJson['address'] as String;
-    // if (address is! String) {
-    //   // will throw if address is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "address" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    final postcode = testRequestJson['postcode'] as int;
-    // if (postcode is! int) {
-    //   // will throw if postcode is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "postcode" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    final delivery_ID = testRequestJson['delivery_ID'] as int;
-    // if (delivery_ID is! int) {
-    //   // will throw if delivery_ID is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "delivery_ID" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    final specifications = testRequestJson['specifications'] as String?;
-
-    return Request(
-      name: name,
-      items: itemsData
-      .map((itemData) =>
-        Items.fromJson(itemData as Map<String, dynamic>))
-      .toList(),
-      animal: animalsData
-      .map((animalData) =>
-        Animal.fromJson(animalData as Map<String, dynamic>))
-      .toList(),
-      address: address,
-      postcode: postcode,
-      delivery_ID: delivery_ID,
-      specifications: specifications,
-    );
-  }
-}
-
-class Items {
-  Items({
-    required this.plant_ID,
-    required this.quantity,
-    required this.plant_Name,
-  });
-
-  final int plant_ID;
-  final int quantity;
-  final String plant_Name;
-
-
-  factory Items.fromJson(Map<String, dynamic> testRequestJson) {
-
-    // if (!testRequestJson.containsKey('plant_ID')) {
-    //   throw FormatException('Required field "plant_ID" is missing');
-    // }
-    
-    final plant_ID = testRequestJson['plant_ID'] as int; 
-    // if (plant_ID is! int) {
-    //   // will throw if plant_ID is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "plant_ID" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    final quantity = testRequestJson['quantity'] as int; 
-    // if (quantity is! int) {
-    //   // will throw if quantity is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "quantity" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    final plant_Name = testRequestJson['plant_Name'] as String;
-    // if (plant_Name is! String) {
-    //   // will throw if plant_Name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "plant_Name" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    return Items(
-      plant_ID: plant_ID,
-      quantity: quantity,
-      plant_Name: plant_Name,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'plant_ID': plant_ID,
-      'quantity': quantity,
-      'plant_Name': plant_Name,
-    };
-  }
-}
-
-class Animal {
-  Animal({
-    required this.animal_ID,
-    required this.animal_Name,
-  });
-
-  final int animal_ID;
-  final String animal_Name;
-
-  factory Animal.fromJson(Map<String, dynamic> testRequestJson) {
-    final animal_ID = testRequestJson['animal_ID'] as int; 
-    // if (animal_ID is! int) {
-    //   // will throw if animal_ID is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "animal_ID" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    final animal_Name = testRequestJson['animal_Name'] as String;
-    // if (animal_Name is! String) {
-    //   // will throw if animal_Name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "animal_Name" field of type int in $testRequestJson',
-    //   );
-    // }
-
-    return Animal(
-      animal_ID: animal_ID,
-      animal_Name: animal_Name,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'animal_ID': animal_ID,
-      'animal_Name': animal_Name,
-    };
-  }
 }
 
 
@@ -290,26 +105,33 @@ class _RequestBoardState extends State<GathererHomePage>
     );
   }
 
-  Widget requestTile(String animal) {
+  // Args passed from Request board initial state widget
+  // String animal = animal.animal_Name
+  // String browse = item.plant_Name
+  // int quantity = item.quantity
+  // int postcode = request.postcode
+  Widget requestTile(Request request, Items item, Animal animal) {
     return Hero(
       tag: animal,
       child: Material(
         child: ListTile(
           leading: CircleAvatar(
-            backgroundImage: AssetImage('assets/images/$animal.jpg'),
+            backgroundImage: AssetImage('assets/images/${animal.animal_Name}.jpg'),
             radius: 20,
           ),
-          title: Text(animal),
-          subtitle: const Text('Eucalyptus Leaves\nCanadian'),
+          title: Text(animal.animal_Name),
+          subtitle: Text('${item.quantity}x ${item.plant_Name}...\n${request.postcode}'),
+          // TODO add a time to JSON info
           trailing: const Text('2h ago'),
           tileColor: const Color.fromARGB(235, 245, 246, 246),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute<Widget>(
+                // Redirects from board to a detailed request page
                 builder:
                     (BuildContext context) =>
-                        const DetailedRequest(title: 'Request Details'),
+                        DetailedRequest(title: 'Request Details', request: request, item: item, animal: animal),
               ),
             );
           },
@@ -319,13 +141,12 @@ class _RequestBoardState extends State<GathererHomePage>
   }
 
   @override
+  // Request board initial state
   Widget build(BuildContext context) {
-    final parsedJson = jsonDecode(testRequestJson) as Map<String, dynamic>;
-    final request = Request.fromJson(parsedJson);
-    
-    // Will need to iterate over all objects in item array
-    final item = request.items[0]; 
-    final animal = request.animal[0];
+    // *************************************
+    // JSON parsed and variables initialised
+    // *************************************
+    var (request, item, animal) = jsonParser(testRequestJson);
 
     const String appTitle = 'Requests';
 
@@ -338,6 +159,7 @@ class _RequestBoardState extends State<GathererHomePage>
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             title: Text(appTitle),
+            // Icon to move to caretaker order request page
             actions: [
               IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
@@ -352,11 +174,12 @@ class _RequestBoardState extends State<GathererHomePage>
             ],
           ),
           drawer: _buildDrawer(),
-          // Request board
+          // Request board area
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
+            // Request tiles populate here
             children: <Widget>[
-              requestTile(animal.animal_Name),
+              requestTile(request, item, animal),
             ],
           ),
         ),
@@ -365,27 +188,31 @@ class _RequestBoardState extends State<GathererHomePage>
   }
 }
 
-class DetailedRequestRoute extends StatelessWidget {
-  const DetailedRequestRoute({super.key});
+// class DetailedRequestRoute extends StatelessWidget {
+//   const DetailedRequestRoute({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Request Details',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromRGBO(46, 165, 107, 1),
-        ),
-      ),
-      home: const DetailedRequest(title: 'Request Details'),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     var (request, item, animal) = jsonParser(testRequestJson);
+//     return MaterialApp(
+//       title: 'Request Details',
+//       theme: ThemeData(
+//         colorScheme: ColorScheme.fromSeed(
+//           seedColor: const Color.fromRGBO(46, 165, 107, 1),
+//         ),
+//       ),
+//       home: DetailedRequest(title: 'Request Details', request: request),
+//     );
+//   }
+// }
 
 class DetailedRequest extends StatefulWidget {
-  const DetailedRequest({super.key, required this.title});
+  const DetailedRequest({super.key, required this.title, required this.request, required this.item, required this.animal});
 
   final String title;
+  final Request request;
+  final Items item;
+  final Animal animal;
 
   @override
   State<DetailedRequest> createState() => _DetailedRequestState();
@@ -395,28 +222,20 @@ class _DetailedRequestState extends State<DetailedRequest> {
   bool _showAddress = false;
 
   Widget header(String animal) {
-    // TODO pass these vars to DetailedRequestRoute from _RequestBoardState
-    final parsedJson = jsonDecode(testRequestJson) as Map<String, dynamic>;
-    final request = Request.fromJson(parsedJson);
-    
-    // Will need to iterate over all objects in item array
-    final item = request.items[0]; 
-    final animal = request.animal[0];
-
     return Row(
       children: <Widget>[
         SizedBox(
           width: 100,
           height: 100,
           child: Image(
-            image: AssetImage('assets/images/${animal.animal_Name}.jpg'),
+            image: AssetImage('assets/images/$animal.jpg'),
             fit: BoxFit.cover,
           ),
         ),
         Column(
           children: <Widget>[
             Text(
-              animal.animal_Name, // TODO Need to give proper padding
+              animal, // TODO Need to give proper padding
               style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
             ),
           ],
@@ -425,36 +244,20 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
-  Widget browsePanel() {
-    // TODO pass these vars to DetailedRequestRoute from _RequestBoardState
-    final parsedJson = jsonDecode(testRequestJson) as Map<String, dynamic>;
-    final request = Request.fromJson(parsedJson);
-    
-    // Will need to iterate over all objects in item array
-    final item = request.items[0]; 
-    final animal = request.animal[0];
-
+  Widget browsePanel(plant, quantity) {
     return Align(
       alignment:
           Alignment.bottomLeft, // TODO fix formatting, implement differently?
       child: Column(
         children: [
           Text("Browse", textAlign: TextAlign.left),
-          Text("${item.plant_Name} x${item.quantity}", textAlign: TextAlign.left),
+          Text("$plant x$quantity", textAlign: TextAlign.left),
         ],
       ),
     );
   }
 
-  Widget deliveryAddress() {
-    // TODO pass these vars to DetailedRequestRoute from _RequestBoardState
-    final parsedJson = jsonDecode(testRequestJson) as Map<String, dynamic>;
-    final request = Request.fromJson(parsedJson);
-    
-    // Will need to iterate over all objects in item array
-    final item = request.items[0]; 
-    final animal = request.animal[0];
-
+  Widget deliveryAddress(address, postcode) {
     return Align(
       alignment: Alignment.centerLeft,
       child: RichText(
@@ -462,17 +265,18 @@ class _DetailedRequestState extends State<DetailedRequest> {
           children: [
             WidgetSpan(child: Icon(Icons.place, size: 14)),
             _showAddress
-                ? TextSpan(text: "${request.address}, ${request.postcode}")
+                ? TextSpan(text: "$address, $postcode")
                 // Will probably reimplement this to dynamically call for address once request accepted for security
                 // TODO lookup postcode for name of suburb to add to address
-                : TextSpan(text: "Delivery address\n******** ${request.postcode}"),
+                : TextSpan(text: "Delivery address\n******** $postcode"),
           ],
         ),
       ),
     );
   }
 
-  Widget directionsPanel() {
+  // Use item.plant_Name to lookup for closest browse then return google map link
+  Widget directionsPanel(item) {
     return Align(
       alignment: Alignment.centerLeft,
       child: RichText(
@@ -507,13 +311,14 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
-  Widget timelapse() {
+  Widget timelapse(request) {
     return Align(
       alignment: Alignment.centerLeft,
       child: RichText(
         text: TextSpan(
           children: [
             WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
+            // TODO use a timestamp here
             TextSpan(text: "Submitted 2h ago"),
           ],
         ),
@@ -573,33 +378,35 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
+  // Builder for detail requests
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Koala request')),
+      appBar: AppBar(title: Text('${widget.animal.animal_Name} request')),
       // Detailed request view
       body: Padding(
         padding: EdgeInsets.only(left: 30.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            header('Koala'),
+            header(widget.animal.animal_Name),
             SizedBox(
               height: 20.0,
             ), // TODO May need to change this to a relative unit
-            browsePanel(),
+            browsePanel(widget.item.plant_Name, widget.item.quantity),
             const SizedBox(
               height: 15.0,
             ), // TODO May need to change this to a relative unit
-            deliveryAddress(),
+            deliveryAddress(widget.request.address, widget.request.postcode),
             const SizedBox(
               height: 10.0,
             ), // TODO May need to change this to a relative unit
-            directionsPanel(),
+            directionsPanel(widget.item),
             const SizedBox(
               height: 10.0,
             ), // TODO May need to change this to a relative unit
-            timelapse(),
+            timelapse(widget.request),
             const SizedBox(height: 20.0),
             requestButtons(),
           ],
