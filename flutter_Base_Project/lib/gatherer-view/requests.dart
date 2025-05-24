@@ -21,14 +21,17 @@ class GathererRoute extends StatelessWidget {
         ),
       ),
       // Set username of Gatherer here
-      home: const GathererHomePage(title: 'Request Board', username: 'David',),
+      home: const GathererHomePage(title: 'Request Board', username: 'David'),
     );
   }
 }
 
-
 class GathererHomePage extends StatefulWidget {
-  const GathererHomePage({super.key, required this.title, required this.username});
+  const GathererHomePage({
+    super.key,
+    required this.title,
+    required this.username,
+  });
 
   final String title;
   final String username;
@@ -36,7 +39,6 @@ class GathererHomePage extends StatefulWidget {
   @override
   State<GathererHomePage> createState() => _RequestBoardState();
 }
-
 
 class _RequestBoardState extends State<GathererHomePage>
     with TickerProviderStateMixin {
@@ -76,11 +78,15 @@ class _RequestBoardState extends State<GathererHomePage>
       child: Material(
         child: ListTile(
           leading: CircleAvatar(
-            backgroundImage: AssetImage('assets/images/${animal.animal_Name}.jpg'),
+            backgroundImage: AssetImage(
+              'assets/images/${animal.animal_Name}.jpg',
+            ),
             radius: 20,
           ),
           title: Text(animal.animal_Name),
-          subtitle: Text('${item.quantity}x ${item.plant_Name}...\n${request.postcode}'),
+          subtitle: Text(
+            '${item.quantity}x ${item.plant_Name}...\n${request.postcode}',
+          ),
           // TODO add a time to JSON info
           trailing: const Text('2h ago'),
           tileColor: const Color.fromARGB(235, 245, 246, 246),
@@ -90,8 +96,12 @@ class _RequestBoardState extends State<GathererHomePage>
               MaterialPageRoute<Widget>(
                 // Redirects from board to a detailed request page
                 builder:
-                    (BuildContext context) =>
-                        DetailedRequest(title: 'Request Details', request: request, item: item, animal: animal),
+                    (BuildContext context) => DetailedRequest(
+                      title: 'Request Details',
+                      request: request,
+                      item: item,
+                      animal: animal,
+                    ),
               ),
             );
           },
@@ -137,11 +147,13 @@ class _RequestBoardState extends State<GathererHomePage>
           ),
           drawer: UserDrawer(username: widget.username),
           // Request board area
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            // Request tiles populate here
+          body: ListView(
             children: <Widget>[
-              requestTile(request, item, animal),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                // Request tiles populate here
+                children: <Widget>[requestTile(request, item, animal)],
+              ),
             ],
           ),
         ),
@@ -151,7 +163,13 @@ class _RequestBoardState extends State<GathererHomePage>
 }
 
 class DetailedRequest extends StatefulWidget {
-  const DetailedRequest({super.key, required this.title, required this.request, required this.item, required this.animal});
+  const DetailedRequest({
+    super.key,
+    required this.title,
+    required this.request,
+    required this.item,
+    required this.animal,
+  });
 
   final String title;
   final Request request;
@@ -178,9 +196,12 @@ class _DetailedRequestState extends State<DetailedRequest> {
         ),
         Column(
           children: <Widget>[
-            Text(
-              animal, // TODO Need to give proper padding
-              style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                animal, // TODO Need to give proper padding
+                style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
+              ),
             ),
           ],
         ),
@@ -190,13 +211,10 @@ class _DetailedRequestState extends State<DetailedRequest> {
 
   Widget browsePanel(plant, quantity) {
     return Align(
-      alignment:
-          Alignment.bottomLeft, // TODO fix formatting, implement differently?
+      alignment: Alignment.bottomLeft,
       child: Column(
-        children: [
-          Text("Browse", textAlign: TextAlign.left),
-          Text("$plant x$quantity", textAlign: TextAlign.left),
-        ],
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [Text("Browse"), Text("$plant x$quantity")],
       ),
     );
   }
@@ -209,8 +227,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
           children: [
             WidgetSpan(child: Icon(Icons.place, size: 14)),
             _showAddress
-                ? TextSpan(text: "$address, $postcode")
-                // Will probably reimplement this to dynamically call for address once request accepted for security
+                ? TextSpan(text: "Delivery address\n$address, $postcode")
+                // Will probably reimplement this to dynamically call for address once request accepted, for security
                 // TODO lookup postcode for name of suburb to add to address
                 : TextSpan(text: "Delivery address\n******** $postcode"),
           ],
@@ -325,36 +343,37 @@ class _DetailedRequestState extends State<DetailedRequest> {
   // Builder for detail requests
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(title: Text('${widget.animal.animal_Name} request')),
       // Detailed request view
-      body: Padding(
+      body: ListView(
         padding: EdgeInsets.only(left: 30.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            header(widget.animal.animal_Name),
-            SizedBox(
-              height: 20.0,
-            ), // TODO May need to change this to a relative unit
-            browsePanel(widget.item.plant_Name, widget.item.quantity),
-            const SizedBox(
-              height: 15.0,
-            ), // TODO May need to change this to a relative unit
-            deliveryAddress(widget.request.address, widget.request.postcode),
-            const SizedBox(
-              height: 10.0,
-            ), // TODO May need to change this to a relative unit
-            directionsPanel(widget.item),
-            const SizedBox(
-              height: 10.0,
-            ), // TODO May need to change this to a relative unit
-            timelapse(widget.request),
-            const SizedBox(height: 20.0),
-            requestButtons(),
-          ],
-        ),
+        children: <Widget>[
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              header(widget.animal.animal_Name),
+              SizedBox(
+                height: 20.0,
+              ), // TODO May need to change this to a relative unit
+              browsePanel(widget.item.plant_Name, widget.item.quantity),
+              const SizedBox(
+                height: 15.0,
+              ), // TODO May need to change this to a relative unit
+              deliveryAddress(widget.request.address, widget.request.postcode),
+              const SizedBox(
+                height: 10.0,
+              ), // TODO May need to change this to a relative unit
+              directionsPanel(widget.item),
+              const SizedBox(
+                height: 10.0,
+              ), // TODO May need to change this to a relative unit
+              timelapse(widget.request),
+              const SizedBox(height: 20.0),
+              requestButtons(),
+            ],
+          ),
+        ],
       ),
     );
   }
