@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../templates/drawer.dart';
 import '../jsonParser.dart';
 import '../test/test_data.dart';
 
@@ -19,16 +20,18 @@ class GathererRoute extends StatelessWidget {
           seedColor: const Color.fromRGBO(46, 165, 107, 1),
         ),
       ),
-      home: const GathererHomePage(title: 'Request Board'),
+      // Set username of Gatherer here
+      home: const GathererHomePage(title: 'Request Board', username: 'David',),
     );
   }
 }
 
 
 class GathererHomePage extends StatefulWidget {
-  const GathererHomePage({super.key, required this.title});
+  const GathererHomePage({super.key, required this.title, required this.username});
 
   final String title;
+  final String username;
 
   @override
   State<GathererHomePage> createState() => _RequestBoardState();
@@ -60,49 +63,6 @@ class _RequestBoardState extends State<GathererHomePage>
 
     // Start animations
     _fadeController.forward();
-  }
-
-  String selectedDrawerPage = '';
-
-  GestureTapCallback drawerButton(String page) {
-    return () {
-      setState(() {
-        selectedDrawerPage = page;
-      });
-      Navigator.pop(context);
-    };
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Color.fromRGBO(46, 165, 107, 1)),
-            child: Text(
-              'Hi David',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.message),
-            title: const Text('Messages'),
-            onTap: drawerButton('Messages'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.account_circle),
-            title: const Text('Profile'),
-            onTap: drawerButton('Profile'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: drawerButton('Settings'),
-          ),
-        ],
-      ),
-    );
   }
 
   // Args passed from Request board initial state widget
@@ -175,7 +135,7 @@ class _RequestBoardState extends State<GathererHomePage>
               ),
             ],
           ),
-          drawer: _buildDrawer(),
+          drawer: UserDrawer(username: widget.username),
           // Request board area
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,

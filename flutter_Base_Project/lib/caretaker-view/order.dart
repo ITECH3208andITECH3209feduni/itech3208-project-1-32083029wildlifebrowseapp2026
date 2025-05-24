@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 
+import '../templates/drawer.dart';
+
 class CaretakerRoute extends StatelessWidget {
   const CaretakerRoute({super.key});
 
@@ -15,7 +17,8 @@ class CaretakerRoute extends StatelessWidget {
           seedColor: const Color.fromRGBO(46, 165, 107, 1),
         ),
       ),
-      home: const CaretakerHomePage(title: 'Order Request'),
+      // Set username of caretaker here
+      home: const CaretakerHomePage(title: 'Order Request', username: 'Bob'),
     );
   }
 }
@@ -34,8 +37,10 @@ class DeliveryItem {
 }
 
 class CaretakerHomePage extends StatefulWidget {
-  const CaretakerHomePage({super.key, required this.title});
+  const CaretakerHomePage({super.key, required this.title, required this.username});
+  
   final String title;
+  final String username;
 
   @override
   State<CaretakerHomePage> createState() => _CaretakerHomePageState();
@@ -82,38 +87,6 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
     };
   }
 
-  Widget _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Color.fromRGBO(46, 165, 107, 1)),
-            child: Text(
-              'Hi David',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.message),
-            title: const Text('Messages'),
-            onTap: drawerButton('Messages'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.account_circle),
-            title: const Text('Profile'),
-            onTap: drawerButton('Profile'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: drawerButton('Settings'),
-          ),
-        ],
-      ),
-    );
-  }
-
   bool _isAnimalLock = false;
 
   @override
@@ -138,7 +111,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
               ),
             ],
           ),
-          drawer: _buildDrawer(),
+          drawer: UserDrawer(username: widget.username),
           body: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: ListView(
@@ -200,7 +173,6 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                     } else {
                       print('Please select a browse and quantity');
                     }
-                    ;
                   },
                   child: Text('Add Delivery Item'),
                 ),
