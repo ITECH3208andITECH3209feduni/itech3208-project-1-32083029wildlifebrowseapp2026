@@ -4,7 +4,8 @@ const port = 3000;
 
 app.use(express.json());
 
-let animalRequests = []; // CONNECT TO DATABASE LATER
+// Import test data
+const animalRequests = require('./test_data');
 
 // homepage route (DELETE AFTER TESTING)
 // This is a placeholder route to test if the server is running
@@ -19,20 +20,7 @@ app.get('/api/requests', (req, res) => {
 
 // Create a new request
 app.post('/api/requests', (req, res) => {
-  const { name, address, browse, animalQuantity } = req.body;
-
-  if (!name || !address || !browse || animalQuantity === undefined) {
-    return res.status(400).json({ error: 'All fields are required: name, address, browse, animalQuantity' });
-  }
-
-  const newRequest = {
-    id: animalRequests.length + 1,
-    name,
-    address,
-    browse,
-    animalQuantity
-  };
-
+  const newRequest = req.body;
   animalRequests.push(newRequest);
   res.status(201).json({ message: 'Animal request added', data: newRequest });
 });
