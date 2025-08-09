@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class LandOwnerRoute extends StatelessWidget {
-  const LandOwnerRoute({super.key});
+  final dynamic user;
+  const LandOwnerRoute({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {

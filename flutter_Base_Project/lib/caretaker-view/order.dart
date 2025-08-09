@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 
 import '../templates/drawer.dart';
+import '../auth/auth.dart';
 
 class CaretakerRoute extends StatelessWidget {
-  const CaretakerRoute({super.key});
+  final User user;
+  const CaretakerRoute({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class CaretakerRoute extends StatelessWidget {
         ),
       ),
       // Set username of caretaker here
-      home: const CaretakerHomePage(title: 'Order Request', username: 'Bob'),
+      home: CaretakerHomePage(title: 'Order Request', user: user),
     );
   }
 }
@@ -37,19 +39,29 @@ class DeliveryItem {
 }
 
 class CaretakerHomePage extends StatefulWidget {
-  const CaretakerHomePage({super.key, required this.title, required this.username});
+  CaretakerHomePage({super.key, required this.title, required this.user});
   
   final String title;
-  final String username;
+  final User user;
 
   @override
   State<CaretakerHomePage> createState() => _CaretakerHomePageState();
 }
 
 class _CaretakerHomePageState extends State<CaretakerHomePage> {
-  final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _deliveryAddressController =
-      TextEditingController();
+  late final String defaultFullName;
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _deliveryAddressController;
+  
+  @override
+  void initState() {
+    super.initState();
+    String defaultFullName = "${widget.user.claims['given_name']} ${widget.user.claims['family_name']}";
+    _fullNameController = TextEditingController(text: defaultFullName);
+
+    _deliveryAddressController = TextEditingController(text: "${widget.user.claims['address']['formatted']}");
+  }
+
   final TextEditingController _specificationsController =
       TextEditingController();
   final TextEditingController _browseQuantityController =
@@ -92,6 +104,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   @override
   Widget build(BuildContext context) {
     const String appTitle = 'Order';
+    final String username = widget.user.claims['given_name'];
     return MaterialApp(
       title: appTitle,
       // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
@@ -111,7 +124,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
               ),
             ],
           ),
-          drawer: UserDrawer(username: widget.username),
+          drawer: UserDrawer(username: username),
           body: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: ListView(

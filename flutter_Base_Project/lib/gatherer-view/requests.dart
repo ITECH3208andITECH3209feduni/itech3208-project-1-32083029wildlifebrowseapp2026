@@ -4,9 +4,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../templates/drawer.dart';
 import '../jsonParser.dart';
 import '../test/test_data.dart';
+import '../auth/auth.dart';
 
 class GathererRoute extends StatelessWidget {
-  const GathererRoute({super.key});
+
+  final User user;
+  const GathererRoute({super.key, required this.user});
 
   // This widget is the root of your application.
   @override
@@ -21,7 +24,7 @@ class GathererRoute extends StatelessWidget {
         ),
       ),
       // Set username of Gatherer here
-      home: const GathererHomePage(title: 'Request Board', username: 'David'),
+      home: GathererHomePage(title: 'Request Board', user: user),
     );
   }
 }
@@ -30,11 +33,11 @@ class GathererHomePage extends StatefulWidget {
   const GathererHomePage({
     super.key,
     required this.title,
-    required this.username,
+    required this.user,
   });
 
   final String title;
-  final String username;
+  final User user;
 
   @override
   State<GathererHomePage> createState() => _RequestBoardState();
@@ -121,6 +124,7 @@ class _RequestBoardState extends State<GathererHomePage>
     var (request, item, animal) = jsonParser(testRequestJson);
 
     const String appTitle = 'Requests';
+    final String username = widget.user.claims['given_name'];
 
     return MaterialApp(
       title: appTitle,
@@ -140,12 +144,15 @@ class _RequestBoardState extends State<GathererHomePage>
                   Navigator.of(
                     context,
                     rootNavigator: true,
-                  ).pushNamed('/caretaker');
+                  ).pushNamed(
+                    '/caretaker', 
+                    arguments: {'user': widget.user},
+                    );
                 },
               ),
             ],
           ),
-          drawer: UserDrawer(username: widget.username),
+          drawer: UserDrawer(username: username),
           // Request board area
           body: ListView(
             children: <Widget>[
