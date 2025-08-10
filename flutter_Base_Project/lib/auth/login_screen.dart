@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'auth.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -45,6 +46,9 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
+
+  String roleTmp = '';
+
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   final _birthdateController = TextEditingController();
@@ -66,6 +70,7 @@ class _SignUpViewState extends State<SignUpView> {
   }
 
   void _signUp() async {
+    final role = roleTmp;
     final email = _emailController.text;
     final address = _addressController.text;
     final birthdate = _birthdateController.text;
@@ -75,7 +80,7 @@ class _SignUpViewState extends State<SignUpView> {
     final password = _passwordController.text;
 
     try {
-      await _cognitoManager.signUp(email, address, birthdate, picture, givenName, familyName, password);
+      await _cognitoManager.signUp(role, email, address, birthdate, picture, givenName, familyName, password);
       DefaultTabController.of(context).animateTo(1);
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,47 +91,52 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
+    const List<String> roles = <String>['Gatherer', 'Caretaker', 'Landowner'];
+    roleTmp = roles.first;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Sign Up')),
-      body: Padding(
+      body: ListView (
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _givenNameController,
-              decoration: const InputDecoration(labelText: 'First name'),
-            ),
-            TextField(
-              controller: _familyNameController,
-              decoration: const InputDecoration(labelText: 'Surname'),
-            ),
-            TextField(
-              controller: _addressController,
-              decoration: const InputDecoration(labelText: 'Address'),
-            ),
-            TextField(
-              controller: _birthdateController,
-              decoration: const InputDecoration(labelText: 'Birthdate'),
-            ),
-            TextField(
-              controller: _pictureController,
-              decoration: const InputDecoration(labelText: 'Profile picture'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            ElevatedButton(
-              onPressed: _signUp,
-              child: const Text('Sign Up'),
-            ),
-          ],
-        ),
+        children: [
+          DropdownButtonFormField(
+            value: roleTmp,
+            icon: const Icon(Icons.arrow_downward),
+            elevation: 10,
+            decoration: const InputDecoration(
+              labelText: 'What role are you signing up for?'),
+            items:
+              roles.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(value: value, child: Text(value));
+              }).toList(), 
+            onChanged: (String? value) {
+              setState(() {
+                roleTmp = value!;
+            });}),
+          SizedBox(height: 16),
+          emailInputField("Email", _emailController),
+          SizedBox(height: 16),
+          nameInputField("First name", _givenNameController),
+          SizedBox(height: 16),
+          nameInputField("Surname", _familyNameController),
+          SizedBox(height: 16),
+          addressInputField("Address", _addressController),
+          SizedBox(height: 16),
+          birthdateInputField("Birthdate", _birthdateController),
+          SizedBox(height: 16),
+          inputField("Upload profile picture", _pictureController),
+          SizedBox(height: 16),
+          TextField(
+            controller: _passwordController,
+            decoration: const InputDecoration(labelText: 'Password'),
+            obscureText: true,
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _signUp,
+            child: const Text('Sign Up'),
+          ),
+        ],
       ),
     );
   }
@@ -221,11 +231,19 @@ class _SignInViewState extends State<SignInView> {
 
     try {
       final user = await _cognitoManager.signIn(email, password);
+      final String defaultView;
+      if(user.claims['custom:role'] == 'Gatherer') {
+          defaultView = '/request-board';
+      } else if(user.claims['custom:role'] == 'Caretaker') {
+          defaultView = '/caretaker'; 
+      } else {
+          defaultView = '/landowner'; 
+      }
       Navigator.of(
           context,
           rootNavigator: true,
         ).pushNamed(
-          '/request-board',
+          defaultView,
           arguments: {'user': user},
           );
       // Navigator.push(
@@ -292,3 +310,84 @@ class UserDetailsPage extends StatelessWidget {
     );
   }
 }
+
+
+TextField inputField(
+  String labelName,
+  TextEditingController controller, {
+  String? hint,
+}) => TextField(
+  controller: controller,
+  decoration: InputDecoration(
+    labelText: labelName,
+    hintText: hint,
+  ),
+);
+
+
+// Input field that only accepts alphabetical characters - specialised for names
+TextField nameInputField(
+  String labelName,
+  TextEditingController controller, {
+  String? hint,
+}) => TextField(
+  controller: controller,
+  decoration: InputDecoration(
+    labelText: labelName,
+    hintText: hint,
+  ),
+  keyboardType: TextInputType.name,
+  inputFormatters: [
+    FilteringTextInputFormatter.allow(RegExp('[a-zA-Z]')),
+  ],
+);
+
+
+// Input field that accepts only letters and digits. No special characters
+// TODO Add support for - / \ for units
+TextField addressInputField(
+  String labelName,
+  TextEditingController controller, {
+  String? hint,
+}) => TextField(
+  controller: controller,
+  decoration: InputDecoration(
+    labelText: labelName,
+    hintText: hint,
+  ),
+  keyboardType: TextInputType.streetAddress,
+  inputFormatters: [
+  FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9-]+')),
+],
+);
+
+
+// Input field for email
+// TODO add validation that checks if in email format
+TextField emailInputField(
+  String labelName,
+  TextEditingController controller, {
+  String? hint,
+}) => TextField(
+  controller: controller,
+  decoration: InputDecoration(
+    labelText: labelName,
+    hintText: hint,
+  ),
+  keyboardType: TextInputType.emailAddress,
+);
+
+
+// TODO replace with showDatePicker()
+TextField birthdateInputField(
+  String labelName,
+  TextEditingController controller, {
+  String? hint,
+}) => TextField(
+  controller: controller,
+  decoration: InputDecoration(
+    labelText: labelName,
+    hintText: hint,
+  ),
+  keyboardType: TextInputType.datetime,
+);
