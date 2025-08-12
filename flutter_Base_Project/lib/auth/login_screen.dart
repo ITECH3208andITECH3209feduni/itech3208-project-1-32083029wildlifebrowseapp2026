@@ -124,6 +124,7 @@ class _SignUpViewState extends State<SignUpView> {
           SizedBox(height: 16),
           birthdateInputField("Birthdate", _birthdateController),
           SizedBox(height: 16),
+          // TODO add image upload support (prob need to add a new package to pubspec)
           inputField("Upload profile picture", _pictureController),
           SizedBox(height: 16),
           TextField(

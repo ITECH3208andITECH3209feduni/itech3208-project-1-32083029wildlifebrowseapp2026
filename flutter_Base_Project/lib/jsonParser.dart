@@ -13,6 +13,7 @@ import 'dart:convert';
 class Request {
   Request({
     required this.name,
+    required this.state,
     required this.items,
     required this.animal,
     required this.address,
@@ -22,6 +23,7 @@ class Request {
   });
 
   final String name;
+  String state;
   final List<Items> items;
   final List<Animal> animal;
   final String address;
@@ -29,9 +31,21 @@ class Request {
   final int delivery_ID;
   final String? specifications;
 
+  set updateState(String newState) {
+    this.state = newState;
+  }
+
   factory Request.fromJson(Map<String, dynamic> testRequestJson) {
     final name = testRequestJson['name'] as String;
     // if (name is! String) {
+    //   // will throw if name is missing or not a String
+    //   throw FormatException(
+    //     'Invalid JSON: required "name" field of type String in $testRequestJson',
+    //   );
+    // }
+
+    final state = testRequestJson['state'] as String;
+    //   if (state is! String) {
     //   // will throw if name is missing or not a String
     //   throw FormatException(
     //     'Invalid JSON: required "name" field of type String in $testRequestJson',
@@ -82,6 +96,7 @@ class Request {
 
     return Request(
       name: name,
+      state: state,
       items: itemsData
       .map((itemData) =>
         Items.fromJson(itemData as Map<String, dynamic>))

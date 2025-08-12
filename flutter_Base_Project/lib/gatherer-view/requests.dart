@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';  // For JSON convert to Object
 
 import '../templates/drawer.dart';
 import '../jsonParser.dart';
@@ -159,7 +160,7 @@ class _RequestBoardState extends State<GathererHomePage>
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 // Request tiles populate here
-                children: <Widget>[requestTile(request, item, animal)],
+                children: isActive(request.state) ? <Widget>[requestTile(request, item, animal)]:[],
               ),
             ],
           ),
@@ -313,6 +314,9 @@ class _DetailedRequestState extends State<DetailedRequest> {
               // Accept button action
               setState(() {
                 _showAddress = true;
+                
+                // TODO figure out how to set object value
+                widget.request.updateState = 'WIP';
               });
             },
             child: Text(
@@ -385,3 +389,22 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 }
+
+
+bool isActive(state) {
+  if(state == 'Active') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// TODO Need to figure state management of request data to and from the frontend
+// Transmit as JSON
+// Upon import convert into an object to allow modifying of values
+// Upon export, convert current object into json for transmit
+
+// Resources:
+// Simplest, try first: https://stackoverflow.com/a/68899268
+// https://docs.flutter.dev/cookbook/networking/update-data
+// https://stackoverflow.com/a/56729510

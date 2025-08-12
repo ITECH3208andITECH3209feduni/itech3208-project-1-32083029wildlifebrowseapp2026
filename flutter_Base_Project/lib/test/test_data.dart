@@ -1,6 +1,7 @@
 final testRequestJson = '''
 {
     "name": "Reginalds Rescue",
+    "state": "Active",
     "items": [
         {
             "plant_ID": 2,
