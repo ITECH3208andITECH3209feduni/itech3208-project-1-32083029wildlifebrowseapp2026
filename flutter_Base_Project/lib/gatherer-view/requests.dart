@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';  // For JSON convert to Object
+import 'dart:convert';
 
 import '../templates/drawer.dart';
 import '../jsonParser.dart';
-import '../test/test_data.dart';
+import '../test/test_data.dart';  // testRequestJson from here
 import '../auth/auth.dart';
 
 class GathererRoute extends StatelessWidget {
@@ -91,8 +91,12 @@ class _RequestBoardState extends State<GathererHomePage>
           subtitle: Text(
             '${item.quantity}x ${item.plant_Name}...\n${request.postcode}',
           ),
-          // TODO add a time to JSON info
-          trailing: const Text('2h ago'),
+          trailing: Text(
+              "${formatTimelapse(getTimelapse(request.time))} ago",
+              style: isStale(getTimelapse(request.time)) 
+                ? TextStyle(color: Colors.red)
+                : TextStyle(color: Colors.black)
+            ),
           tileColor: const Color.fromARGB(235, 245, 246, 246),
           onTap: () {
             Navigator.push(
@@ -122,7 +126,7 @@ class _RequestBoardState extends State<GathererHomePage>
     // Set json file to parse here
     // Args across gatherer's side of app are updated from here
     // *************************************
-    var (request, item, animal) = jsonParser(testRequestJson);
+    var (request, item, animal) = jsonParser(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
 
     const String appTitle = 'Requests';
     final String username = widget.user.claims['given_name'];
@@ -183,7 +187,7 @@ class DetailedRequest extends StatefulWidget {
   final Request request;
   final Items item;
   final Animal animal;
-
+  
   @override
   State<DetailedRequest> createState() => _DetailedRequestState();
 }
@@ -289,14 +293,19 @@ class _DetailedRequestState extends State<DetailedRequest> {
           children: [
             WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
             // TODO use a timestamp here
-            TextSpan(text: "Submitted 2h ago"),
+            TextSpan(
+              text: " Submitted ${formatTimelapse(getTimelapse(request.time))} ago",
+              style: isStale(getTimelapse(request.time)) 
+                ? TextStyle(color: Colors.red)
+                : TextStyle(color: Colors.black)
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget requestButtons() {
+  Widget requestButtons(request) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
@@ -314,10 +323,10 @@ class _DetailedRequestState extends State<DetailedRequest> {
               // Accept button action
               setState(() {
                 _showAddress = true;
-                
-                // TODO figure out how to set object value
-                widget.request.updateState = 'WIP';
+                request.updateState = 'WIP';
               });
+              String jsonString = jsonEncode(request.toJson());
+              debugPrint(jsonString);
             },
             child: Text(
               'Accept',
@@ -381,7 +390,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               ), // TODO May need to change this to a relative unit
               timelapse(widget.request),
               const SizedBox(height: 20.0),
-              requestButtons(),
+              requestButtons(widget.request),
             ],
           ),
         ],
@@ -399,12 +408,43 @@ bool isActive(state) {
   }
 }
 
-// TODO Need to figure state management of request data to and from the frontend
-// Transmit as JSON
-// Upon import convert into an object to allow modifying of values
-// Upon export, convert current object into json for transmit
+// TODO use DateTime.difference
+String getTimelapse(requestTime) {
+  final DateTime now = DateTime.now();
+  final List<int> timeParts = requestTime.substring(0, requestTime.length - 1).split(":").map<int>((str) => int.parse(str)).toList();
 
-// Resources:
-// Simplest, try first: https://stackoverflow.com/a/68899268
-// https://docs.flutter.dev/cookbook/networking/update-data
-// https://stackoverflow.com/a/56729510
+  int daysElapsed = now.day - timeParts[0];
+  int hourElapsed = now.hour - timeParts[3];
+  int minElapsed = now.minute - timeParts[4];
+
+  String timelapse = '${daysElapsed}:${hourElapsed}:${minElapsed}';
+
+  return timelapse;
+}
+
+String formatTimelapse(timelapse) {
+  List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
+
+  int daysElapsed = timeParts[0];
+  int hourElapsed = timeParts[1];
+  int minElapsed = timeParts[2];
+
+    if(daysElapsed != 0) {
+    timelapse = '${daysElapsed} days';
+  } else {
+    if(hourElapsed != 0) {
+      timelapse = '${hourElapsed}h ${minElapsed}m';
+      
+    } else {
+      timelapse = '${hourElapsed}m';
+    }
+  }
+
+  return timelapse;
+}
+
+bool isStale(timelapse) {
+  List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
+
+  return timeParts[0] > 0 || timeParts[1] > 16;
+}

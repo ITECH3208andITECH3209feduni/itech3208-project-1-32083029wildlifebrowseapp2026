@@ -2,6 +2,7 @@ final testRequestJson = '''
 {
     "name": "Reginalds Rescue",
     "state": "Active",
+    "time": "13:08:2025:12:30:10Z",
     "items": [
         {
             "plant_ID": 2,

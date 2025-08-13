@@ -14,6 +14,7 @@ class Request {
   Request({
     required this.name,
     required this.state,
+    required this.time,
     required this.items,
     required this.animal,
     required this.address,
@@ -24,6 +25,7 @@ class Request {
 
   final String name;
   String state;
+  final String time;
   final List<Items> items;
   final List<Animal> animal;
   final String address;
@@ -32,7 +34,7 @@ class Request {
   final String? specifications;
 
   set updateState(String newState) {
-    this.state = newState;
+    state = newState;
   }
 
   factory Request.fromJson(Map<String, dynamic> testRequestJson) {
@@ -45,58 +47,18 @@ class Request {
     // }
 
     final state = testRequestJson['state'] as String;
-    //   if (state is! String) {
-    //   // will throw if name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "name" field of type String in $testRequestJson',
-    //   );
-    // }
-
+    final time = testRequestJson['time'] as String;
     final itemsData = testRequestJson['items'] as List<dynamic>;
-    // if (itemsData is! List<dynamic>) {
-    //   // will throw if items is missing or not a List
-    //   throw FormatException(
-    //     'Invalid JSON: required "items" array of type List<dynamic> in $testRequestJson',
-    //   );
-    // }
-
     final animalsData = testRequestJson['animal'] as List<dynamic>;
-    // if (animalsData is! List<dynamic>) {
-    //   // will throw if animal is missing or not a object
-    //   throw FormatException(
-    //     'Invalid JSON: required "animal" object of type Animal in $testRequestJson',
-    //   );
-    // }
-
     final address = testRequestJson['address'] as String;
-    // if (address is! String) {
-    //   // will throw if address is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "address" field of type int in $testRequestJson',
-    //   );
-    // }
-
     final postcode = testRequestJson['postcode'] as int;
-    // if (postcode is! int) {
-    //   // will throw if postcode is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "postcode" field of type int in $testRequestJson',
-    //   );
-    // }
-
     final delivery_ID = testRequestJson['delivery_ID'] as int;
-    // if (delivery_ID is! int) {
-    //   // will throw if delivery_ID is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "delivery_ID" field of type int in $testRequestJson',
-    //   );
-    // }
-
     final specifications = testRequestJson['specifications'] as String?;
 
     return Request(
       name: name,
       state: state,
+      time: time,
       items: itemsData
       .map((itemData) =>
         Items.fromJson(itemData as Map<String, dynamic>))
@@ -110,6 +72,20 @@ class Request {
       delivery_ID: delivery_ID,
       specifications: specifications,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'state': state,
+      'time': time,
+      'itemsData': items,
+      'animalsData': animal,
+      'address': address,
+      'postcode': postcode,
+      'delivery_ID': delivery_ID,
+      'specifications': specifications,
+    };
   }
 }
 
@@ -132,28 +108,8 @@ class Items {
     // }
     
     final plant_ID = testRequestJson['plant_ID'] as int; 
-    // if (plant_ID is! int) {
-    //   // will throw if plant_ID is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "plant_ID" field of type int in $testRequestJson',
-    //   );
-    // }
-
     final quantity = testRequestJson['quantity'] as int; 
-    // if (quantity is! int) {
-    //   // will throw if quantity is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "quantity" field of type int in $testRequestJson',
-    //   );
-    // }
-
     final plant_Name = testRequestJson['plant_Name'] as String;
-    // if (plant_Name is! String) {
-    //   // will throw if plant_Name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "plant_Name" field of type int in $testRequestJson',
-    //   );
-    // }
 
     return Items(
       plant_ID: plant_ID,
@@ -182,20 +138,7 @@ class Animal {
 
   factory Animal.fromJson(Map<String, dynamic> testRequestJson) {
     final animal_ID = testRequestJson['animal_ID'] as int; 
-    // if (animal_ID is! int) {
-    //   // will throw if animal_ID is missing or not a Int
-    //   throw FormatException(
-    //     'Invalid JSON: required "animal_ID" field of type int in $testRequestJson',
-    //   );
-    // }
-
     final animal_Name = testRequestJson['animal_Name'] as String;
-    // if (animal_Name is! String) {
-    //   // will throw if animal_Name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "animal_Name" field of type int in $testRequestJson',
-    //   );
-    // }
 
     return Animal(
       animal_ID: animal_ID,

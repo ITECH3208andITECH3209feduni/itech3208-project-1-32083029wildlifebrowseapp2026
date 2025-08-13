@@ -119,7 +119,10 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                 icon: const Icon(Icons.pageview_outlined),
                 tooltip: 'View the request board',
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pushNamed('/');
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                    '/request-board',
+                    arguments: {'user': widget.user},
+                    );
                 },
               ),
             ],
