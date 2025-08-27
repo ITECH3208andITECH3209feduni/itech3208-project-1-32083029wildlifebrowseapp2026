@@ -5,6 +5,8 @@ import 'gatherer-view/requests.dart';
 import 'caretaker-view/order.dart';
 import 'landowner-view/overview.dart';
 
+import 'education/browse_list.dart';
+
 
 void main() {
   runApp(
@@ -27,6 +29,9 @@ void main() {
         '/landowner': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return LandOwnerRoute(user: args['user']);
+        },
+        '/education': (context) {
+          return BrowseListPage();
         },
       },
     ),

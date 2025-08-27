@@ -357,9 +357,10 @@ TextField addressInputField(
     hintText: hint,
   ),
   keyboardType: TextInputType.streetAddress,
-  inputFormatters: [
-  FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9-]+')),
-],
+// Doesn't work, need to support whitespace
+//   inputFormatters: [
+//   FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9\s-]+')),
+// ],
 );
 
 
