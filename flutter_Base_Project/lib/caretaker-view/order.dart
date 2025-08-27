@@ -125,6 +125,31 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                     );
                 },
               ),
+              IconButton(
+                icon: const Icon(Icons.edit_location_outlined),
+                tooltip: 'List your land',
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pushNamed(
+                    '/landowner', 
+                    arguments: {'user': widget.user},
+                    );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.search),
+                tooltip: 'Explore browse',
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pushNamed(
+                    '/education'
+                    );
+                },
+              ),
             ],
           ),
           drawer: UserDrawer(username: username),
