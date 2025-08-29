@@ -1,7 +1,7 @@
 final dummyRequest = '''
 {
     "name": "Reginalds Rescue",
-    "state": "Active",
+    "state": "Closed",
     "time": "13:08:2025:12:30:10Z",
     "items": [
         {

@@ -201,7 +201,8 @@ class _RequestBoardState extends State<GathererHomePage>
                 final request = allRequests[index];
                 if (isActive(request.state)) {
                     return requestTile(request);
-                  }   
+                  }
+                  return Container();
             }
           ),
         ),
