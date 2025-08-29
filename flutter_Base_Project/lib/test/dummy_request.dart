@@ -1,4 +1,4 @@
-final testRequestJson = '''
+final dummyRequest = '''
 {
     "name": "Reginalds Rescue",
     "state": "Active",

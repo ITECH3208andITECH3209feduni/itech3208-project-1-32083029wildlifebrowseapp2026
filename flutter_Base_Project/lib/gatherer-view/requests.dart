@@ -4,8 +4,13 @@ import 'dart:convert';
 
 import '../templates/drawer.dart';
 import '../jsonParser.dart';
-import '../test/test_data.dart';  // testRequestJson from here
 import '../auth/auth.dart';
+
+import '../models/request.dart';
+
+// Dummy request json data
+import '../test/dummy_request.dart';
+import '../test/dummy_request2.dart';
 
 class GathererRoute extends StatelessWidget {
 
@@ -49,6 +54,12 @@ class _RequestBoardState extends State<GathererHomePage>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
+  final List<Request> allRequests = [
+    jsonParser(dummyRequest),
+    jsonParser(dummyRequest2),
+  ];
+
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -76,20 +87,21 @@ class _RequestBoardState extends State<GathererHomePage>
   // String browse = item.plant_Name
   // int quantity = item.quantity
   // int postcode = request.postcode
-  Widget requestTile(Request request, Items item, Animal animal) {
+  Widget requestTile(Request request) {
     return Hero(
-      tag: animal,
+      tag: request.animal,
       child: Material(
         child: ListTile(
           leading: CircleAvatar(
             backgroundImage: AssetImage(
-              'assets/images/${animal.animal_Name}.jpg',
+              'assets/images/${request.getAnimalNames()[0]}.jpg',
             ),
             radius: 20,
           ),
-          title: Text(animal.animal_Name),
+          title: Text(request.getAnimalNames().join(" ")),
           subtitle: Text(
-            '${item.quantity}x ${item.plant_Name}...\n${request.postcode}',
+            // TODO iterate over list of plant quantities and names
+            '${request.getPlantQuantities()[0]}x ${request.getPlantNames()[0]}...\n${request.postcode}',
           ),
           trailing: Text(
               "${formatTimelapse(getTimelapse(request.time))} ago",
@@ -107,8 +119,6 @@ class _RequestBoardState extends State<GathererHomePage>
                     (BuildContext context) => DetailedRequest(
                       title: 'Request Details',
                       request: request,
-                      item: item,
-                      animal: animal,
                     ),
               ),
             );
@@ -126,10 +136,11 @@ class _RequestBoardState extends State<GathererHomePage>
     // Set json file to parse here
     // Args across gatherer's side of app are updated from here
     // *************************************
-    var (request, item, animal) = jsonParser(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
+    // Request = jsonParser(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
 
     const String appTitle = 'Requests';
     final String username = widget.user.claims['given_name'];
+    // TODO iterate over requests here
 
     return MaterialApp(
       title: appTitle,
@@ -184,14 +195,14 @@ class _RequestBoardState extends State<GathererHomePage>
           ),
           drawer: UserDrawer(username: username),
           // Request board area
-          body: ListView(
-            children: <Widget>[
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                // Request tiles populate here
-                children: isActive(request.state) ? <Widget>[requestTile(request, item, animal)]:[],
-              ),
-            ],
+          body: ListView.builder(
+            itemCount: allRequests.length,
+            itemBuilder: (context, index) {
+                final request = allRequests[index];
+                if (isActive(request.state)) {
+                    return requestTile(request);
+                  }   
+            }
           ),
         ),
       ),
@@ -204,14 +215,10 @@ class DetailedRequest extends StatefulWidget {
     super.key,
     required this.title,
     required this.request,
-    required this.item,
-    required this.animal,
   });
 
   final String title;
   final Request request;
-  final Items item;
-  final Animal animal;
   
   @override
   State<DetailedRequest> createState() => _DetailedRequestState();
@@ -220,14 +227,14 @@ class DetailedRequest extends StatefulWidget {
 class _DetailedRequestState extends State<DetailedRequest> {
   bool _showAddress = false;
 
-  Widget header(String animal) {
+  Widget header(Request request) {
     return Row(
       children: <Widget>[
         SizedBox(
           width: 100,
           height: 100,
           child: Image(
-            image: AssetImage('assets/images/$animal.jpg'),
+            image: AssetImage('assets/images/${request.getAnimalNames()[0]}.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -236,7 +243,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                animal, // TODO Need to give proper padding
+                request.getAnimalNames()[0], // TODO Need to give proper padding
                 style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
               ),
             ),
@@ -274,41 +281,41 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
-  // Use item.plant_Name to lookup for closest browse then return google map link
-  Widget directionsPanel(item) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(child: Icon(Icons.place, size: 14)),
-            TextSpan(text: "Nearest browse\n"),
-            WidgetSpan(
-              child: GestureDetector(
-                onTap: () async {
-                  const url = 'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
-                  try {
-                    await launchUrl(Uri.parse(url));
-                  } catch (e) {
-                    print(
-                      'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
-                    );
-                  }
-                },
-                child: const Text(
-                  "View on google maps",
-                  style: TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+// Archived, feature to be added after project conclusion
+  // Widget directionsPanel() {
+  //   return Align(
+  //     alignment: Alignment.centerLeft,
+  //     child: RichText(
+  //       text: TextSpan(
+  //         children: [
+  //           WidgetSpan(child: Icon(Icons.place, size: 14)),
+  //           TextSpan(text: "Nearest browse\n"),
+  //           WidgetSpan(
+  //             child: GestureDetector(
+  //               onTap: () async {
+  //                 const url = 'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
+  //                 try {
+  //                   await launchUrl(Uri.parse(url));
+  //                 } catch (e) {
+  //                   print(
+  //                     'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
+  //                   );
+  //                 }
+  //               },
+  //               child: const Text(
+  //                 "View on google maps",
+  //                 style: TextStyle(
+  //                   color: Colors.blue,
+  //                   decoration: TextDecoration.underline,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget timelapse(request) {
     return Align(
@@ -389,7 +396,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.animal.animal_Name} request')),
+      appBar: AppBar(title: Text('${widget.request.getAnimalNames()[0]} request')),
       // Detailed request view
       body: ListView(
         padding: EdgeInsets.only(left: 30.0),
@@ -397,11 +404,11 @@ class _DetailedRequestState extends State<DetailedRequest> {
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              header(widget.animal.animal_Name),
+              header(widget.request),
               SizedBox(
                 height: 20.0,
               ), // TODO May need to change this to a relative unit
-              browsePanel(widget.item.plant_Name, widget.item.quantity),
+              browsePanel(widget.request.getPlantNames()[0], widget.request.getPlantQuantities()[0]),
               const SizedBox(
                 height: 15.0,
               ), // TODO May need to change this to a relative unit
@@ -409,10 +416,11 @@ class _DetailedRequestState extends State<DetailedRequest> {
               const SizedBox(
                 height: 10.0,
               ), // TODO May need to change this to a relative unit
-              directionsPanel(widget.item),
-              const SizedBox(
-                height: 10.0,
-              ), // TODO May need to change this to a relative unit
+              // Archived directions
+              // directionsPanel(),
+              // const SizedBox(
+              //   height: 10.0,
+              // ), // TODO May need to change this to a relative unit
               timelapse(widget.request),
               const SizedBox(height: 20.0),
               requestButtons(widget.request),

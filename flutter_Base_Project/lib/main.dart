@@ -20,7 +20,7 @@ void main() {
         },
         '/detailed-request': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return DetailedRequest(title: args['Request Details'], request: args['request'], item: args['item'], animal: args['animal']);
+          return DetailedRequest(title: args['Request Details'], request: args['request']);
         },
         '/caretaker': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

@@ -8,7 +8,7 @@ class BrowseListPage extends StatefulWidget {
 }
 
 class _BrowseListPageState extends State<BrowseListPage>
-//i just put random names for it
+
  {
   final List<Browse> allBrowses = [
     Browse(

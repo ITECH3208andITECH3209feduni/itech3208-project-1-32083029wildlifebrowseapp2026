@@ -56,6 +56,11 @@ class BrowseDetailPage extends StatelessWidget {
                     browse.latinName,
                     style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic, color: Colors.grey[700]),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    browse.description,
+                    style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 21, 21, 21)),
+                  ),
                 ],
               ),
             ),
