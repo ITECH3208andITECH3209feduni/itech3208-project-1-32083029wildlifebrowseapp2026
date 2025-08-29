@@ -11,9 +11,36 @@ class _BrowseListPageState extends State<BrowseListPage>
 //i just put random names for it
  {
   final List<Browse> allBrowses = [
-    Browse(commonName: "Rose", latinName: "Rosa", description: "A flowering browse."),
-    Browse(commonName: "Sunflower", latinName: "Helianthus", description: "Tall and bright."),
-    Browse(commonName: "Lavender", latinName: "Lavandula", description: "Used in aromatherapy."),
+    Browse(
+      id: '1',
+      commonName: 'Southern blue gum, Blue gum',
+      latinName: 'Eucalyptus globulus',
+      topImageUrl: 'assets/images/manna_gum_m_morey_01_copyright.png',
+      description: 'A species of flowering plant in the family Myrtaceae. It is a tall, evergreen tree, with four subspecies, all endemic to southeastern Australia',
+      leafShape: 'Lanceolate (Long narrow leaf shape pointed like a lance)',
+      leafImageUrl: 'assets/images/manna_gum_m_morey_02_copyright.png',
+      plantShape: 'Tall tree with a dense canopy',
+      plantImageUrl: 'assets/images/manna_gum_m_morey_03_copyright.png',
+      barkTexture: 'Usually smooth and white to cream-coloured',
+      barkImageUrl: 'assets/images/manna_gum_m_morey_04_copyright.png',
+      flowers: 'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers',
+      flowersImageUrl: 'assets/images/manna_gum_m_morey_05_copyright.png',
+    ),
+    Browse(
+      id: '2',
+      commonName: 'Manna gum, White gum, Ribbon gum',
+      latinName: 'Eucalyptus viminalis',
+      topImageUrl: 'assets/images/manna_gum_m_morey_01_copyright.png',
+      description: 'Ranges in height from small to very tall, typically about 50m in height but can reach 90m. Endemic to southeastern Australia',
+      leafShape: 'Lanceolate (Long narrow leaf shape pointed like a lance) with a slight curve',
+      leafImageUrl: 'assets/images/manna_gum_m_morey_02_copyright.png',
+      plantShape: 'Adult leaves are arranged alternately',
+      plantImageUrl: 'assets/images/manna_gum_m_morey_03_copyright.png',
+      barkTexture: 'Has smooth, often powdery, white to pale brown bark that it sheds in long ribbons',
+      barkImageUrl: 'assets/images/manna_gum_m_morey_04_copyright.png',
+      flowers: 'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers. Fruit are woody and cup-shaped',
+      flowersImageUrl: 'assets/images/manna_gum_m_morey_05_copyright.png',
+    ),
   ];
 
   String searchQuery = "";
@@ -28,7 +55,7 @@ class _BrowseListPageState extends State<BrowseListPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Browse Browses"),
+        title: Text("Browse catalog"),
       ),
       body: Column(
         children: [

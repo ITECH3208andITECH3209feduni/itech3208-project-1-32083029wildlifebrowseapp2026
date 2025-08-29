@@ -89,33 +89,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-//PLANT INFO
-name: plant_catalog
-description: A simple Flutter plant catalog app
-
-publish_to: "none"
-
-version: 1.0.0+1
-
-environment:
-  sdk: ">=2.17.0 <4.0.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-flutter:
-  uses-material-design: true
-
-  assets:
-    - assets/manna_gum_m_morey_01_copyright.png
-    - assets/manna_gum_m_morey_02_copyright.png
-    - assets/manna_gum_m_morey_03_copyright.png
-    - assets/manna_gum_m_morey_04_copyright.png
-    - assets/manna_gum_m_morey_05_copyright.png
-
 
