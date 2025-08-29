@@ -1,110 +1,145 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter/services.dart';
 
 import '../templates/drawer.dart';
+import '../jsonParser.dart';
 import '../auth/auth.dart';
 
-class LandOwnerRoute extends StatelessWidget {
-  final User user;
-  const LandOwnerRoute({super.key, required this.user});
+import '../models/request.dart';
 
+// Dummy request json data
+import '../test/dummy_request.dart';
+import '../test/dummy_request2.dart';
+
+class LandownerRoute extends StatelessWidget {
+
+  final User user;
+  const LandownerRoute({super.key, required this.user});
+
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Order Request',
+      title: 'Landowner Profiles',
       theme: ThemeData(
+        listTileTheme: const ListTileThemeData(textColor: Colors.white),
+        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromRGBO(46, 165, 107, 1),
         ),
       ),
-      // Set username of caretaker here
-      home: LandownerHomePage(title: 'Order Request', user: user),
+      // Set username of Gatherer here
+      home: LandownerHomePage(title: 'Places to find browse', user: user),
     );
   }
 }
 
-class DeliveryItem {
-  final String browseName;
-  final String browseQuantity;
-  bool isSelected;
-
-  DeliveryItem({
-    required this.browseName,
-    required this.browseQuantity,
-
-    this.isSelected = false,
-  });
-}
-
 class LandownerHomePage extends StatefulWidget {
-  LandownerHomePage({super.key, required this.title, required this.user});
-  
+  const LandownerHomePage({
+    super.key,
+    required this.title,
+    required this.user,
+  });
+
   final String title;
   final User user;
 
   @override
-  State<LandownerHomePage> createState() => _CaretakerHomePageState();
+  State<LandownerHomePage> createState() => _RequestBoardState();
 }
 
-class _CaretakerHomePageState extends State<LandownerHomePage> {
-  late final String defaultFullName;
-  late final TextEditingController _fullNameController;
-  late final TextEditingController _deliveryAddressController;
-  
-  @override
-  void initState() {
-    super.initState();
-    String defaultFullName = "${widget.user.claims['given_name']} ${widget.user.claims['family_name']}";
-    _fullNameController = TextEditingController(text: defaultFullName);
+class _RequestBoardState extends State<LandownerHomePage>
+    with TickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
 
-    _deliveryAddressController = TextEditingController(text: "${widget.user.claims['address']['formatted']}");
-  }
-
-  final TextEditingController _specificationsController =
-      TextEditingController();
-  final TextEditingController _browseQuantityController =
-      TextEditingController();
-
-  final List<String> _animalOptions = ['Koala', 'Wombat', 'Kangaroo', "Other"];
-  final List<String> _browseOptions = ['Eucalyptus', 'Silverbeet', 'Wattle'];
-
-  String? _selectedAnimal;
-  String? _selectedBrowseItem;
-
-  // List of delivery items
-  // TODO create DeliveryItem on submission so can have impression of a empty list when open page
-  final List<DeliveryItem> _deliveryItems = [
-    DeliveryItem(browseName: "Eucalyptus", browseQuantity: "1"),
+  final List<Request> allRequests = [
+    jsonParser(dummyRequest),
+    jsonParser(dummyRequest2),
   ];
+
 
   @override
   void dispose() {
-    _fullNameController.dispose();
-    _deliveryAddressController.dispose();
-    _specificationsController.dispose();
-    _browseQuantityController.dispose();
+    _fadeController.dispose();
     super.dispose();
   }
 
-  String selectedDrawerPage = '';
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
 
-  GestureTapCallback drawerButton(String page) {
-    return () {
-      setState(() {
-        selectedDrawerPage = page;
-      });
-      Navigator.pop(context);
-    };
+    // Start animations
+    _fadeController.forward();
   }
 
-  bool _isAnimalLock = false;
+  // Args passed from Request board initial state widget
+  // String animal = animal.animal_Name
+  // String browse = item.plant_Name
+  // int quantity = item.quantity
+  // int postcode = request.postcode
+  Widget requestTile(Request request) {
+    return Hero(
+      tag: request.animal,
+      child: Material(
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundImage: AssetImage(
+              'assets/images/${request.name}.jpg',
+            ),
+            radius: 20,
+          ),
+          title: Text(request.name),
+          subtitle: Text(
+            // TODO iterate over list of plant quantities and names
+            '${request.getPlantQuantities()[0]}x ${request.getPlantNames()[0]}...\n${request.postcode}',
+          ),
+          trailing: Text(
+              "Active ${formatTimelapse(getTimelapse(request.time))} ago",
+              style: isStale(getTimelapse(request.time)) 
+                ? TextStyle(color: Colors.red)
+                : TextStyle(color: Colors.black)
+            ),
+          tileColor: const Color.fromARGB(235, 245, 246, 246),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<Widget>(
+                // Redirects from board to a landowner profile
+                builder:
+                    (BuildContext context) => LandownerProfile(
+                      title: 'Landowner Profile',
+                      request: request,
+                    ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   @override
+  // Request board initial state
   Widget build(BuildContext context) {
-    const String appTitle = 'Order';
+    // *************************************
+    // JSON parsed and variables initialised
+    // Set json file to parse here
+    // Args across gatherer's side of app are updated from here
+    // *************************************
+    // Request = jsonParser(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
+
+    const String appTitle = 'Nearby places to find browse';
     final String username = widget.user.claims['given_name'];
+    // TODO iterate over requests here
+
     return MaterialApp(
       title: appTitle,
       // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
@@ -115,6 +150,18 @@ class _CaretakerHomePageState extends State<LandownerHomePage> {
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             title: Text(appTitle),
             actions: [
+               // Icon to move to gatherer request board page
+              IconButton(
+                icon: const Icon(Icons.pageview_outlined),
+                tooltip: 'View the request board',
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                    '/request-board',
+                    arguments: {'user': widget.user},
+                    );
+                },
+              ),
+               // Icon to move to caretaker order request page
               IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 tooltip: 'Make a order request',
@@ -128,16 +175,7 @@ class _CaretakerHomePageState extends State<LandownerHomePage> {
                     );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.pageview_outlined),
-                tooltip: 'View the request board',
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pushNamed(
-                    '/request-board',
-                    arguments: {'user': widget.user},
-                    );
-                },
-              ),
+               // Icon to move to browse info page
               IconButton(
                 icon: const Icon(Icons.search),
                 tooltip: 'Explore browse',
@@ -153,260 +191,294 @@ class _CaretakerHomePageState extends State<LandownerHomePage> {
             ],
           ),
           drawer: UserDrawer(username: username),
-          body: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: ListView(
-              children: [
-                SizedBox(height: 32),
-                inputField("Full Name", _fullNameController),
-                SizedBox(height: 32),
-                inputField("Address", _deliveryAddressController),
-                SizedBox(height: 32),
-                inputField("Specifications", _specificationsController),
-                SizedBox(height: 32),
-                animalDropdown(),
-                SizedBox(height: 32),
-                browseDropdown(),
-                SizedBox(height: 12),
-                inputFieldInt(
-                  "Quantity Of Browse",
-                  _browseQuantityController,
-                  hint: "m³",
-                ),
-                SizedBox(height: 12),
-
-                ..._deliveryItems.map((item) {
-                  // Changed to ListTile to format browseName and browseQuantity together
-                  return ListTile(
-                    // Format as browseName: browseQuantity
-                    title: Text("${item.browseName}: ${item.browseQuantity}m³"),
-
-                    trailing: Checkbox(
-                      value: item.isSelected,
-                      onChanged: (bool? newValue) {
-                        setState(() {
-                          item.isSelected = newValue!;
-                        });
-                      },
-                    ),
-                  );
-                }),
-
-                // Add delivery item button
-                ElevatedButton(
-                  onPressed: () {
-                    // _browseQuantityController.text can't be 0 due to input formatter in inputFieldInt widget
-                    if (_selectedBrowseItem != null &&
-                        _browseQuantityController.text != "") {
-                      print("Delivery Item Added");
-                      setState(() {
-                        _isAnimalLock = true;
-                        _deliveryItems.add(
-                          DeliveryItem(
-                            browseName: "$_selectedBrowseItem",
-                            browseQuantity: _browseQuantityController.text,
-                          ),
-                        );
-                        // Clears the browse selection and quantity input after adding
-                        _selectedBrowseItem = null;
-                        _browseQuantityController.clear();
-                      });
-                    } else {
-                      print('Please select a browse and quantity');
-                    }
-                  },
-                  child: Text('Add Delivery Item'),
-                ),
-
-                ElevatedButton(
-                  onPressed: () {
-                    print("Delivery Item/s Removed");
-                    if (_deliveryItems.isNotEmpty) {
-                      setState(() {
-                        // Removes all delivery items that are currently selected
-                        _deliveryItems.removeWhere((item) => item.isSelected);
-                      });
-                    }
-                  },
-                  child: const Text('Remove Selected Items'),
-                ),
-
-                SizedBox(height: 32),
-                // Button to send data to terminal so its properly being read
-                ElevatedButton(
-                  onPressed: () {
-                    print("Full Name: ${_fullNameController.text}");
-                    print("Address: ${_deliveryAddressController.text}");
-                    print("Specifications: ${_specificationsController.text}");
-                    int animalIndex =
-                        _selectedAnimal != null
-                            ? _animalOptions.indexOf(_selectedAnimal!)
-                            : -1;
-                    print(
-                      "Selected Animal: $_selectedAnimal (Index: $animalIndex)",
-                    );
-                    print("DeliveryItems:");
-                    for (int i = 0; i < _deliveryItems.length; i++) {
-                      int browseIndex =
-                          _selectedBrowseItem != null
-                              ? _browseOptions.indexOf(_selectedBrowseItem!)
-                              : -1;
-                      print(
-                        '     ${i + 1}. ${_deliveryItems[i].browseName}(Index: $browseIndex):${_deliveryItems[i].browseQuantity}m³',
-                      );
-                    }
-                  },
-                  child: Text('Test Complete Form To Terminal'),
-                ),
-
-                SizedBox(height: 12),
-
-                // Button to send data to the PostgreS Server Through Node.JS
-                ElevatedButton(
-                  onPressed: () async {
-                    // Build your items list from _deliveryItems
-                    int? animalIndex;
-                    _selectedAnimal != null
-                        ? _animalOptions.indexOf(_selectedAnimal!)
-                        : print('Please select an animal');
-
-                    List<Map<String, dynamic>> items =
-                        _deliveryItems
-                            .map(
-                              (item) => {
-                                'plant_ID':
-                                    _browseOptions.indexOf(item.browseName) +
-                                    1, // Assuming browseName comes from browseList
-                                // Checks a int is passed to quantity field
-                                'quantity': item.browseQuantity,
-                              },
-                            )
-                            .toList();
-
-                    // Build the final JSON payload
-                    Map<String, dynamic> deliveryData = {
-                      "name": _fullNameController.text,
-                      "address": _deliveryAddressController.text,
-                      "specifications": _specificationsController.text,
-                      "items": items,
-                      "animal_ID": animalIndex != null ? animalIndex + 1 : null,
-                    };
-
-                    try {
-                      // Send HTTP POST request
-                      final response = await http.post(
-                        Uri.parse('http://localhost:3000/create-delivery'),
-                        headers: {"Content-Type": "application/json"},
-                        body: jsonEncode(deliveryData),
-                      );
-
-                      // Checks if request was successful (status code 201)
-                      if (response.statusCode == 201) {
-                        final responseData = jsonDecode(response.body);
-                        print(
-                          'Delivery Created ID: ${responseData['delivery_ID']}',
-                        );
-                        // Clears form on successful submission
-                        setState(() {
-                          _fullNameController.clear();
-                          _deliveryAddressController.clear();
-                          _specificationsController.clear();
-                          _selectedAnimal = null;
-                          _deliveryItems.clear();
-                        });
-                      } else {
-                        print('Server Error: ${response.statusCode}');
-                        print(response.body);
-                      }
-                    } catch (error) {
-                      print('Failed Send Delivery: $error');
-                    }
-                  },
-                  child: Text('Submit Complete Form To PostGres'),
-                ),
-              ],
-            ),
+          // Request board area
+          body: ListView.builder(
+            itemCount: allRequests.length,
+            itemBuilder: (context, index) {
+                final request = allRequests[index];
+                if (isActive(request.state)) {
+                    return requestTile(request);
+                  }
+                  return Container();
+            }
           ),
         ),
       ),
     );
   }
+}
 
-  TextField inputField(
-    String labelName,
-    TextEditingController controller, {
-    String? hint,
-  }) => TextField(
-    controller: controller,
-    decoration: InputDecoration(
-      labelText: labelName,
-      hintText: hint,
-      border: OutlineInputBorder(),
-    ),
-  );
+class LandownerProfile extends StatefulWidget {
+  const LandownerProfile({
+    super.key,
+    required this.title,
+    required this.request,
+  });
 
-  // Input field that only accepts int
-  TextField inputFieldInt(
-    String labelName,
-    TextEditingController controller, {
-    String? hint,
-  }) => TextField(
-    controller: controller,
-    decoration: InputDecoration(
-      labelText: labelName,
-      hintText: hint,
-      border: OutlineInputBorder(),
-    ),
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      FilteringTextInputFormatter.deny(RegExp('^0+')),
-    ],
-  );
+  final String title;
+  final Request request;
+  
+  @override
+  State<LandownerProfile> createState() => _LandownerProfileState();
+}
 
-  DropdownButtonFormField<String> animalDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Animal',
-        border: OutlineInputBorder(),
-      ),
-      value: _selectedAnimal,
-      items:
-          _animalOptions
-              .map(
-                (animal) =>
-                    DropdownMenuItem(value: animal, child: Text(animal)),
-              )
-              .toList(),
-      onChanged:
-          _isAnimalLock
-              ? null
-              : (newValue) {
-                setState(() {
-                  _selectedAnimal = newValue;
-                });
-              },
+class _LandownerProfileState extends State<LandownerProfile> {
+  bool _showAddress = false;
+  bool _showPhone = false;
+
+  Widget header(Request request) {
+    return Row(
+      children: <Widget>[
+        SizedBox(
+          width: 100,
+          height: 100,
+          child: Image(
+            image: AssetImage('assets/images/${request.name}.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        Column(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                request.name, // TODO Need to give proper padding
+                style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  DropdownButtonFormField<String> browseDropdown() =>
-      DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          labelText: 'Browse',
-          border: OutlineInputBorder(),
+  Widget browsePanel(plant, quantity) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [Text("Browse Available"), Text("$plant x$quantity")],
+      ),
+    );
+  }
+
+  Widget landownerAddress(address, postcode) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            WidgetSpan(child: Icon(Icons.place, size: 14)),
+            _showAddress
+                ? TextSpan(text: "Address\n$address, $postcode")
+                // Will probably reimplement this to dynamically call for address once request accepted, for security
+                // TODO lookup postcode for name of suburb to add to address
+                : TextSpan(text: "Address\n******** $postcode"),
+          ],
         ),
-        value: _selectedBrowseItem,
-        items:
-            _browseOptions
-                .map(
-                  (browse) =>
-                      DropdownMenuItem(value: browse, child: Text(browse)),
-                )
-                .toList(),
-        onChanged: (newValue) {
-          setState(() {
-            _selectedBrowseItem = newValue;
-          });
-        },
-      );
+      ),
+    );
+  }
+
+
+  Widget phoneNumber(phone) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            WidgetSpan(child: Icon(Icons.phone_android_outlined, size: 14)),
+            _showPhone
+                ? TextSpan(text: "Phone\n$phone")
+                // Will probably reimplement this to dynamically call for address once request accepted, for security
+                // TODO lookup postcode for name of suburb to add to address
+                : TextSpan(),
+          ],
+        ),
+      ),
+    );
+  }
+
+// Archived, feature to be added after project conclusion
+  // Widget directionsPanel() {
+  //   return Align(
+  //     alignment: Alignment.centerLeft,
+  //     child: RichText(
+  //       text: TextSpan(
+  //         children: [
+  //           WidgetSpan(child: Icon(Icons.place, size: 14)),
+  //           TextSpan(text: "Nearest browse\n"),
+  //           WidgetSpan(
+  //             child: GestureDetector(
+  //               onTap: () async {
+  //                 const url = 'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
+  //                 try {
+  //                   await launchUrl(Uri.parse(url));
+  //                 } catch (e) {
+  //                   print(
+  //                     'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
+  //                   );
+  //                 }
+  //               },
+  //               child: const Text(
+  //                 "View on google maps",
+  //                 style: TextStyle(
+  //                   color: Colors.blue,
+  //                   decoration: TextDecoration.underline,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget timelapse(request) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
+            // TODO use a timestamp here
+            TextSpan(
+              text: " Active ${formatTimelapse(getTimelapse(request.time))} ago",
+              style: isStale(getTimelapse(request.time)) 
+                ? TextStyle(color: Colors.red)
+                : TextStyle(color: Colors.black)
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget contactButton(request) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Flexible(
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Color.fromARGB(218, 166, 247, 146),
+              minimumSize: Size(101, 38),
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(7)),
+              ),
+            ),
+            onPressed: () {
+              // Accept button action
+              setState(() {
+                _showAddress = true;
+                _showPhone = true;
+              });
+            },
+            child: Text(
+              'Contact Landowner',
+              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Builder for detail requests
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('${widget.request.name}\'s profile')),
+      // Detailed request view
+      body: ListView(
+        padding: EdgeInsets.only(left: 30.0),
+        children: <Widget>[
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              header(widget.request),
+              SizedBox(
+                height: 20.0,
+              ), 
+              // TODO update phone to arg
+              phoneNumber('0342212456'),
+              const SizedBox(
+                height: 15.0,
+              ), // TODO May need to change this to a relative unit// TODO May need to change this to a relative unit
+              browsePanel(widget.request.getPlantNames()[0], widget.request.getPlantQuantities()[0]),
+              const SizedBox(
+                height: 15.0,
+              ), // TODO May need to change this to a relative unit
+              landownerAddress(widget.request.address, widget.request.postcode),
+              const SizedBox(
+                height: 10.0,
+              ), // TODO May need to change this to a relative unit
+              // Archived directions
+              // directionsPanel(),
+              // const SizedBox(
+              //   height: 10.0,
+              // ), // TODO May need to change this to a relative unit
+              timelapse(widget.request),
+              const SizedBox(height: 20.0),
+              contactButton(widget.request),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+bool isActive(state) {
+  if(state == 'Active') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// TODO use DateTime.difference
+String getTimelapse(requestTime) {
+  final DateTime now = DateTime.now();
+  final List<int> timeParts = requestTime.substring(0, requestTime.length - 1).split(":").map<int>((str) => int.parse(str)).toList();
+
+  int daysElapsed = now.day - timeParts[0];
+  int hourElapsed = now.hour - timeParts[3];
+  int minElapsed = now.minute - timeParts[4];
+
+  String timelapse = '${daysElapsed}:${hourElapsed}:${minElapsed}';
+
+  return timelapse;
+}
+
+String formatTimelapse(timelapse) {
+  List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
+
+  int daysElapsed = timeParts[0];
+  int hourElapsed = timeParts[1];
+  int minElapsed = timeParts[2];
+
+    if(daysElapsed != 0) {
+    timelapse = '${daysElapsed} days';
+  } else {
+    if(hourElapsed != 0) {
+      timelapse = '${hourElapsed}h ${minElapsed}m';
+      
+    } else {
+      timelapse = '${hourElapsed}m';
+    }
+  }
+
+  return timelapse;
+}
+
+bool isStale(timelapse) {
+  List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
+
+  // timeParts[0] = Days elapsed
+  return timeParts[0] > 90;
 }

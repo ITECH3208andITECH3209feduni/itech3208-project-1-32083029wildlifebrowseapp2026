@@ -480,5 +480,7 @@ String formatTimelapse(timelapse) {
 bool isStale(timelapse) {
   List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
 
+  // timeParts[0] = Days elapsed
+  // timeParts[1] = Hours elapsed
   return timeParts[0] > 0 || timeParts[1] > 16;
 }

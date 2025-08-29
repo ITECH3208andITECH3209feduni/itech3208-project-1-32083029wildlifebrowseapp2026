@@ -18,17 +18,13 @@ void main() {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return GathererRoute(user: args['user']);
         },
-        '/detailed-request': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return DetailedRequest(title: args['Request Details'], request: args['request']);
-        },
         '/caretaker': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return CaretakerRoute(user: args['user']);
         },
         '/landowner': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return LandOwnerRoute(user: args['user']);
+          return LandownerRoute(user: args['user']);
         },
         '/education': (context) {
           return BrowseListPage();

@@ -35,11 +35,11 @@ class _UserDrawer extends State<UserDrawer> {
               style: TextStyle(color: Colors.white, fontSize: 24),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.message),
-            title: const Text('Messages'),
-            onTap: drawerButton('Messages'),
-          ),
+          // ListTile(
+          //   leading: const Icon(Icons.message),
+          //   title: const Text('Messages'),
+          //   onTap: drawerButton('Messages'),
+          // ),
           ListTile(
             leading: const Icon(Icons.account_circle),
             title: const Text('Profile'),
