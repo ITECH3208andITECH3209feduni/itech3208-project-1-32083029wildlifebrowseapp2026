@@ -7,7 +7,7 @@ final dummyRequest2 = '''
         {
             "plant_ID": 2,
             "quantity": 5,
-            "plant_Name": "Silverbeet"
+            "plant_Name": "Grass"
         }
     ],
     "animal": [
@@ -18,7 +18,7 @@ final dummyRequest2 = '''
     ],
     "address": "10 Olympic Avenue, Ballarat VIC",
     "postcode": 3356,
-    "delivery_ID": 3,
+    "delivery_ID": 2,
     "specifications": "Fresh please"
 }
 ''';

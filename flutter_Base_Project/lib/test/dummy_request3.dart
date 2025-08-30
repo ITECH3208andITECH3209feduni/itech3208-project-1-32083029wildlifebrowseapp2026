@@ -1,25 +1,25 @@
-final dummyRequest = '''
+final dummyRequest3 = '''
 {
-    "name": "Reginalds Rescue",
+    "name": "John's Farm",
     "state": "Active",
-    "time": "30:08:2025:12:30:10Z",
+    "time": "22:08:2025:08:30:10Z",
     "items": [
         {
-            "plant_ID": 2,
+            "plant_ID": 3,
             "quantity": 10,
-            "plant_Name": "Eucalyptus viminalis"
+            "plant_Name": "Spear grass"
         }
     ],
     "animal": [
         {
             "animal_ID": 3,
-            "animal_Name": "Koala"
+            "animal_Name": "Wombat"
         }
     ],
-    "address": "789 Morgan St, Ballarat VIC",
+    "address": "5 Morton Street, Ballarat VIC",
     "postcode": 3350,
-    "delivery_ID": 3,
-    "specifications": "Fresh young eucalyptus leaves please"
+    "delivery_ID": 5,
+    "specifications": ""
 }
 ''';
 // Use this Import to test the mock data

@@ -9,6 +9,7 @@ import '../models/request.dart';
 // Dummy request json data
 import '../test/dummy_request.dart';
 import '../test/dummy_request2.dart';
+import '../test/dummy_request3.dart';
 
 class LandownerRoute extends StatelessWidget {
 
@@ -54,6 +55,19 @@ class _RequestBoardState extends State<LandownerHomePage>
   final List<Request> allRequests = [
     jsonParser(dummyRequest),
     jsonParser(dummyRequest2),
+    jsonParser(dummyRequest3),
+    jsonParser(dummyRequest),
+    jsonParser(dummyRequest2),
+    jsonParser(dummyRequest3),
+    jsonParser(dummyRequest),
+    jsonParser(dummyRequest2),
+    jsonParser(dummyRequest3),
+    jsonParser(dummyRequest),
+    jsonParser(dummyRequest2),
+    jsonParser(dummyRequest3),
+    jsonParser(dummyRequest),
+    jsonParser(dummyRequest2),
+    jsonParser(dummyRequest3),
   ];
 
 
