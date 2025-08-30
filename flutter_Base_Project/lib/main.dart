@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'auth/login_screen.dart';
 import 'gatherer-view/requests.dart';
 import 'caretaker-view/order.dart';
+
 import 'landowner-view/overview.dart';
+import 'landowner-view/landowner_registration.dart';
 
 import 'education/browse_list.dart';
 
@@ -25,6 +27,10 @@ void main() {
         '/landowner': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return LandownerRoute(user: args['user']);
+        },
+        '/landowner-registration': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return LandownerRegistration(user: args['user']);
         },
         '/education': (context) {
           return BrowseListPage();

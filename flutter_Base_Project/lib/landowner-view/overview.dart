@@ -210,6 +210,28 @@ class _RequestBoardState extends State<LandownerHomePage>
                     );
                 },
               ),
+              // Icon to move to create new landowner listing
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Color.fromRGBO(245, 245, 237, 1),
+                  minimumSize: Size(101, 38),
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(7)),
+                  ),
+                ),
+                child: Text(
+                  'Create new listing',
+                  style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+                  textAlign: TextAlign.center,
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                    '/landowner-registration',
+                    arguments: {'user': widget.user},
+                    );
+                },
+              )
             ],
           ),
           drawer: UserDrawer(username: username),
