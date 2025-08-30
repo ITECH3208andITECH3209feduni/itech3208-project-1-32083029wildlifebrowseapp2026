@@ -11,14 +11,24 @@ class LoginScreen extends StatelessWidget {
     return MaterialApp(
       title: 'User registration',
       theme: ThemeData(
+        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
         useMaterial3: true,
       ),
       home: DefaultTabController(
         length: 3,
         child: Scaffold(
+          backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
           appBar: AppBar(
-            title: const Text('Browse App'),
+            title: Row(
+              children: [
+                Image.asset(
+                  'assets/images/browse_logo.png',
+                  height: 40),
+                SizedBox(width: 10,),
+                Text('Browse App'),
+              ]
+            ),
             bottom: const TabBar(
               tabs: [
                 Tab(text: 'Sign-Up'),
@@ -95,7 +105,11 @@ class _SignUpViewState extends State<SignUpView> {
     roleTmp = roles.first;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+      appBar: AppBar(
+        title: const Text('Sign Up'),
+        backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        ),
       body: ListView (
         padding: const EdgeInsets.all(8.0),
         children: [
@@ -181,7 +195,11 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign-Up Confirmation')),
+      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+      appBar: AppBar(
+        title: const Text('Sign-Up Confirmation'),
+        backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -194,6 +212,7 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
               controller: _confirmationCodeController,
               decoration: const InputDecoration(labelText: 'Confirmation Code'),
             ),
+            SizedBox(height: 16,),
             ElevatedButton(
               onPressed: _signUp,
               child: const Text('Confirm Sign-Up'),
@@ -261,7 +280,11 @@ class _SignInViewState extends State<SignInView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+      appBar: AppBar(
+        title: const Text('Sign In'),
+        backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -275,6 +298,7 @@ class _SignInViewState extends State<SignInView> {
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
+            SizedBox(height: 16,),
             ElevatedButton(
               onPressed: _signIn,
               child: const Text('Sign In'),
@@ -296,6 +320,7 @@ class UserDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(title: Text('User Details: ${user.username}')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),

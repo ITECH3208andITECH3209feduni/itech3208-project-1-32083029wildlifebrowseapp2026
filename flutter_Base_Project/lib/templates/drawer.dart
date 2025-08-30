@@ -25,6 +25,7 @@ class _UserDrawer extends State<UserDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[

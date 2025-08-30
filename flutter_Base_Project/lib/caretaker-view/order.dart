@@ -15,9 +15,9 @@ class CaretakerRoute extends StatelessWidget {
     return MaterialApp(
       title: 'Order Request',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromRGBO(46, 165, 107, 1),
-        ),
+        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        useMaterial3: true,
       ),
       // Set username of caretaker here
       home: CaretakerHomePage(title: 'Order Request', user: user),
@@ -106,11 +106,17 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
     const String appTitle = 'Order';
     final String username = widget.user.claims['given_name'];
     return MaterialApp(
+      theme: ThemeData(
+        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        useMaterial3: true,
+      ),
       title: appTitle,
       // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
       home: SafeArea(
         minimum: const EdgeInsets.all(12.0),
         child: Scaffold(
+          backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             title: Text(appTitle),

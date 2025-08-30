@@ -23,11 +23,10 @@ class GathererRoute extends StatelessWidget {
     return MaterialApp(
       title: 'Requests',
       theme: ThemeData(
-        listTileTheme: const ListTileThemeData(textColor: Colors.white),
+        listTileTheme: const ListTileThemeData(textColor: Colors.black),
+        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromRGBO(46, 165, 107, 1),
-        ),
       ),
       // Set username of Gatherer here
       home: GathererHomePage(title: 'Request Board', user: user),
@@ -90,7 +89,9 @@ class _RequestBoardState extends State<GathererHomePage>
   Widget requestTile(Request request) {
     return Hero(
       tag: request.animal,
-      child: Material(
+      // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
+      child: Card(
+        elevation: 4,
         child: ListTile(
           leading: CircleAvatar(
             backgroundImage: AssetImage(
@@ -109,7 +110,7 @@ class _RequestBoardState extends State<GathererHomePage>
                 ? TextStyle(color: Colors.red)
                 : TextStyle(color: Colors.black)
             ),
-          tileColor: const Color.fromARGB(235, 245, 246, 246),
+          tileColor: const Color.fromARGB(255, 246, 251, 244),
           onTap: () {
             Navigator.push(
               context,
@@ -143,11 +144,18 @@ class _RequestBoardState extends State<GathererHomePage>
     // TODO iterate over requests here
 
     return MaterialApp(
+      theme: ThemeData(
+        listTileTheme: const ListTileThemeData(textColor: Colors.black),
+        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        useMaterial3: true,
+      ),
       title: appTitle,
       // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
       home: SafeArea(
         minimum: const EdgeInsets.all(12.0),
         child: Scaffold(
+          backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             title: Text(appTitle),
@@ -397,6 +405,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(title: Text('${widget.request.getAnimalNames()[0]} request')),
       // Detailed request view
       body: ListView(
