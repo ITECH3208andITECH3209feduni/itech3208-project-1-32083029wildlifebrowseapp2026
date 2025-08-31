@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
 
 import '../auth/auth.dart';
 
@@ -51,6 +53,8 @@ class LandownerRegistration extends StatelessWidget {
   }
 }
 
+
+
 class LandDetails extends StatefulWidget {
   @override
   _LandDetails createState() => _LandDetails();
@@ -64,6 +68,10 @@ class _LandDetails extends State<LandDetails> {
   final _preferredDaysController = TextEditingController();
   final _preferredTimeController = TextEditingController();
   final _advanceWarningController = TextEditingController();
+
+
+  final _formKey = GlobalKey<FormBuilderState>();
+
   // late final CognitoManager _cognitoManager;
 
   // @override
@@ -84,6 +92,7 @@ class _LandDetails extends State<LandDetails> {
     final preferredDays = _preferredDaysController.text;
     final preferredTimes = _preferredTimeController.text;
     final advanceWarning = _advanceWarningController.text;
+     
 
     // try {
     //   await _cognitoManager.signUp(email, address, birthdate, picture, givenName, familyName, password);
@@ -97,34 +106,144 @@ class _LandDetails extends State<LandDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-      appBar: AppBar(
-        title: const Text('Sign Up'),
-        backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-        ),
-      body: ListView (
-        padding: const EdgeInsets.all(8.0),
-        children: [
-          SizedBox(height: 16),
-          inputField("What browse do you have on your property?", _browseController),
-          SizedBox(height: 16),
-          inputField("Address", _addressController),
-          SizedBox(height: 16),
-          inputField("Phone number", _phoneController),
-          SizedBox(height: 16),
-          inputField("What days is your property open to browsing?", _preferredDaysController),
-          SizedBox(height: 16),
-          inputField("What time of day are you open to browsing", _preferredTimeController),
-          SizedBox(height: 16),
-          inputField("Do you require advance warning from Gatherers on entering your land?", _advanceWarningController),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _landDetails,
-            child: const Text('Confirm details'),
+
+    return SingleChildScrollView(
+      // backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+      // appBar: AppBar(
+      //   title: const Text('Sign Up'),
+      //   backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+      //   ),
+      child: FormBuilder(
+        key: _formKey,
+        child: Column( 
+        children: [FormBuilderCheckboxGroup<String>(
+            name: 'browse',
+            decoration: const InputDecoration(
+                  labelText: 'What browse do you have on your property?',
+                  contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                ),
+            validator: FormBuilderValidators.compose(
+                [FormBuilderValidators.required()]),
+            options: ['Banksia','Callistemon', 'Camellia', 'Correa', 'Eucalytpus', 'Grevillea', 'Lilly Pilly']
+              .map((browse) => FormBuilderFieldOption(
+                    value: browse,
+                    child: Text(browse),
+                  ))
+              .toList(growable: false),
+            controlAffinity: ControlAffinity.leading,
+            orientation: OptionsOrientation.wrap,
+            onChanged: (val) {
+                print(val); // Print the text value write into TextField
+            },
           ),
-        ],
-      ),
+          FormBuilderTextField(
+              name: 'address',
+              decoration: const InputDecoration(
+                labelText: 'Address',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+              validator: FormBuilderValidators.compose(
+                  [FormBuilderValidators.required()]),
+              onChanged: (val) {
+                  print(val); // Print the text value write into TextField
+              },
+          ),
+          FormBuilderTextField(
+            name: 'access',
+            decoration: const InputDecoration(
+              labelText: 'Please detail how to access your property (optional)',
+              contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+            ),
+            onChanged: (val) {
+                print(val); // Print the text value write into TextField
+            },
+          ),
+          FormBuilderTextField(
+              name: 'phone',
+              decoration: const InputDecoration(
+                labelText: 'Phone number',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+              validator: FormBuilderValidators.compose(
+                  [FormBuilderValidators.required()]),
+              onChanged: (val) {
+                  print(val); // Print the text value write into TextField
+              },
+          ),
+          FormBuilderCheckboxGroup<String>(
+            name: 'daysPreferred',
+            decoration: const InputDecoration(
+                  labelText: 'What days is your property open to browsing?',
+                  contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                ),
+            validator: FormBuilderValidators.compose(
+                [FormBuilderValidators.required()]),
+            options: ['Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+              .map((day) => FormBuilderFieldOption(
+                    value: day,
+                    child: Text(day),
+                  ))
+              .toList(growable: false),
+            controlAffinity: ControlAffinity.leading,
+            orientation: OptionsOrientation.wrap,
+            onChanged: (val) {
+                print(val); // Print the text value write into TextField
+            },
+          ),
+          FormBuilderCheckboxGroup<String>(
+            name: 'timesPreferred',
+            decoration: const InputDecoration(
+                  labelText: 'What time of day are you open to browsing?',
+                  contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                ),
+            validator: FormBuilderValidators.compose(
+                [FormBuilderValidators.required()]),
+            options: ['Morning (8am - 11am)','Noon (11am - 1pm)', 'Afternoon (1pm - 5pm)', 'Evening (5pm - 8pm)']
+              .map((time) => FormBuilderFieldOption(
+                    value: time,
+                    child: Text(time),
+                  ))
+              .toList(growable: false),
+            controlAffinity: ControlAffinity.leading,
+            orientation: OptionsOrientation.wrap,
+            onChanged: (val) {
+                print(val); // Print the text value write into TextField
+            },
+          ),
+           FormBuilderFieldDecoration<bool>(
+              name: 'advanceWarning',
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+                FormBuilderValidators.equal(true),
+              ]),
+              decoration: const InputDecoration(labelText: 'Do you require advance warning from Gatherers on entering your land?'),
+              builder: (FormFieldState<bool?> field) {
+                return InputDecorator(
+                  decoration: InputDecoration(
+                    errorText: field.errorText,
+                  ),
+                  child: SwitchListTile(
+                    title: const Text(
+                        'I require advance warning from Gatherers before coming onto my property'),
+                    onChanged: field.didChange,
+                    value: field.value ?? false,
+                  ),
+                );
+              },
+            ),
+            FormBuilderTextField(
+            name: 'access',
+            decoration: const InputDecoration(
+              labelText: 'Please add extra details here (optional)',
+              contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+            ),
+            onChanged: (val) {
+                print(val); // Print the text value write into TextField
+            },
+          ),
+          ]
+        )
+      )
     );
   }
 }

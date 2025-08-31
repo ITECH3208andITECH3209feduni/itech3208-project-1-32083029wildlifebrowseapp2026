@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^6.0.20
+  group_button: ^5.3.4
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -39,6 +40,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   flutter_svg: ^2.2.0
   amazon_cognito_identity_dart_2: ^3.8.1
+  flutter_form_builder: ^10.0.1
+  form_builder_validators: ^11.1.2
 
 dev_dependencies:
   flutter_test:
