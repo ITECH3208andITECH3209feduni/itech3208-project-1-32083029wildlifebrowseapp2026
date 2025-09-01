@@ -48,8 +48,7 @@ class GathererHomePage extends StatefulWidget {
   State<GathererHomePage> createState() => _RequestBoardState();
 }
 
-class _RequestBoardState extends State<GathererHomePage>
-    with TickerProviderStateMixin {
+class _RequestBoardState extends State<GathererHomePage> with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
