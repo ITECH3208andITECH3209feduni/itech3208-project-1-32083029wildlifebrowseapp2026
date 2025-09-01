@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/browse.dart';
+import '../models/browseInformation.dart';
 
 class BrowseDetailPage extends StatelessWidget {
   final Browse browse;

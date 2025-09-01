@@ -58,23 +58,23 @@ class Request {
     state = newState;
   }
 
-  factory Request.fromJson(Map<String, dynamic> testRequestJson) {
-    final name = testRequestJson['name'] as String;
+  factory Request.fromJson(Map<String, dynamic> requestJson) {
+    final name = requestJson['name'] as String;
     // if (name is! String) {
     //   // will throw if name is missing or not a String
     //   throw FormatException(
-    //     'Invalid JSON: required "name" field of type String in $testRequestJson',
+    //     'Invalid JSON: required "name" field of type String in $requestJson',
     //   );
     // }
 
-    final state = testRequestJson['state'] as String;
-    final time = testRequestJson['time'] as String;
-    final itemsData = testRequestJson['items'] as List<dynamic>;
-    final animalsData = testRequestJson['animal'] as List<dynamic>;
-    final address = testRequestJson['address'] as String;
-    final postcode = testRequestJson['postcode'] as int;
-    final delivery_ID = testRequestJson['delivery_ID'] as int;
-    final specifications = testRequestJson['specifications'] as String?;
+    final state = requestJson['state'] as String;
+    final time = requestJson['time'] as String;
+    final itemsData = requestJson['items'] as List<dynamic>;
+    final animalsData = requestJson['animal'] as List<dynamic>;
+    final address = requestJson['address'] as String;
+    final postcode = requestJson['postcode'] as int;
+    final delivery_ID = requestJson['delivery_ID'] as int;
+    final specifications = requestJson['specifications'] as String?;
 
     return Request(
       name: name,

@@ -8,6 +8,11 @@ final dummyRequest = '''
             "plant_ID": 2,
             "quantity": 10,
             "plant_Name": "Eucalyptus viminalis"
+        },
+        {
+            "plant_ID": 4,
+            "quantity": 5,
+            "plant_Name": "Eucalyptus globulus"
         }
     ],
     "animal": [

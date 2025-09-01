@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 
 import '../templates/drawer.dart';
+import '../templates/browseList.dart';
 import '../jsonParser.dart';
 import '../auth/auth.dart';
 
@@ -53,21 +54,24 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   late final Animation<double> _fadeAnimation;
 
   final List<Request> allRequests = [
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest2, Request.fromJson),
+    jsonToObject(dummyRequest3, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest2, Request.fromJson),
+    jsonToObject(dummyRequest3, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest2, Request.fromJson),
+    jsonToObject(dummyRequest3, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest2, Request.fromJson),
+    jsonToObject(dummyRequest3, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest2, Request.fromJson),
+    jsonToObject(dummyRequest3, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest2, Request.fromJson),
+    jsonToObject(dummyRequest3, Request.fromJson),
   ];
 
 
@@ -112,16 +116,17 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
             radius: 20,
           ),
           title: Text(request.getAnimalNames().join(" ")),
-          subtitle: Text(
-            // TODO iterate over list of plant quantities and names
-            '${request.getPlantQuantities()[0]}x ${request.getPlantNames()[0]}...\n${request.postcode}',
-          ),
-          trailing: Text(
-              "${formatTimelapse(getTimelapse(request.time))} ago",
-              style: isStale(getTimelapse(request.time)) 
-                ? TextStyle(color: Colors.red)
-                : TextStyle(color: Colors.black)
-            ),
+          subtitle: BrowseQuantityList(browses: request.getPlantNames(), quantities: request.getPlantQuantities()),
+          trailing: Column(
+            children: [
+              Text(
+                "${formatTimelapse(getTimelapse(request.time))} ago",
+                style: isStale(getTimelapse(request.time)) 
+                  ? TextStyle(color: Colors.red)
+                  : TextStyle(color: Colors.black)
+              ),
+              Text('Postcode: ${request.postcode}'),
+          ]),
           tileColor: const Color.fromARGB(255, 246, 251, 244),
           onTap: () {
             Navigator.push(
@@ -149,7 +154,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
     // Set json file to parse here
     // Args across gatherer's side of app are updated from here
     // *************************************
-    // Request = jsonParser(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
+    // Request = jsonToObject(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
 
     const String appTitle = 'Requests';
     final String username = widget.user.claims['given_name'];
@@ -274,13 +279,16 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
-  Widget browsePanel(plant, quantity) {
+  Widget browsePanel(browses, quantities) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Text("Browse"), Text("$plant x$quantity")],
-      ),
+        children: [
+          Text("Browse Needed"), 
+          BrowseQuantityList(browses: browses, quantities: quantities),
+        ]
+      )
     );
   }
 
@@ -430,7 +438,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               SizedBox(
                 height: 20.0,
               ), // TODO May need to change this to a relative unit
-              browsePanel(widget.request.getPlantNames()[0], widget.request.getPlantQuantities()[0]),
+              browsePanel(widget.request.getPlantNames(), widget.request.getPlantQuantities()),
               const SizedBox(
                 height: 15.0,
               ), // TODO May need to change this to a relative unit

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../templates/drawer.dart';
+import '../templates/browseList.dart';
 import '../jsonParser.dart';
 import '../auth/auth.dart';
 
-import '../models/request.dart';
+import '../models/landowner.dart';
 
 // Dummy request json data
-import '../test/dummy_request.dart';
-import '../test/dummy_request2.dart';
-import '../test/dummy_request3.dart';
+import '../test/dummy_landowner.dart';
 
 class LandownerRoute extends StatelessWidget {
 
@@ -52,22 +51,10 @@ class _RequestBoardState extends State<LandownerHomePage>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
-  final List<Request> allRequests = [
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
-    jsonParser(dummyRequest),
-    jsonParser(dummyRequest2),
-    jsonParser(dummyRequest3),
+  final List<Landowner> allProfiles = [
+    jsonToObject(dummyLandowner, Landowner.fromJson),
+    jsonToObject(dummyLandowner, Landowner.fromJson),
+    jsonToObject(dummyLandowner, Landowner.fromJson),
   ];
 
 
@@ -93,32 +80,31 @@ class _RequestBoardState extends State<LandownerHomePage>
     _fadeController.forward();
   }
 
+
+
   // Args passed from Request board initial state widget
   // String animal = animal.animal_Name
   // String browse = item.plant_Name
   // int quantity = item.quantity
   // int postcode = request.postcode
-  Widget requestTile(Request request) {
+  Widget requestTile(Landowner request) {
     return Hero(
-      tag: request.animal,
+      tag: request.userID,
       // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
       child: Card(
         elevation: 4,
         child: ListTile(
           leading: CircleAvatar(
             backgroundImage: AssetImage(
-              'assets/images/${request.name}.jpg',
+              'assets/images/${request.userID}.jpg',
             ),
             radius: 20,
           ),
-          title: Text(request.name),
-          subtitle: Text(
-            // TODO iterate over list of plant quantities and names
-            '${request.getPlantQuantities()[0]}x ${request.getPlantNames()[0]}...\n${request.postcode}',
-          ),
+          title: Text(request.userID),
+          subtitle: BrowseList(browses: request.getBrowseNames()),
           trailing: Text(
-              "Active ${formatTimelapse(getTimelapse(request.time))} ago",
-              style: isStale(getTimelapse(request.time)) 
+              " ${formatTimelapse(getTimelapse(request.timestamp))} ago",
+              style: isStale(getTimelapse(request.timestamp)) 
                 ? TextStyle(color: Colors.red)
                 : TextStyle(color: Colors.black)
             ),
@@ -142,18 +128,10 @@ class _RequestBoardState extends State<LandownerHomePage>
   }
 
   @override
-  // Request board initial state
+  // Landowner profiles overview board initial state
   Widget build(BuildContext context) {
-    // *************************************
-    // JSON parsed and variables initialised
-    // Set json file to parse here
-    // Args across gatherer's side of app are updated from here
-    // *************************************
-    // Request = jsonParser(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
-
     const String appTitle = 'Nearby places to find browse';
     final String username = widget.user.claims['given_name'];
-    // TODO iterate over requests here
 
     return MaterialApp(
       theme: ThemeData(
@@ -237,9 +215,9 @@ class _RequestBoardState extends State<LandownerHomePage>
           drawer: UserDrawer(username: username),
           // Request board area
           body: ListView.builder(
-            itemCount: allRequests.length,
+            itemCount: allProfiles.length,
             itemBuilder: (context, index) {
-                final request = allRequests[index];
+                final request = allProfiles[index];
                 if (isActive(request.state)) {
                     return requestTile(request);
                   }
@@ -260,7 +238,7 @@ class LandownerProfile extends StatefulWidget {
   });
 
   final String title;
-  final Request request;
+  final Landowner request;
   
   @override
   State<LandownerProfile> createState() => _LandownerProfileState();
@@ -270,14 +248,14 @@ class _LandownerProfileState extends State<LandownerProfile> {
   bool _showAddress = false;
   bool _showPhone = false;
 
-  Widget header(Request request) {
+  Widget header(Landowner request) {
     return Row(
       children: <Widget>[
         SizedBox(
           width: 100,
           height: 100,
           child: Image(
-            image: AssetImage('assets/images/${request.name}.jpg'),
+            image: AssetImage('assets/images/${request.userID}.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -286,7 +264,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                request.name, // TODO Need to give proper padding
+                request.userID, // TODO Need to give proper padding
                 style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
               ),
             ),
@@ -296,17 +274,20 @@ class _LandownerProfileState extends State<LandownerProfile> {
     );
   }
 
-  Widget browsePanel(plant, quantity) {
+  Widget browsePanel(browses) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Text("Browse Available"), Text("$plant x$quantity")],
-      ),
+        children: [
+          Text("Browse Available"), 
+          BrowseList(browses: browses),
+        ]
+      )
     );
   }
 
-  Widget landownerAddress(address, postcode) {
+  Widget landownerAddress(address) {
     return Align(
       alignment: Alignment.centerLeft,
       child: RichText(
@@ -314,10 +295,10 @@ class _LandownerProfileState extends State<LandownerProfile> {
           children: [
             WidgetSpan(child: Icon(Icons.place, size: 14)),
             _showAddress
-                ? TextSpan(text: "Address\n$address, $postcode")
+                ? TextSpan(text: "Address\n$address")
                 // Will probably reimplement this to dynamically call for address once request accepted, for security
                 // TODO lookup postcode for name of suburb to add to address
-                : TextSpan(text: "Address\n******** $postcode"),
+                : TextSpan(text: "Address\n********"),
           ],
         ),
       ),
@@ -334,50 +315,12 @@ class _LandownerProfileState extends State<LandownerProfile> {
             WidgetSpan(child: Icon(Icons.phone_android_outlined, size: 14)),
             _showPhone
                 ? TextSpan(text: "Phone\n$phone")
-                // Will probably reimplement this to dynamically call for address once request accepted, for security
-                // TODO lookup postcode for name of suburb to add to address
-                : TextSpan(),
+                : TextSpan(text: "Phone\n "),
           ],
         ),
       ),
     );
   }
-
-// Archived, feature to be added after project conclusion
-  // Widget directionsPanel() {
-  //   return Align(
-  //     alignment: Alignment.centerLeft,
-  //     child: RichText(
-  //       text: TextSpan(
-  //         children: [
-  //           WidgetSpan(child: Icon(Icons.place, size: 14)),
-  //           TextSpan(text: "Nearest browse\n"),
-  //           WidgetSpan(
-  //             child: GestureDetector(
-  //               onTap: () async {
-  //                 const url = 'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
-  //                 try {
-  //                   await launchUrl(Uri.parse(url));
-  //                 } catch (e) {
-  //                   print(
-  //                     'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
-  //                   );
-  //                 }
-  //               },
-  //               child: const Text(
-  //                 "View on google maps",
-  //                 style: TextStyle(
-  //                   color: Colors.blue,
-  //                   decoration: TextDecoration.underline,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget timelapse(request) {
     return Align(
@@ -388,8 +331,8 @@ class _LandownerProfileState extends State<LandownerProfile> {
             WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
             // TODO use a timestamp here
             TextSpan(
-              text: " Active ${formatTimelapse(getTimelapse(request.time))} ago",
-              style: isStale(getTimelapse(request.time)) 
+              text: " Active ${formatTimelapse(getTimelapse(request.timestamp))} ago",
+              style: isStale(getTimelapse(request.timestamp)) 
                 ? TextStyle(color: Colors.red)
                 : TextStyle(color: Colors.black)
             ),
@@ -436,7 +379,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-      appBar: AppBar(title: Text('${widget.request.name}\'s profile')),
+      appBar: AppBar(title: Text('${widget.request.userID}\'s profile')),
       // Detailed request view
       body: ListView(
         padding: EdgeInsets.only(left: 30.0),
@@ -449,15 +392,15 @@ class _LandownerProfileState extends State<LandownerProfile> {
                 height: 20.0,
               ), 
               // TODO update phone to arg
-              phoneNumber('0342212456'),
+              phoneNumber(widget.request.phone),
               const SizedBox(
                 height: 15.0,
               ), // TODO May need to change this to a relative unit// TODO May need to change this to a relative unit
-              browsePanel(widget.request.getPlantNames()[0], widget.request.getPlantQuantities()[0]),
+              browsePanel(widget.request.getBrowseNames()),
               const SizedBox(
                 height: 15.0,
               ), // TODO May need to change this to a relative unit
-              landownerAddress(widget.request.address, widget.request.postcode),
+              landownerAddress(widget.request.address),
               const SizedBox(
                 height: 10.0,
               ), // TODO May need to change this to a relative unit

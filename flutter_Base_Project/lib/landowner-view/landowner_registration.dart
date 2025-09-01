@@ -1,3 +1,5 @@
+// TODO Get timestamp on submission, set state active and attach user's Cognito userID
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -122,10 +124,24 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
   }
 
   void _submitForm() {
+    final user = widget.user;
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      debugPrint(_formKey.currentState?.instantValue.toString());
+
+      final formData = _formKey.currentState!.value;
+      debugPrint(formData.toString());
+
       // TODO Add code to process form details
+      
+      // Redirects user back to landowner overview page
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamed(
+        '/landowner',
+        arguments: {'user': user},
+        );
     }
   }
 }
@@ -233,9 +249,9 @@ class AvailabilityTab extends StatelessWidget {
             validator: FormBuilderValidators.compose(
                 [FormBuilderValidators.required()]),
             options: ['Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-              .map((day) => FormBuilderFieldOption(
-                    value: day,
-                    child: Text(day),
+              .map((value) => FormBuilderFieldOption(
+                    value: value,
+                    child: Text(value),
                   ))
               .toList(growable: false),
             controlAffinity: ControlAffinity.leading,
@@ -254,9 +270,9 @@ class AvailabilityTab extends StatelessWidget {
             validator: FormBuilderValidators.compose(
                 [FormBuilderValidators.required()]),
             options: ['Morning (8am - 11am)','Noon (11am - 1pm)', 'Afternoon (1pm - 5pm)', 'Evening (5pm - 8pm)']
-              .map((time) => FormBuilderFieldOption(
-                    value: time,
-                    child: Text(time),
+              .map((value) => FormBuilderFieldOption(
+                    value: value,
+                    child: Text(value),
                   ))
               .toList(growable: false),
             controlAffinity: ControlAffinity.leading,
@@ -277,21 +293,6 @@ class PreferencesTab extends StatelessWidget {
 
   PreferencesTab({required this.formKey, required this.phoneFieldKey});
 
-  // void _submitForm() async {
-  //   // Dummy var value
-  //   final user = widget.user;
-  //   // Submit form key somewhere
-  //   final form = widget.formKey;
-
-  //   Navigator.of(
-  //       context,
-  //       rootNavigator: true,
-  //     ).pushNamed(
-  //       '/landowner',
-  //       arguments: {'user': user},
-  //       );
-  // }
-
   @override
 Widget build(BuildContext context) {
     return Padding(
@@ -299,21 +300,25 @@ Widget build(BuildContext context) {
         child: Column( 
           children: [
             SizedBox(height: 16,),
-            FormBuilderFieldDecoration<bool>(
+            FormBuilderRadioGroup<String>(
               name: 'advanceWarning',
-              decoration: const InputDecoration(labelText: 'Do you require advance warning from Gatherers on entering your land?'),
-              builder: (FormFieldState<bool?> field) {
-                return InputDecorator(
-                  decoration: InputDecoration(
-                    errorText: field.errorText,
+              initialValue: 'Yes',
+              decoration: const InputDecoration(
+                    labelText: 'Do you require advance warning from Gatherers on entering your land?',
+                    contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
                   ),
-                  child: SwitchListTile(
-                    title: const Text(
-                        'I require advance warning from Gatherers before coming onto my property'),
-                    onChanged: field.didChange,
-                    value: field.value ?? false,
-                  ),
-                );
+              validator: FormBuilderValidators.compose(
+                  [FormBuilderValidators.required()]),
+              options: ['Yes', 'No']
+              .map((value) => FormBuilderFieldOption(
+                    value: value,
+                    child: Text(value),
+                  ))
+              .toList(growable: false),
+              controlAffinity: ControlAffinity.leading,
+              orientation: OptionsOrientation.wrap,
+              onChanged: (val) {
+                  print(val); // Print the text value write into TextField
               },
             ),
             SizedBox(height:16),

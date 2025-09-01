@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/browse.dart';
+import '../models/browseInformation.dart';
 import 'browse_detail.dart';
 
 class BrowseListPage extends StatefulWidget {
