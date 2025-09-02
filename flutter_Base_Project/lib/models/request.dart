@@ -1,111 +1,99 @@
-import 'animal.dart';
-import 'items.dart';
+// import 'animal.dart';
+import 'deliveryItems.dart';
+
+// Will need to revamp this to handle Dynamo key values
 
 class Request {
   Request({
-    required this.name,
-    required this.state,
-    required this.time,
-    required this.items,
-    required this.animal,
-    required this.address,
     required this.postcode,
-    required this.delivery_ID,
-    this.specifications,
+    this.requestDetails,
+    required this.request_ID,
+    required this.timestamp,
+    this.assigned_User_ID,
+    required this.requester_ID,
+    required this.status_Num,
+    required this.delivery_items,
+    required this.animal_ID,
+
   });
 
-  final String name;
-  String state;
-  final String time;
-  final List<Items> items;
-  final List<Animal> animal;
-  final String address;
   final int postcode;
-  final int delivery_ID;
-  final String? specifications;
-
-
-  // Animal helper methods
-  // Gets animal names as a list
-  List<String> getAnimalNames() {
-    return animal.map((a) => a.animal_Name).toList();
-  }
-
-  // Gets animals by ID
-  Animal? findAnimalById(int animalId) {
-    return animal.firstWhere((a) => a.animal_ID == animalId);
-  }
+  final String? requestDetails;
+  final String request_ID;
+  final String timestamp;
+  final String? assigned_User_ID;
+  final String requester_ID;
+  int status_Num;
+  final List<DeliveryItems> delivery_items;
+  final String animal_ID;
 
 
   // Items helper methods
   // Gets plant names as a list
-  List<String> getPlantNames() {
-    return items.map((a) => a.plant_Name).toList();
+  // List<String?> getPlantNames() {
+  //   return delivery_items.map((a) => a.plant_Name).toList();
+  // }
+
+  List<String> getPlantID() {
+    return delivery_items.map((a) => a.plant_ID).toList();
   }
 
  // Gets plant quantities as list
   List<int> getPlantQuantities() {
-    return items.map((a) => a.quantity).toList();
+    return delivery_items.map((a) => a.quantity).toList();
   }
 
   // Gets plants by ID
-  Items? findPlantById(int plant_ID) {
-    return items.firstWhere((a) => a.plant_ID == plant_ID);
-  }
+  // Items? findPlantById(String plant_ID) {
+  //   return delivery_items.firstWhere((a) => a.plant_ID == plant_ID);
+  // }
 
 
-  set updateState(String newState) {
-    state = newState;
+  set updateState(int newState) {
+    status_Num = newState;
   }
 
   factory Request.fromJson(Map<String, dynamic> requestJson) {
-    final name = requestJson['name'] as String;
-    // if (name is! String) {
-    //   // will throw if name is missing or not a String
-    //   throw FormatException(
-    //     'Invalid JSON: required "name" field of type String in $requestJson',
-    //   );
-    // }
-
-    final state = requestJson['state'] as String;
-    final time = requestJson['time'] as String;
-    final itemsData = requestJson['items'] as List<dynamic>;
-    final animalsData = requestJson['animal'] as List<dynamic>;
-    final address = requestJson['address'] as String;
     final postcode = requestJson['postcode'] as int;
-    final delivery_ID = requestJson['delivery_ID'] as int;
-    final specifications = requestJson['specifications'] as String?;
+    final requestDetails = requestJson['requestDetails'] as String?;
+    final request_ID = requestJson['request_ID'] as String;
+    final timestamp = requestJson['timestamp'] as String;
+    final assigned_User_ID = requestJson['assigned_User_ID'] as String?;
+    final requester_ID = requestJson['requester_ID'] as String;
+    final status_Num = requestJson['status_Num'] as int;
+    final itemsData = requestJson['delivery_items'] as List<dynamic>;
+    final animal_ID = requestJson['animal_ID'] as String;
 
     return Request(
-      name: name,
-      state: state,
-      time: time,
-      items: itemsData
-      .map((itemData) =>
-        Items.fromJson(itemData as Map<String, dynamic>))
-      .toList(),
-      animal: animalsData
-      .map((animalData) =>
-        Animal.fromJson(animalData as Map<String, dynamic>))
-      .toList(),
-      address: address,
       postcode: postcode,
-      delivery_ID: delivery_ID,
-      specifications: specifications,
+      requestDetails: requestDetails,
+      request_ID: request_ID,
+      timestamp: timestamp,
+      assigned_User_ID: assigned_User_ID,
+      requester_ID: requester_ID,
+      status_Num: status_Num,
+      delivery_items: itemsData
+        .map((itemData) => DeliveryItems.fromJson(itemData as Map<String, dynamic>))
+        .toList(),
+      // delivery_items: itemsData
+      // .map((itemData) =>
+      //   Items.fromJson(itemData as Map<String, dynamic>))
+      // .toList(),
+      animal_ID: animal_ID,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'state': state,
-      'time': time,
-      'itemsData': items,
-      'animalsData': animal,
-      'address': address,
       'postcode': postcode,
-      'delivery_ID': delivery_ID,
-      'specifications': specifications,
+      'requestDetails': requestDetails,
+      'request_ID': request_ID,
+      'timestamp': timestamp,
+      'assigned_User_ID': assigned_User_ID,
+      'requester_ID': requester_ID,
+      'status_Num': status_Num,
+      'delivery_items': delivery_items.map((e) => e.toJson()).toList(),
+      'animal_ID': animal_ID,
     };
   }
 }

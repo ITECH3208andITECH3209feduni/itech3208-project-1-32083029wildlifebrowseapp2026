@@ -1,7 +1,4 @@
 import 'dart:convert';
-import 'models/request.dart';
-import 'models/items.dart';
-import 'models/animal.dart';
 
 // T represents a generic type
 // The arg passed to fromJson param must be in the form of <class>.fromJson

@@ -1,4 +1,6 @@
 // TODO Get timestamp on submission, set state active and attach user's Cognito userID
+// TODO Convert final formData to JSON object
+// TODO add back button to top of registration to allow cancelling halfway through
 
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';

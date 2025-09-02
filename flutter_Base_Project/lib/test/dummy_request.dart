@@ -1,32 +1,22 @@
 final dummyRequest = '''
 {
-    "name": "Reginalds Rescue",
-    "state": "Active",
-    "time": "30:08:2025:12:30:10Z",
-    "items": [
-        {
-            "plant_ID": 2,
-            "quantity": 10,
-            "plant_Name": "Eucalyptus viminalis"
-        },
-        {
-            "plant_ID": 4,
-            "quantity": 5,
-            "plant_Name": "Eucalyptus globulus"
-        }
-    ],
-    "animal": [
-        {
-            "animal_ID": 3,
-            "animal_Name": "Koala"
-        }
-    ],
-    "address": "789 Morgan St, Ballarat VIC",
-    "postcode": 3350,
-    "delivery_ID": 3,
-    "specifications": "Fresh young eucalyptus leaves please"
+  "postcode": 3169,
+  "requestDetails": "Need food for the animals",
+  "request_ID": "TEST_5_Request",
+  "timestamp": "2024-08-05T11:30:00",
+  "assigned_User_ID": null,
+  "requester_ID": "CARETAKER-TEST",
+  "status_Num": 1,
+  "animal_ID": "Koala_ID",
+  "delivery_items": [
+    {
+      "plant_ID": "Eucalyptus_ID",
+      "quantity": 3
+    },
+    {
+      "plant_ID": "Spearmint_ID",
+      "quantity": 5
+    }
+  ]
 }
 ''';
-// Use this Import to test the mock data
-// import 'test_data.dart';
-// Then refrence the testRequestJson in your code, refrencing its values as needed 

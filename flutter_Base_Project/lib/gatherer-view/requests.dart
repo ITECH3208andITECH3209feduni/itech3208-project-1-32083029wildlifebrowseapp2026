@@ -11,7 +11,7 @@ import '../models/request.dart';
 // Dummy request json data
 import '../test/dummy_request.dart';
 import '../test/dummy_request2.dart';
-import '../test/dummy_request3.dart';
+// import '../test/dummy_request3.dart';
 
 class GathererRoute extends StatelessWidget {
 
@@ -55,25 +55,14 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
 
   final List<Request> allRequests = [
     jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest2, Request.fromJson),
-    jsonToObject(dummyRequest3, Request.fromJson),
     jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest2, Request.fromJson),
-    jsonToObject(dummyRequest3, Request.fromJson),
     jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest2, Request.fromJson),
-    jsonToObject(dummyRequest3, Request.fromJson),
     jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest2, Request.fromJson),
-    jsonToObject(dummyRequest3, Request.fromJson),
     jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest2, Request.fromJson),
-    jsonToObject(dummyRequest3, Request.fromJson),
     jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest2, Request.fromJson),
-    jsonToObject(dummyRequest3, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
+    jsonToObject(dummyRequest, Request.fromJson),
   ];
-
 
   @override
   void dispose() {
@@ -102,28 +91,29 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   // String browse = item.plant_Name
   // int quantity = item.quantity
   // int postcode = request.postcode
-  Widget requestTile(Request request) {
+  Widget requestTile(Request request, User user) {
     return Hero(
-      tag: request.animal,
+      tag: request.animal_ID,
       // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
       child: Card(
         elevation: 4,
         child: ListTile(
           leading: CircleAvatar(
             backgroundImage: AssetImage(
-              'assets/images/${request.getAnimalNames()[0]}.jpg',
+              'assets/images/${request.animal_ID}.jpg',
             ),
             radius: 20,
           ),
-          title: Text(request.getAnimalNames().join(" ")),
-          subtitle: BrowseQuantityList(browses: request.getPlantNames(), quantities: request.getPlantQuantities()),
+          title: Text(request.animal_ID),
+          subtitle: BrowseQuantityList(browses: request.getPlantID(), quantities: request.getPlantQuantities()),
           trailing: Column(
             children: [
               Text(
-                "${formatTimelapse(getTimelapse(request.time))} ago",
-                style: isStale(getTimelapse(request.time)) 
-                  ? TextStyle(color: Colors.red)
-                  : TextStyle(color: Colors.black)
+                // "${formatTimelapse(getTimelapse(request.timestamp))} ago",
+                "${request.timestamp} ago",
+                // style: isStale(getTimelapse(request.timestamp)) 
+                //   ? TextStyle(color: Colors.red)
+                //   : TextStyle(color: Colors.black)
               ),
               Text('Postcode: ${request.postcode}'),
           ]),
@@ -137,6 +127,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
                     (BuildContext context) => DetailedRequest(
                       title: 'Request Details',
                       request: request,
+                      user: user,
                     ),
               ),
             );
@@ -224,8 +215,8 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
             itemCount: allRequests.length,
             itemBuilder: (context, index) {
                 final request = allRequests[index];
-                if (isActive(request.state)) {
-                    return requestTile(request);
+                if (isActive(request.status_Num)) {
+                    return requestTile(request, widget.user);
                   }
                   return Container();
             }
@@ -241,10 +232,12 @@ class DetailedRequest extends StatefulWidget {
     super.key,
     required this.title,
     required this.request,
+    required this.user,
   });
 
   final String title;
   final Request request;
+  final User user;
   
   @override
   State<DetailedRequest> createState() => _DetailedRequestState();
@@ -260,7 +253,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
           width: 100,
           height: 100,
           child: Image(
-            image: AssetImage('assets/images/${request.getAnimalNames()[0]}.jpg'),
+            image: AssetImage('assets/images/${request.animal_ID}.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -269,7 +262,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                request.getAnimalNames()[0], // TODO Need to give proper padding
+                request.animal_ID, // TODO Need to give proper padding
                 style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
               ),
             ),
@@ -292,6 +285,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
+// TODO fix broken update
   Widget deliveryAddress(address, postcode) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -309,42 +303,6 @@ class _DetailedRequestState extends State<DetailedRequest> {
       ),
     );
   }
-
-// Archived, feature to be added after project conclusion
-  // Widget directionsPanel() {
-  //   return Align(
-  //     alignment: Alignment.centerLeft,
-  //     child: RichText(
-  //       text: TextSpan(
-  //         children: [
-  //           WidgetSpan(child: Icon(Icons.place, size: 14)),
-  //           TextSpan(text: "Nearest browse\n"),
-  //           WidgetSpan(
-  //             child: GestureDetector(
-  //               onTap: () async {
-  //                 const url = 'https://maps.app.goo.gl/M6uQuJx1E7zVB9vu9';
-  //                 try {
-  //                   await launchUrl(Uri.parse(url));
-  //                 } catch (e) {
-  //                   print(
-  //                     'Can not launch, must allow query in android/app/src/main/AndroidManifest.xml',
-  //                   );
-  //                 }
-  //               },
-  //               child: const Text(
-  //                 "View on google maps",
-  //                 style: TextStyle(
-  //                   color: Colors.blue,
-  //                   decoration: TextDecoration.underline,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget timelapse(request) {
     return Align(
@@ -426,7 +384,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-      appBar: AppBar(title: Text('${widget.request.getAnimalNames()[0]} request')),
+      appBar: AppBar(title: Text('${widget.request.animal_ID} request')),
       // Detailed request view
       body: ListView(
         padding: EdgeInsets.only(left: 30.0),
@@ -438,11 +396,11 @@ class _DetailedRequestState extends State<DetailedRequest> {
               SizedBox(
                 height: 20.0,
               ), // TODO May need to change this to a relative unit
-              browsePanel(widget.request.getPlantNames(), widget.request.getPlantQuantities()),
+              browsePanel(widget.request.getPlantID(), widget.request.getPlantQuantities()),
               const SizedBox(
                 height: 15.0,
               ), // TODO May need to change this to a relative unit
-              deliveryAddress(widget.request.address, widget.request.postcode),
+              deliveryAddress(widget.user.claims['address'], widget.request.postcode),
               const SizedBox(
                 height: 10.0,
               ), // TODO May need to change this to a relative unit
@@ -451,7 +409,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
               // const SizedBox(
               //   height: 10.0,
               // ), // TODO May need to change this to a relative unit
-              timelapse(widget.request),
+              // TODO update timelapse for better handling
+              // timelapse(widget.request),
               const SizedBox(height: 20.0),
               requestButtons(widget.request),
             ],
@@ -462,9 +421,9 @@ class _DetailedRequestState extends State<DetailedRequest> {
   }
 }
 
-
+// Could prob shorten this
 bool isActive(state) {
-  if(state == 'Active') {
+  if(state == 1) {
     return true;
   } else {
     return false;
