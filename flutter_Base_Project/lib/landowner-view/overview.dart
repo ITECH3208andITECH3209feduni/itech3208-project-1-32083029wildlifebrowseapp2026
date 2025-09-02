@@ -322,6 +322,37 @@ class _LandownerProfileState extends State<LandownerProfile> {
     );
   }
 
+  Widget visitingTimes(visit) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: RichText(
+          text: TextSpan(
+            children: [
+              WidgetSpan(child: Icon(Icons.time_to_leave, size: 14)),
+              TextSpan(text: "Visiting Times"),
+              TextSpan(text: visit),
+              TextSpan(text: visit),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget advanceWarning(advance) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: RichText(
+          text: TextSpan(
+            children: [
+              WidgetSpan(child: Icon(Icons.notification_add, size: 14)),
+              TextSpan(text: "Advance Warning"),
+              TextSpan(text: advance),
+            ],
+          ),
+        ),
+      );
+    }
+
   Widget timelapse(request) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -410,6 +441,10 @@ class _LandownerProfileState extends State<LandownerProfile> {
               //   height: 10.0,
               // ), // TODO May need to change this to a relative unit
               timelapse(widget.request),
+              const SizedBox(height: 10.0),
+              visitingTimes("Monday"),
+              const SizedBox(height: 10.0),
+              advanceWarning("Advance Warning required"),
               const SizedBox(height: 20.0),
               contactButton(widget.request),
             ],
