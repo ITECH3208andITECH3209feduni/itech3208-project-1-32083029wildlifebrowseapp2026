@@ -67,8 +67,8 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   final TextEditingController _browseQuantityController =
       TextEditingController();
 
-  final List<String> _animalOptions = ['Koala', 'Wombat', 'Kangaroo', "Other"];
-  final List<String> _browseOptions = ['Eucalyptus', 'Silverbeet', 'Wattle'];
+  final List<String> _animalOptions = ['Koala', 'Wombat', 'Kangaroo', 'Possum', 'Other'];
+  final List<String> _browseOptions = ['River Red Gum (Eucalyptus camaldulensis)', 'Tasmanian Blue Gum (Eucalyptus globulus)', 'Manna Gum (Eucalyptus viminalis)'];
 
   String? _selectedAnimal;
   String? _selectedBrowseItem;
@@ -76,7 +76,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   // List of delivery items
   // TODO create DeliveryItem on submission so can have impression of a empty list when open page
   final List<DeliveryItem> _deliveryItems = [
-    DeliveryItem(browseName: "Eucalyptus", browseQuantity: "1"),
+    DeliveryItem(browseName: "Tasmanian Blue Gum (Eucalyptus globulus)", browseQuantity: "1"),
   ];
 
   @override
@@ -105,6 +105,8 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   Widget build(BuildContext context) {
     const String appTitle = 'Order';
     final String username = widget.user.claims['given_name'];
+    int count = 0;
+
     return MaterialApp(
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
@@ -267,41 +269,49 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
 
                 SizedBox(height: 12),
 
-                // Button to send data to the PostgreS Server Through Node.JS
+                // Button to send data to the DynamoDB Server Through AWS Gateway
                 ElevatedButton(
                   onPressed: () async {
                     // Build your items list from _deliveryItems
                     int? animalIndex;
-                    _selectedAnimal != null
-                        ? _animalOptions.indexOf(_selectedAnimal!)
-                        : print('Please select an animal');
+                    if (_selectedAnimal != null) {
+                      // Why do we use this, I don't get referring things via numbers rather than strings
+                      animalIndex = _animalOptions.indexOf(_selectedAnimal!);
+                    } else {
+                      print('Please select an animal');
+                      return;
+                    }
 
                     List<Map<String, dynamic>> items =
                         _deliveryItems
                             .map(
                               (item) => {
-                                'plant_ID':
-                                    _browseOptions.indexOf(item.browseName) +
-                                    1, // Assuming browseName comes from browseList
-                                // Checks a int is passed to quantity field
-                                'quantity': item.browseQuantity,
+                                // TODO Plant names currently too long, selecting first part for now, will need to fix ListTiles in request.dart
+                                'plant_ID': item.browseName.split(' (')[0],
+                                // Quantity needs to be an int in database
+                                'quantity': int.parse(item.browseQuantity),
                               },
                             )
                             .toList();
 
                     // Build the final JSON payload
                     Map<String, dynamic> deliveryData = {
-                      "name": _fullNameController.text,
                       "address": _deliveryAddressController.text,
-                      "specifications": _specificationsController.text,
-                      "items": items,
-                      "animal_ID": animalIndex != null ? animalIndex + 1 : null,
+                      "postcode": 3350,
+                      "request_ID": "TEST_${count + 1}",
+                      "requestDetails": _specificationsController.text,
+                      "timestamp": '${DateTime.now().toIso8601String()}',
+                      "assigned_User_ID": null,
+                      "requester_ID": '${widget.user.claims['given_name']}_${count + 1}',
+                      "status_Num": 1,
+                      "delivery_items": items,
+                      "animal_ID": _selectedAnimal
                     };
 
                     try {
                       // Send HTTP POST request
                       final response = await http.post(
-                        Uri.parse('http://localhost:3000/create-delivery'),
+                        Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
                         headers: {"Content-Type": "application/json"},
                         body: jsonEncode(deliveryData),
                       );
@@ -328,7 +338,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                       print('Failed Send Delivery: $error');
                     }
                   },
-                  child: Text('Submit Complete Form To PostGres'),
+                  child: Text('Submit Form To DynamoDB'),
                 ),
               ],
             ),
