@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import '../templates/drawer.dart';
 import '../templates/browseList.dart';
@@ -7,11 +8,7 @@ import '../jsonParser.dart';
 import '../auth/auth.dart';
 
 import '../models/request.dart';
-
-// Dummy request json data
-import '../test/dummy_request.dart';
-import '../test/dummy_request2.dart';
-// import '../test/dummy_request3.dart';
+import '../models/response.dart';
 
 class GathererRoute extends StatelessWidget {
 
@@ -49,20 +46,30 @@ class GathererHomePage extends StatefulWidget {
   State<GathererHomePage> createState() => _RequestBoardState();
 }
 
+Future<List<Request>> fetchRequests() async {
+  try {
+    final response = await http.get(Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'));
+
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    final Response requestResponse = Response.fromJson(responseData);
+    if (response.statusCode == 200) {
+      // Requests returned as an array
+      return requestResponse.items; 
+
+    } else {
+      throw Exception('Failed to load requests: ${response.statusCode}');
+    }
+  } catch(e) {
+    throw Exception('Error: $e');
+  }
+}
+
 class _RequestBoardState extends State<GathererHomePage> with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
-  final List<Request> allRequests = [
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-    jsonToObject(dummyRequest, Request.fromJson),
-  ];
+  late Future<List<Request>> futureRequests;
 
   @override
   void dispose() {
@@ -73,6 +80,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   @override
   void initState() {
     super.initState();
+    futureRequests = fetchRequests();
     _fadeController = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -93,7 +101,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   // int postcode = request.postcode
   Widget requestTile(Request request, User user) {
     return Hero(
-      tag: request.animal_ID,
+      tag: request.request_ID,
       // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
       child: Card(
         elevation: 4,
@@ -211,14 +219,32 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
           ),
           drawer: UserDrawer(username: username),
           // Request board area
-          body: ListView.builder(
-            itemCount: allRequests.length,
-            itemBuilder: (context, index) {
-                final request = allRequests[index];
-                if (isActive(request.status_Num)) {
-                    return requestTile(request, widget.user);
-                  }
-                  return Container();
+          body: FutureBuilder<List<Request>>(
+            future: futureRequests,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              
+              if (snapshot.hasError) {
+                return Center(child: Text('Snapshot Error: ${snapshot.error}'));
+              }
+              
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No requests found'));
+              }
+              
+              List<Request> allRequests = snapshot.data!;
+              return ListView.builder(
+                itemCount: allRequests.length,
+                itemBuilder: (context, index) {
+                    final request = allRequests[index];
+                    if (isActive(request.status_Num)) {
+                        return requestTile(request, widget.user);
+                      }
+                      return Container();
+                }
+              );
             }
           ),
         ),
@@ -342,7 +368,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               // Accept button action
               setState(() {
                 _showAddress = true;
-                request.updateState = 'WIP';
+                request.updateState = 3;
               });
               String jsonString = jsonEncode(request.toJson());
               debugPrint(jsonString);
@@ -400,7 +426,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               const SizedBox(
                 height: 15.0,
               ), // TODO May need to change this to a relative unit
-              deliveryAddress(widget.user.claims['address'], widget.request.postcode),
+              deliveryAddress(widget.user.claims['address']['formatted'], widget.request.postcode),
               const SizedBox(
                 height: 10.0,
               ), // TODO May need to change this to a relative unit

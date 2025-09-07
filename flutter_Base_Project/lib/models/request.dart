@@ -1,7 +1,4 @@
-// import 'animal.dart';
 import 'deliveryItems.dart';
-
-// Will need to revamp this to handle Dynamo key values
 
 class Request {
   Request({
@@ -14,7 +11,6 @@ class Request {
     required this.status_Num,
     required this.delivery_items,
     required this.animal_ID,
-
   });
 
   final int postcode;
@@ -27,60 +23,65 @@ class Request {
   final List<DeliveryItems> delivery_items;
   final String animal_ID;
 
+  // Helper method to create an empty request
+  factory Request.empty() {
+    return Request(
+      postcode: 0,
+      request_ID: '',
+      timestamp: '',
+      requester_ID: '',
+      status_Num: 0,
+      delivery_items: [],
+      animal_ID: '',
+    );
+  }
 
   // Items helper methods
-  // Gets plant names as a list
-  // List<String?> getPlantNames() {
-  //   return delivery_items.map((a) => a.plant_Name).toList();
-  // }
-
   List<String> getPlantID() {
     return delivery_items.map((a) => a.plant_ID).toList();
   }
 
- // Gets plant quantities as list
   List<int> getPlantQuantities() {
     return delivery_items.map((a) => a.quantity).toList();
   }
-
-  // Gets plants by ID
-  // Items? findPlantById(String plant_ID) {
-  //   return delivery_items.firstWhere((a) => a.plant_ID == plant_ID);
-  // }
-
 
   set updateState(int newState) {
     status_Num = newState;
   }
 
-  factory Request.fromJson(Map<String, dynamic> requestJson) {
-    final postcode = requestJson['postcode'] as int;
-    final requestDetails = requestJson['requestDetails'] as String?;
-    final request_ID = requestJson['request_ID'] as String;
-    final timestamp = requestJson['timestamp'] as String;
-    final assigned_User_ID = requestJson['assigned_User_ID'] as String?;
-    final requester_ID = requestJson['requester_ID'] as String;
-    final status_Num = requestJson['status_Num'] as int;
-    final itemsData = requestJson['delivery_items'] as List<dynamic>;
-    final animal_ID = requestJson['animal_ID'] as String;
+  static List<DeliveryItems> _parseDeliveryItems(dynamic itemsData) {
+    if (itemsData == null || itemsData is! List<dynamic>) {
+      return [];
+    }
+    
+    return itemsData.map((item) {
+      try {
+        return DeliveryItems.fromJson(item as Map<String, dynamic>);
+      } catch (e) {
+        print('Error parsing delivery item: $e');
+        // Return a empty DeliveryItems instance if parsing fails
+        return DeliveryItems(plant_ID: '', quantity: 0);
+      }
+    }).toList();
+  }
 
-    return Request(
-      postcode: postcode,
-      requestDetails: requestDetails,
-      request_ID: request_ID,
-      timestamp: timestamp,
-      assigned_User_ID: assigned_User_ID,
-      requester_ID: requester_ID,
-      status_Num: status_Num,
-      delivery_items: itemsData
-        .map((itemData) => DeliveryItems.fromJson(itemData as Map<String, dynamic>))
-        .toList(),
-      // delivery_items: itemsData
-      // .map((itemData) =>
-      //   Items.fromJson(itemData as Map<String, dynamic>))
-      // .toList(),
-      animal_ID: animal_ID,
-    );
+  factory Request.fromJson(Map<String, dynamic> requestJson) {
+    try {
+      return Request(
+        postcode: (requestJson['postcode'] as int?) ?? 0,
+        requestDetails: requestJson['requestDetails']?.toString(),
+        request_ID: requestJson['request_ID']?.toString() ?? '',
+        timestamp: requestJson['timestamp']?.toString() ?? '',
+        assigned_User_ID: requestJson['assigned_User_ID']?.toString(),
+        requester_ID: requestJson['requester_ID']?.toString() ?? '',
+        status_Num: (requestJson['status_Num'] as num?)?.toInt() ?? 0,
+        delivery_items: _parseDeliveryItems(requestJson['delivery_items']),
+        animal_ID: requestJson['animal_ID']?.toString() ?? '',
+      );
+    } catch (e) {
+      print('Error parsing Request: $e');
+      return Request.empty();
+    }
   }
 
   Map<String, dynamic> toJson() {
