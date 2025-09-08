@@ -298,7 +298,10 @@ class _DetailedRequestState extends State<DetailedRequest> {
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
                 request.animal_ID, // TODO Need to give proper padding
-                style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
+                style: TextStyle(
+                  color: Color.fromARGB(235, 16, 17, 17),
+                  fontWeight: FontWeight.bold,
+                  ),
               ),
             ),
           ],
@@ -310,12 +313,41 @@ class _DetailedRequestState extends State<DetailedRequest> {
   Widget browsePanel(browses, quantities) {
     return Align(
       alignment: Alignment.bottomLeft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Browse Needed"), 
-          BrowseQuantityList(browses: browses, quantities: quantities),
-        ]
+      child: IntrinsicWidth(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                offset: Offset.zero,
+                blurRadius: 4,
+                spreadRadius: 3,
+              ),
+            ]
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DefaultTextStyle(
+                  style: TextStyle(
+                    color: const Color.fromARGB(255, 230, 230, 230),
+                  ),
+                  child: Text(
+                    "Browse Needed",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold
+                    ),
+                  )
+                ),
+                BrowseQuantityList(browses: browses, quantities: quantities, fontColor:Color.fromARGB(255, 230, 230, 230)),
+              ],
+            )
+          )
+        )
       )
     );
   }
@@ -324,29 +356,51 @@ class _DetailedRequestState extends State<DetailedRequest> {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Column(
+        // Need this to force left alignment of children
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Request Details:"), 
-          Text(details),
+          Row(
+            children: [
+              Icon(Icons.call_to_action_outlined, size: 14),
+              Text(
+                "Request Details:", 
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ], 
+          ),
+          Text(
+            details,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              inherit: false,
+              ),
+            ),
         ]
-      )
+      ),
     );
   }
 
   Widget deliveryAddress(address, postcode) {
     return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(child: Icon(Icons.place, size: 14)),
-            isShowAddress(widget.request, widget.user)
-                ? TextSpan(text: "Delivery address\n$address, $postcode")
-                // Will probably reimplement this to dynamically call for address once request accepted, for security
-                // TODO lookup postcode for name of suburb to add to address
-                : TextSpan(text: "Delivery address\n******** $postcode"),
-          ],
-        ),
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.place, size: 14),
+              Text(
+                "Delivery address:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+            ], 
+          ),
+          isShowAddress(widget.request, widget.user)
+            ? Text("$address, $postcode")
+            // Will probably reimplement this to dynamically call for address once request accepted, for security
+            // TODO lookup postcode for name of suburb to add to address
+            : Text("Postcode: $postcode"),
+        ]
       ),
     );
   }
@@ -371,23 +425,24 @@ class _DetailedRequestState extends State<DetailedRequest> {
   }
 
   Widget requestButtons(request) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        Flexible(
-          child: TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Color.fromARGB(218, 166, 247, 146),
-              minimumSize: Size(101, 38),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(7)),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(15, 0, 15, 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          Flexible(
+            child: TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Color.fromARGB(218, 166, 247, 146),
+                minimumSize: Size(101, 38),
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(7)),
+                ),
               ),
-            ),
-            onPressed: () {
-              // Accept button action
-              setState(() {
-                if (widget.user.claims['username'] != request.requester_ID) {
+              onPressed: () {
+                // Accept button action
+                setState(() {
                   request.assignGatherer = widget.user.claims['username'];
                   request.updateState = 2;
 
@@ -395,40 +450,38 @@ class _DetailedRequestState extends State<DetailedRequest> {
                   String jsonString = jsonEncode(request.toJson());
                   updateRequest(jsonString);
                   debugPrint(jsonString);
-                } else {
-                  print("Can't accept your own request!!");
-                }
-              });
-            },
-            child: Text(
-              'Accept',
-              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        Flexible(
-          child: TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Color.fromARGB(218, 250, 250, 250),
-              side: BorderSide(color: Colors.black12),
-              minimumSize: Size(101, 38),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(7)),
+                });
+              },
+              child: Text(
+                'Accept',
+                style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+                textAlign: TextAlign.center,
               ),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Close',
-              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
-              textAlign: TextAlign.center,
+          ),
+          Flexible(
+            child: TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Color.fromARGB(218, 250, 250, 250),
+                side: BorderSide(color: Colors.black12),
+                minimumSize: Size(101, 38),
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(7)),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Close',
+                style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -446,22 +499,43 @@ class _DetailedRequestState extends State<DetailedRequest> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               header(widget.request),
-              SizedBox(
-                height: 20.0,
-              ), // TODO May need to change this to a relative unit
+              const SizedBox(height: 10.0), // TODO May need to change this to a relative unit
               browsePanel(widget.request.getPlantID(), widget.request.getPlantQuantities()),
-              const SizedBox(
-                height: 15.0,
+              const SizedBox(height: 10.0),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: IntrinsicWidth(
+                  child: Container(
+                    decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 247, 234, 118),
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        offset: Offset.zero,
+                        blurRadius: 4,
+                        spreadRadius: 3,
+                      ),
+                    ]
+                  ),
+                    child: Padding(
+                      padding: EdgeInsets.all(15),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          deliveryAddress(widget.request.address, widget.request.postcode),
+                          const SizedBox(height: 10.0),
+                          widget.request.requestDetails != null ? requestDetails(widget.request.requestDetails): Container(),
+                          const SizedBox(height: 10.0),
+                          timelapse(widget.request),
+                        ]
+                      )
+                    )
+                  ),
+                ),
               ),
-              deliveryAddress(widget.request.address, widget.request.postcode),
-              const SizedBox(
-                height: 10.0,
-              ),
-              widget.request.requestDetails != null ? requestDetails(widget.request.requestDetails): Container(),
-              // TODO update timelapse for better handling
-              timelapse(widget.request),
               const SizedBox(height: 20.0),
-              widget.request.status_Num != 2 ? requestButtons(widget.request): Container(),
+              (widget.user.claims['username'] != widget.request.requester_ID) && (widget.request.status_Num != 2) ? requestButtons(widget.request): Container(),
             ],
           ),
         ],
@@ -534,7 +608,7 @@ void updateRequest(updatedRequest) async {
     // Checks if request was successful (status code 201)
     if (response.statusCode == 201) {
       print(
-        'Update successfully sent $responseData',
+        'Update successfully updated $responseData',
       );
     } else {
       print('Server Error: ${response.statusCode}');

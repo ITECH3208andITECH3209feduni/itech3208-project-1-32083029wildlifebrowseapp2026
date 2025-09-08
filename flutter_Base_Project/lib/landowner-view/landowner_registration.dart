@@ -63,6 +63,18 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
       appBar: AppBar(
         title: const Text('Sign Up'),
         backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () {
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pushNamed(
+              '/landowner', 
+              arguments: {'user': widget.user},
+              );
+          },
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
