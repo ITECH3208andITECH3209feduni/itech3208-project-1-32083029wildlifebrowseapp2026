@@ -52,6 +52,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   late final String defaultFullName;
   late final TextEditingController _fullNameController;
   late final TextEditingController _deliveryAddressController;
+  late final TextEditingController _postcodeController;
   
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
     _fullNameController = TextEditingController(text: defaultFullName);
 
     _deliveryAddressController = TextEditingController(text: "${widget.user.claims['address']['formatted']}");
+    _postcodeController = TextEditingController(text: "${widget.user.claims['custom:postcode']}");
   }
 
   final TextEditingController _specificationsController =
@@ -83,6 +85,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   void dispose() {
     _fullNameController.dispose();
     _deliveryAddressController.dispose();
+    _postcodeController.dispose();
     _specificationsController.dispose();
     _browseQuantityController.dispose();
     super.dispose();
@@ -169,7 +172,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                 SizedBox(height: 32),
                 inputField("Address", _deliveryAddressController),
                 SizedBox(height: 32),
-                inputField("Specifications", _specificationsController),
+                inputFieldInt("Postcode", _postcodeController),
+                SizedBox(height: 32),
+                inputField("Request Details", _specificationsController),
                 SizedBox(height: 32),
                 animalDropdown(),
                 SizedBox(height: 32),
@@ -225,6 +230,8 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                   child: Text('Add Delivery Item'),
                 ),
 
+                SizedBox(height: 8),
+
                 ElevatedButton(
                   onPressed: () {
                     print("Delivery Item/s Removed");
@@ -244,6 +251,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                   onPressed: () {
                     print("Full Name: ${_fullNameController.text}");
                     print("Address: ${_deliveryAddressController.text}");
+                    print("Postcode: ${_postcodeController.text}");
                     print("Specifications: ${_specificationsController.text}");
                     int animalIndex =
                         _selectedAnimal != null
@@ -294,9 +302,10 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                             .toList();
 
                     // Build the final JSON payload
+                    // Ensure that the values send as the correct type expected by the request model
                     Map<String, dynamic> deliveryData = {
                       "address": _deliveryAddressController.text,
-                      "postcode": widget.user.claims['address']['formatted'],
+                      "postcode": _postcodeController.text,
                       "request_ID": "Request_${DateTime.now().millisecondsSinceEpoch}",
                       "requestDetails": _specificationsController.text,
                       "timestamp": DateTime.now().toIso8601String(),
@@ -309,6 +318,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
 
                     try {
                       // Send HTTP POST request
+                      debugPrint(jsonEncode(deliveryData));
                       final response = await http.post(
                         Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
                         headers: {"Content-Type": "application/json"},
@@ -325,7 +335,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                         setState(() {
                           _fullNameController.clear();
                           _deliveryAddressController.clear();
+                          _postcodeController.clear();
                           _specificationsController.clear();
+                          // TODO setting it to null is causing it to disable dropdown?
                           _selectedAnimal = null;
                           _deliveryItems.clear();
                         });

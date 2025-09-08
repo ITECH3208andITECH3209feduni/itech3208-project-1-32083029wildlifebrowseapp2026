@@ -99,7 +99,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   // String browse = item.plant_Name
   // int quantity = item.quantity
   // int postcode = request.postcode
-  Widget requestTile(Request request, User user) {
+  Widget requestTile(Request request, User user, bool isWip) {
     return Hero(
       tag: request.request_ID,
       // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
@@ -125,7 +125,11 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
               ),
               Text('Postcode: ${request.postcode}'),
           ]),
-          tileColor: const Color.fromARGB(255, 246, 251, 244),
+          tileColor: 
+            // Changes colour of tile depending whether the user is doing the request or not
+            isWip 
+              ?Color.fromARGB(255, 255, 247, 230)
+              :Color.fromARGB(255, 246, 251, 244),
           onTap: () {
             Navigator.push(
               context,
@@ -235,15 +239,22 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
               }
               
               List<Request> allRequests = snapshot.data!;
+
+              // Filter the requests before build
+              final filteredRequests = allRequests.where((request) {
+                final isUserAssigned = widget.user.claims['username'] == request.assigned_User_ID;
+                return isActive(request.status_Num) || 
+                      (!isActive(request.status_Num) && isUserAssigned);
+              }).toList();
+
               return ListView.builder(
-                itemCount: allRequests.length,
+                itemCount: filteredRequests.length,
                 itemBuilder: (context, index) {
-                    final request = allRequests[index];
-                    if (isActive(request.status_Num)) {
-                        return requestTile(request, widget.user);
-                      }
-                      return Container();
-                }
+                  final request = filteredRequests[index];
+                  final isWip = !isActive(request.status_Num);
+                  
+                  return requestTile(request, widget.user, isWip);
+                },
               );
             }
           ),
@@ -270,7 +281,6 @@ class DetailedRequest extends StatefulWidget {
 }
 
 class _DetailedRequestState extends State<DetailedRequest> {
-  bool _showAddress = false;
 
   Widget header(Request request) {
     return Row(
@@ -311,7 +321,19 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
-// TODO fix broken update
+  Widget requestDetails(details) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Request Details:"), 
+          Text(details),
+        ]
+      )
+    );
+  }
+
   Widget deliveryAddress(address, postcode) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -319,7 +341,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
         text: TextSpan(
           children: [
             WidgetSpan(child: Icon(Icons.place, size: 14)),
-            _showAddress
+            isShowAddress(widget.request, widget.user)
                 ? TextSpan(text: "Delivery address\n$address, $postcode")
                 // Will probably reimplement this to dynamically call for address once request accepted, for security
                 // TODO lookup postcode for name of suburb to add to address
@@ -337,7 +359,6 @@ class _DetailedRequestState extends State<DetailedRequest> {
         text: TextSpan(
           children: [
             WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
-            // TODO use a timestamp here
             TextSpan(
               text: " Submitted ${formatTimelapse(getTimelapse(request.time))} ago",
               style: isStale(getTimelapse(request.time)) 
@@ -367,11 +388,18 @@ class _DetailedRequestState extends State<DetailedRequest> {
             onPressed: () {
               // Accept button action
               setState(() {
-                _showAddress = true;
-                request.updateState = 3;
+                if (widget.user.claims['username'] != request.requester_ID) {
+                  request.assignGatherer = widget.user.claims['username'];
+                  request.updateState = 3;
+
+                  // Sends updated request to database
+                  String jsonString = jsonEncode(request.toJson());
+                  updateRequest(jsonString);
+                  debugPrint(jsonString);
+                } else {
+                  print("Can't accept your own request!!");
+                }
               });
-              String jsonString = jsonEncode(request.toJson());
-              debugPrint(jsonString);
             },
             child: Text(
               'Accept',
@@ -425,20 +453,16 @@ class _DetailedRequestState extends State<DetailedRequest> {
               browsePanel(widget.request.getPlantID(), widget.request.getPlantQuantities()),
               const SizedBox(
                 height: 15.0,
-              ), // TODO May need to change this to a relative unit
-              deliveryAddress(widget.user.claims['address']['formatted'], widget.request.postcode),
+              ),
+              deliveryAddress(widget.request.address, widget.request.postcode),
               const SizedBox(
                 height: 10.0,
-              ), // TODO May need to change this to a relative unit
-              // Archived directions
-              // directionsPanel(),
-              // const SizedBox(
-              //   height: 10.0,
-              // ), // TODO May need to change this to a relative unit
+              ),
+              widget.request.requestDetails != null ? requestDetails(widget.request.requestDetails): Container(),
               // TODO update timelapse for better handling
               // timelapse(widget.request),
               const SizedBox(height: 20.0),
-              requestButtons(widget.request),
+              widget.request.status_Num != 3 ? requestButtons(widget.request): Container(),
             ],
           ),
         ],
@@ -497,4 +521,41 @@ bool isStale(timelapse) {
   // timeParts[0] = Days elapsed
   // timeParts[1] = Hours elapsed
   return timeParts[0] > 0 || timeParts[1] > 16;
+}
+
+void updateRequest(updatedRequest) async {
+  try {
+    final response = await http.put(
+      Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
+      headers: {"Content-Type": "application/json"},
+      body: updatedRequest,
+    );
+    final responseData = jsonDecode(response.body);
+    // Checks if request was successful (status code 201)
+    if (response.statusCode == 201) {
+      print(
+        'Update successfully sent $responseData',
+      );
+    } else {
+      print('Server Error: ${response.statusCode}');
+      print(responseData);
+    }
+  } 
+  catch(e) {
+    print('Failed to update request: $e');
+  }
+}
+
+bool isShowAddress(Request request, User user) {
+  // Checks if the user is the one that is working on the request
+  if(!isActive(request.status_Num) && user.claims['username'] == request.assigned_User_ID) {
+    return true;
+  }
+  // Checks if the user is the one that created the request
+  if (user.claims['username'] == request.requester_ID) {
+    return false;
+  }  
+  else {
+    return false;
+  }
 }

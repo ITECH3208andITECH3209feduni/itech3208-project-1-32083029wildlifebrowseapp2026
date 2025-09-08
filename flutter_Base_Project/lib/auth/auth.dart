@@ -28,11 +28,12 @@ class CognitoManager {
   }
 
   // Will need to add data validation for params such as address and birthdate
-  Future<User> signUp(String role, String email, String address, String birthdate, String picture, 
+  Future<User> signUp(String role, String email, String postcode, String address, String birthdate, String picture, 
                       String given_name, String family_name, String password) async {
     final userAttributes = [
       AttributeArg(name: 'custom:role', value: role),
       AttributeArg(name: 'email', value: email),
+      AttributeArg(name: 'custom:postcode', value: postcode),
       AttributeArg(name: 'address', value: address),
       AttributeArg(name: 'updated_at', value: '1754346681'),
       AttributeArg(name: 'birthdate', value: birthdate),

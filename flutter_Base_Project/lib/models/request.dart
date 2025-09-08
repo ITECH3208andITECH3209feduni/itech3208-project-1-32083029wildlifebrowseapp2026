@@ -3,6 +3,7 @@ import 'deliveryItems.dart';
 class Request {
   Request({
     required this.postcode,
+    required this.address,
     this.requestDetails,
     required this.request_ID,
     required this.timestamp,
@@ -14,6 +15,7 @@ class Request {
   });
 
   final int postcode;
+  final String address;
   final String? requestDetails;
   final String request_ID;
   final String timestamp;
@@ -27,6 +29,7 @@ class Request {
   factory Request.empty() {
     return Request(
       postcode: 0,
+      address: '',
       request_ID: '',
       timestamp: '',
       requester_ID: '',
@@ -73,6 +76,7 @@ class Request {
     try {
       return Request(
         postcode: (requestJson['postcode'] as int?) ?? 0,
+        address: requestJson['address']?.toString() ?? '',
         requestDetails: requestJson['requestDetails']?.toString(),
         request_ID: requestJson['request_ID']?.toString() ?? '',
         timestamp: requestJson['timestamp']?.toString() ?? '',
@@ -91,6 +95,7 @@ class Request {
   Map<String, dynamic> toJson() {
     return {
       'postcode': postcode,
+      'address': address,
       'requestDetails': requestDetails,
       'request_ID': request_ID,
       'timestamp': timestamp,

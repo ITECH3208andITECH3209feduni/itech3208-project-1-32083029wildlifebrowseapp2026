@@ -60,8 +60,8 @@ class _SignUpViewState extends State<SignUpView> {
   String roleTmp = '';
 
   final _emailController = TextEditingController();
-  final _addressController = TextEditingController();
   final _postcodeController = TextEditingController();
+  final _addressController = TextEditingController();
   final _birthdateController = TextEditingController();
   final _pictureController = TextEditingController();
   final _givenNameController = TextEditingController();
@@ -83,6 +83,7 @@ class _SignUpViewState extends State<SignUpView> {
   void _signUp() async {
     final role = roleTmp;
     final email = _emailController.text;
+    final postcode = _postcodeController.text;
     final address = _addressController.text;
     final birthdate = _birthdateController.text;
     final picture = _pictureController.text;
@@ -91,7 +92,7 @@ class _SignUpViewState extends State<SignUpView> {
     final password = _passwordController.text;
 
     try {
-      await _cognitoManager.signUp(role, email, address, birthdate, picture, givenName, familyName, password);
+      await _cognitoManager.signUp(role, email, postcode, address, birthdate, picture, givenName, familyName, password);
       DefaultTabController.of(context).animateTo(1);
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -427,6 +428,9 @@ TextField emailInputField(
 
 
 // TODO replace with showDatePicker()
+// Requires dates to be 10 char long
+// So either in this format if day is one digit: 9-Oct-1940 or 09-10-1940
+// Or this if day is two digits: 21/08/1920
 TextField birthdateInputField(
   String labelName,
   TextEditingController controller, {
@@ -437,5 +441,4 @@ TextField birthdateInputField(
     labelText: labelName,
     hintText: hint,
   ),
-  keyboardType: TextInputType.datetime,
 );
