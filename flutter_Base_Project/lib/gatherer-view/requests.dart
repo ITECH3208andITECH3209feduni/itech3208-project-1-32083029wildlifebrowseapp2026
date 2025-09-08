@@ -389,7 +389,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               setState(() {
                 if (widget.user.claims['username'] != request.requester_ID) {
                   request.assignGatherer = widget.user.claims['username'];
-                  request.updateState = 3;
+                  request.updateState = 2;
 
                   // Sends updated request to database
                   String jsonString = jsonEncode(request.toJson());
@@ -461,7 +461,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               // TODO update timelapse for better handling
               timelapse(widget.request),
               const SizedBox(height: 20.0),
-              widget.request.status_Num != 3 ? requestButtons(widget.request): Container(),
+              widget.request.status_Num != 2 ? requestButtons(widget.request): Container(),
             ],
           ),
         ],
@@ -480,6 +480,7 @@ bool isActive(state) {
 }
 
 String getTimelapse(requestTime) {
+  // Will need to handle parsing better once dealing with different timezones, use toUTC or toLocal?
   DateTime parsedDate = DateTime.parse(requestTime);
   Duration difference = DateTime.now().difference(parsedDate);
   int parsedDifference = difference.inSeconds;
