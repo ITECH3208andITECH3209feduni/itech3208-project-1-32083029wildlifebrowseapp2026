@@ -8,6 +8,9 @@ import 'landowner-view/overview.dart';
 import 'landowner-view/landowner_registration.dart';
 
 import 'education/browse_list.dart';
+
+import 'personal/profile.dart';
+
 void main() {
   runApp(
     MaterialApp(
@@ -32,6 +35,10 @@ void main() {
         },
         '/education': (context) {
           return BrowseListPage();
+        },
+        '/profile': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return ProfileRoute(user: args['user']);
         },
       },
     ),

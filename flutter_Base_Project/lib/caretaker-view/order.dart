@@ -162,7 +162,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
               ),
             ],
           ),
-          drawer: UserDrawer(username: username),
+          drawer: UserDrawer(username: username, user: widget.user),
           body: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: ListView(

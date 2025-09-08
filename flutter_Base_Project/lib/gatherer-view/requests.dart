@@ -220,7 +220,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
               ),
             ],
           ),
-          drawer: UserDrawer(username: username),
+          drawer: UserDrawer(username: username, user: widget.user,),
           // Request board area
           body: FutureBuilder<List<Request>>(
             future: futureRequests,

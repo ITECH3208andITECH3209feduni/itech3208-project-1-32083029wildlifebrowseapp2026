@@ -212,7 +212,7 @@ class _RequestBoardState extends State<LandownerHomePage>
               )
             ],
           ),
-          drawer: UserDrawer(username: username),
+          drawer: UserDrawer(username: username, user: widget.user),
           // Request board area
           body: ListView.builder(
             itemCount: allProfiles.length,

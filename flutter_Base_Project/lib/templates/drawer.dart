@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../auth/auth.dart';
 
 class UserDrawer extends StatefulWidget {
-  const UserDrawer({super.key, required this.username});
+  const UserDrawer({super.key, required this.username, required this.user});
   
+  final User user;
   final String username;
 
   @override
@@ -11,12 +13,18 @@ class UserDrawer extends StatefulWidget {
 
 class _UserDrawer extends State<UserDrawer> {
   
-  String selectedDrawerPage = '';
+  // String selectedDrawerPage = '';
 
-  GestureTapCallback drawerButton(String page) {
+  GestureTapCallback drawerButton(String page, User user) {
     return () {
       setState(() {
-        selectedDrawerPage = page;
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamed(
+          page,
+          arguments: {'user': widget.user},
+          );
       });
       Navigator.pop(context);
     };
@@ -44,12 +52,12 @@ class _UserDrawer extends State<UserDrawer> {
           ListTile(
             leading: const Icon(Icons.account_circle),
             title: const Text('Profile'),
-            onTap: drawerButton('Profile'),
+            onTap: drawerButton('/profile', widget.user),
           ),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
-            onTap: drawerButton('Settings'),
+            onTap: drawerButton('/settings', widget.user),
           ),
         ],
       ),
