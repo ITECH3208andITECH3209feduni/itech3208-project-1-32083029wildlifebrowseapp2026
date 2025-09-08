@@ -117,11 +117,10 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
           trailing: Column(
             children: [
               Text(
-                // "${formatTimelapse(getTimelapse(request.timestamp))} ago",
-                "${request.timestamp} ago",
-                // style: isStale(getTimelapse(request.timestamp)) 
-                //   ? TextStyle(color: Colors.red)
-                //   : TextStyle(color: Colors.black)
+                "${formatTimelapse(getTimelapse(request.timestamp))} ago",
+                style: isStale(getTimelapse(request.timestamp)) 
+                  ? TextStyle(color: Colors.red)
+                  : TextStyle(color: Colors.black)
               ),
               Text('Postcode: ${request.postcode}'),
           ]),
@@ -360,8 +359,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
           children: [
             WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
             TextSpan(
-              text: " Submitted ${formatTimelapse(getTimelapse(request.time))} ago",
-              style: isStale(getTimelapse(request.time)) 
+              text: " Submitted ${formatTimelapse(getTimelapse(request.timestamp))} ago",
+              style: isStale(getTimelapse(request.timestamp)) 
                 ? TextStyle(color: Colors.red)
                 : TextStyle(color: Colors.black)
             ),
@@ -460,7 +459,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               ),
               widget.request.requestDetails != null ? requestDetails(widget.request.requestDetails): Container(),
               // TODO update timelapse for better handling
-              // timelapse(widget.request),
+              timelapse(widget.request),
               const SizedBox(height: 20.0),
               widget.request.status_Num != 3 ? requestButtons(widget.request): Container(),
             ],
@@ -480,16 +479,16 @@ bool isActive(state) {
   }
 }
 
-// TODO use DateTime.difference
 String getTimelapse(requestTime) {
-  final DateTime now = DateTime.now();
-  final List<int> timeParts = requestTime.substring(0, requestTime.length - 1).split(":").map<int>((str) => int.parse(str)).toList();
+  DateTime parsedDate = DateTime.parse(requestTime);
+  Duration difference = DateTime.now().difference(parsedDate);
+  int parsedDifference = difference.inSeconds;
 
-  int daysElapsed = now.day - timeParts[0];
-  int hourElapsed = now.hour - timeParts[3];
-  int minElapsed = now.minute - timeParts[4];
+  int daysElapsed = parsedDifference ~/ (24 * 3600);
+  int hoursElapsed = (parsedDifference % (24 * 3600)) ~/ 3600;
+  int minutesElapsed = (parsedDifference % 3600) ~/ 60;
 
-  String timelapse = '${daysElapsed}:${hourElapsed}:${minElapsed}';
+  String timelapse = '${daysElapsed}:${hoursElapsed}:${minutesElapsed}';
 
   return timelapse;
 }
@@ -501,14 +500,14 @@ String formatTimelapse(timelapse) {
   int hourElapsed = timeParts[1];
   int minElapsed = timeParts[2];
 
-    if(daysElapsed != 0) {
+  if(daysElapsed != 0) {
     timelapse = '${daysElapsed} days';
   } else {
     if(hourElapsed != 0) {
       timelapse = '${hourElapsed}h ${minElapsed}m';
       
     } else {
-      timelapse = '${hourElapsed}m';
+      timelapse = '${minElapsed}m';
     }
   }
 
@@ -520,7 +519,7 @@ bool isStale(timelapse) {
 
   // timeParts[0] = Days elapsed
   // timeParts[1] = Hours elapsed
-  return timeParts[0] > 0 || timeParts[1] > 16;
+  return timeParts[0] > 0 || timeParts[1] > 15;
 }
 
 void updateRequest(updatedRequest) async {

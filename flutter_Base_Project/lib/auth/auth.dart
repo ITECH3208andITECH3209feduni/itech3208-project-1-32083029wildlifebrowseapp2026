@@ -35,7 +35,7 @@ class CognitoManager {
       AttributeArg(name: 'email', value: email),
       AttributeArg(name: 'custom:postcode', value: postcode),
       AttributeArg(name: 'address', value: address),
-      AttributeArg(name: 'updated_at', value: '1754346681'),
+      AttributeArg(name: 'updated_at', value: '${DateTime.now()}'),
       AttributeArg(name: 'birthdate', value: birthdate),
       AttributeArg(name: 'picture', value: picture),
       AttributeArg(name: 'given_name', value: given_name),
