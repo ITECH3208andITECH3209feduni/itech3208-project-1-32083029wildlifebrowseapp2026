@@ -12,6 +12,7 @@ class Browse {
   final String barkImageUrl;
   final String flowers;
   final String flowersImageUrl;
+  final List<String>? harvestingVideos; 
 
   Browse({
     required this.id,
@@ -27,6 +28,7 @@ class Browse {
     required this.barkImageUrl,
     required this.flowers,
     required this.flowersImageUrl,
+    this.harvestingVideos, 
   });
 
   factory Browse.fromJson(Map<String, dynamic> browseJson) {
@@ -44,6 +46,7 @@ class Browse {
     final barkImageUrl = browseJson['barkImageUrl'] as String;
     final flowers = browseJson['flowers'] as String;
     final flowersImageUrl = browseJson['flowersImageUrl'] as String;
+    final harvestingVideos = browseJson['harvestingVideos'] as List<String>?;
 
     return Browse(
       id: id,
@@ -59,6 +62,7 @@ class Browse {
       barkImageUrl: barkImageUrl,
       flowers: flowers,
       flowersImageUrl: flowersImageUrl,
+      harvestingVideos: harvestingVideos,
     );
   }
 

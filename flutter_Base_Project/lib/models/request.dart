@@ -17,7 +17,7 @@ class Request {
   final String? requestDetails;
   final String request_ID;
   final String timestamp;
-  final String? assigned_User_ID;
+  String? assigned_User_ID;
   final String requester_ID;
   int status_Num;
   final List<DeliveryItems> delivery_items;
@@ -47,6 +47,10 @@ class Request {
 
   set updateState(int newState) {
     status_Num = newState;
+  }
+
+  set assignGatherer(String newState) {
+    assigned_User_ID = newState;
   }
 
   static List<DeliveryItems> _parseDeliveryItems(dynamic itemsData) {

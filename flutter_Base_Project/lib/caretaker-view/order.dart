@@ -105,7 +105,6 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
   Widget build(BuildContext context) {
     const String appTitle = 'Order';
     final String username = widget.user.claims['given_name'];
-    int count = 0;
 
     return MaterialApp(
       theme: ThemeData(
@@ -297,12 +296,12 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                     // Build the final JSON payload
                     Map<String, dynamic> deliveryData = {
                       "address": _deliveryAddressController.text,
-                      "postcode": 3350,
-                      "request_ID": "TEST_${count + 1}",
+                      "postcode": widget.user.claims['address']['formatted'],
+                      "request_ID": "Request_${DateTime.now().millisecondsSinceEpoch}",
                       "requestDetails": _specificationsController.text,
-                      "timestamp": '${DateTime.now().toIso8601String()}',
+                      "timestamp": DateTime.now().toIso8601String(),
                       "assigned_User_ID": null,
-                      "requester_ID": '${widget.user.claims['given_name']}_${count + 1}',
+                      "requester_ID": widget.user.claims['username'],
                       "status_Num": 1,
                       "delivery_items": items,
                       "animal_ID": _selectedAnimal

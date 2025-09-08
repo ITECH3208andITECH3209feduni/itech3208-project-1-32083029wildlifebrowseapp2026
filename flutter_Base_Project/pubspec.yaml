@@ -42,6 +42,7 @@ dependencies:
   amazon_cognito_identity_dart_2: ^3.8.1
   flutter_form_builder: ^10.0.1
   form_builder_validators: ^11.1.2
+  video_player: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +67,7 @@ flutter:
   assets:
     - assets/config.json
     - assets/images/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

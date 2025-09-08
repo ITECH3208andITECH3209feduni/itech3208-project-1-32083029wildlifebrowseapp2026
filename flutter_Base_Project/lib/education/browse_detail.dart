@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/browseInformation.dart';
 
+import 'package:video_player/video_player.dart';
+
 class BrowseDetailPage extends StatelessWidget {
   final Browse browse;
 
@@ -69,6 +71,8 @@ class BrowseDetailPage extends StatelessWidget {
             _buildFeatureSection(context, 'Plant Shape', browse.plantImageUrl, browse.plantShape),
             _buildFeatureSection(context, 'Bark Texture', browse.barkImageUrl, browse.barkTexture),
             _buildFeatureSection(context, 'Flowers', browse.flowersImageUrl, browse.flowers),
+            const SizedBox(height: 4),
+
             const SizedBox(height: 20),
           ],
         ),

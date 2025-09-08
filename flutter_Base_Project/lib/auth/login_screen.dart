@@ -61,6 +61,7 @@ class _SignUpViewState extends State<SignUpView> {
 
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
+  final _postcodeController = TextEditingController();
   final _birthdateController = TextEditingController();
   final _pictureController = TextEditingController();
   final _givenNameController = TextEditingController();
@@ -133,6 +134,8 @@ class _SignUpViewState extends State<SignUpView> {
           nameInputField("First name", _givenNameController),
           SizedBox(height: 16),
           nameInputField("Surname", _familyNameController),
+          SizedBox(height: 16),
+          postcodeInputField("Postcode", _postcodeController),
           SizedBox(height: 16),
           addressInputField("Address", _addressController),
           SizedBox(height: 16),
@@ -386,6 +389,24 @@ TextField addressInputField(
 //   inputFormatters: [
 //   FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9\s-]+')),
 // ],
+);
+
+
+TextField postcodeInputField(
+  String labelName,
+  TextEditingController controller, {
+  String? hint,
+}) => TextField(
+  controller: controller,
+  decoration: InputDecoration(
+    labelText: labelName,
+    hintText: hint,
+  ),
+    keyboardType: TextInputType.number,
+    inputFormatters: [
+      FilteringTextInputFormatter.digitsOnly,
+      FilteringTextInputFormatter.deny(RegExp('^0+')),
+    ],
 );
 
 

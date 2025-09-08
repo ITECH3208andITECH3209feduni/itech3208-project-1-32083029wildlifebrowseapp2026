@@ -8,8 +8,6 @@ import 'landowner-view/overview.dart';
 import 'landowner-view/landowner_registration.dart';
 
 import 'education/browse_list.dart';
-
-
 void main() {
   runApp(
     MaterialApp(

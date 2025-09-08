@@ -25,6 +25,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       barkImageUrl: 'assets/images/manna_gum_m_morey_04_copyright.png',
       flowers: 'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers',
       flowersImageUrl: 'assets/images/manna_gum_m_morey_05_copyright.png',
+      harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
     Browse(
       id: '2',
@@ -40,6 +41,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       barkImageUrl: 'assets/images/manna_gum_m_morey_04_copyright.png',
       flowers: 'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers. Fruit are woody and cup-shaped',
       flowersImageUrl: 'assets/images/manna_gum_m_morey_05_copyright.png',
+      harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
   ];
 
