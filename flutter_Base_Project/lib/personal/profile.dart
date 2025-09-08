@@ -137,6 +137,7 @@ class _Profile extends State<Profile>
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              Text('Work in progress, return to the UAT'),
               personalAddress(widget.user.claims['address']['formatted']),
             ],
           ),

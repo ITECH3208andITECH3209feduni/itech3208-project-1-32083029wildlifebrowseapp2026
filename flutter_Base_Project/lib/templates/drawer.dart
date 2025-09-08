@@ -54,11 +54,11 @@ class _UserDrawer extends State<UserDrawer> {
             title: const Text('Profile'),
             onTap: drawerButton('/profile', widget.user),
           ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: drawerButton('/settings', widget.user),
-          ),
+          // ListTile(
+          //   leading: const Icon(Icons.settings),
+          //   title: const Text('Settings'),
+          //   onTap: drawerButton('/settings', widget.user),
+          // ),
         ],
       ),
     );
