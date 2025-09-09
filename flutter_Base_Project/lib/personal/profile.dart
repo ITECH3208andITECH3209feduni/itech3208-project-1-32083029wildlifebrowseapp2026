@@ -138,7 +138,13 @@ class _Profile extends State<Profile>
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text('Work in progress, return to the UAT'),
-              personalAddress(widget.user.claims['address']['formatted']),
+              Text('Name: $username ${widget.user.claims['family_name']}'),
+              Text('DOB: ${widget.user.claims['birthdate']}'),
+              Text('Picture: ${widget.user.claims['picture']}'),
+              Text('Email: ${widget.user.claims['email']}'),
+              Text('Email verified? ${widget.user.claims['email_verified']}'),
+              personalAddress(widget.user.claims['address']['formatted'], widget.user.claims['custom:postcode']),
+              Text('Role: ${widget.user.claims['custom:role']}')
             ],
           ),
         ),
@@ -147,14 +153,14 @@ class _Profile extends State<Profile>
   }
 }
 
-Widget personalAddress(address) {
+Widget personalAddress(address, postcode) {
   return Align(
     alignment: Alignment.centerLeft,
     child: RichText(
       text: TextSpan(
         children: [
           WidgetSpan(child: Icon(Icons.place, size: 14)),
-          TextSpan(text: "Address\n$address")
+          TextSpan(text: "Address\n$address, $postcode")
         ],
       ),
     ),

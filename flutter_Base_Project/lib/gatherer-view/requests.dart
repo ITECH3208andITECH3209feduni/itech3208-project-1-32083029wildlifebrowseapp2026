@@ -297,7 +297,17 @@ class _DetailedRequestState extends State<DetailedRequest> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                request.animal_ID, // TODO Need to give proper padding
+                'Animal: ${request.animal_ID}', // TODO Need to give proper padding
+                style: TextStyle(
+                  color: Color.fromARGB(235, 16, 17, 17),
+                  fontWeight: FontWeight.bold,
+                  ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                'Caretaker: ${request.name.split(' ')[0]}', // TODO Need to give proper padding
                 style: TextStyle(
                   color: Color.fromARGB(235, 16, 17, 17),
                   fontWeight: FontWeight.bold,
@@ -446,10 +456,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
                   request.assignGatherer = widget.user.claims['username'];
                   request.updateState = 2;
 
-                  // Sends updated request to database
-                  String jsonString = jsonEncode(request.toJson());
-                  updateRequest(jsonString);
-                  debugPrint(jsonString);
+                  // Sends updated request to database        
+                  updateRequest(request);
                 });
               },
               child: Text(
@@ -597,22 +605,24 @@ bool isStale(timelapse) {
   return timeParts[0] > 0 || timeParts[1] > 15;
 }
 
-void updateRequest(updatedRequest) async {
+void updateRequest(Request updatedRequest) async {
   try {
-    final response = await http.put(
-      Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
+    final response = await http.patch(
+      Uri.parse(
+        'https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI/${updatedRequest.request_ID}/2'
+        ),
       headers: {"Content-Type": "application/json"},
-      body: updatedRequest,
+      body: jsonEncode(updatedRequest.toJson()),
     );
     final responseData = jsonDecode(response.body);
     // Checks if request was successful (status code 201)
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       print(
         'Update successfully updated $responseData',
       );
     } else {
       print('Server Error: ${response.statusCode}');
-      print(responseData);
+      debugPrint(response.body);
     }
   } 
   catch(e) {

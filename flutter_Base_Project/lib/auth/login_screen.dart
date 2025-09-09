@@ -55,8 +55,10 @@ class SignUpView extends StatefulWidget {
   _SignUpViewState createState() => _SignUpViewState();
 }
 
-class _SignUpViewState extends State<SignUpView> {
+// Global scope var should limit it
+String? enteredEmail;
 
+class _SignUpViewState extends State<SignUpView> {
   String roleTmp = '';
 
   final _emailController = TextEditingController();
@@ -152,8 +154,15 @@ class _SignUpViewState extends State<SignUpView> {
           ),
           SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _signUp,
-            child: const Text('Sign Up'),
+            onPressed: () {
+              enteredEmail = _emailController.text;
+              _signUp();
+            },
+            child: Text(
+              'Accept',
+              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
@@ -208,6 +217,7 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
+            Text('A confirmation code has been sent to ${enteredEmail ?? 'your email'}'),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
