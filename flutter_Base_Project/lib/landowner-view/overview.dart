@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:math';
 
 import '../templates/drawer.dart';
 import '../templates/browseList.dart';
@@ -6,6 +9,7 @@ import '../jsonParser.dart';
 import '../auth/auth.dart';
 
 import '../models/landowner.dart';
+import '../models/landowner_response.dart';
 
 // Dummy request json data
 import '../test/dummy_landowner.dart';
@@ -46,16 +50,31 @@ class LandownerHomePage extends StatefulWidget {
   State<LandownerHomePage> createState() => _RequestBoardState();
 }
 
+Future<List<Landowner>> fetchRequests() async {
+  try {
+    final response = await http.get(Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/landownerAPI'));
+
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    final LandOwnerResponse requestResponse = LandOwnerResponse.fromJson(responseData);
+    if (response.statusCode == 200) {
+      // Requests returned as an array
+      return requestResponse.items; 
+
+    } else {
+      throw Exception('Failed to load requests: ${response.statusCode}');
+    }
+  } catch(e) {
+    throw Exception('Error: $e');
+  }
+}
+
 class _RequestBoardState extends State<LandownerHomePage>
     with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
-  final List<Landowner> allProfiles = [
-    jsonToObject(dummyLandowner, Landowner.fromJson),
-    jsonToObject(dummyLandowner, Landowner.fromJson),
-    jsonToObject(dummyLandowner, Landowner.fromJson),
-  ];
+  late Future<List<Landowner>> futureRequests;
 
 
   @override
@@ -67,6 +86,7 @@ class _RequestBoardState extends State<LandownerHomePage>
   @override
   void initState() {
     super.initState();
+    futureRequests = fetchRequests();
     _fadeController = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -80,14 +100,14 @@ class _RequestBoardState extends State<LandownerHomePage>
     _fadeController.forward();
   }
 
-
-
   // Args passed from Request board initial state widget
   // String animal = animal.animal_Name
   // String browse = item.plant_Name
   // int quantity = item.quantity
   // int postcode = request.postcode
-  Widget requestTile(Landowner request) {
+  Widget requestTile(Landowner request, User user) {
+    bool isBrowseGTTwo = request.getBrowseNames().length > 2 ? true : false;
+
     return Hero(
       tag: request.userID,
       // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
@@ -100,21 +120,31 @@ class _RequestBoardState extends State<LandownerHomePage>
             ),
             radius: 20,
           ),
-          title: Text(request.userID),
+          title: Text('${request.landownerName.split(' ')[0]}\'s property'),
           subtitle: Column(
-                      mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (int i = 0; i < request.getBrowseNames().length; i++)
-                Text('${request.getBrowseNames()[i]}')
-            ],
-          ),
-          trailing: Text(
-              " ${formatTimelapse(getTimelapse(request.timestamp))} ago",
-              style: isStale(getTimelapse(request.timestamp)) 
-                ? TextStyle(color: Colors.red)
-                : TextStyle(color: Colors.black)
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Gets the smallest of either the browses or 2 to ensure only a max of two browse are listed on the requestTile
+                for (int i = 0; i < min(request.getBrowseNames().length, 2); i++)
+                  Text(
+                    (isBrowseGTTwo && i == 1)
+                      ? '${request.getBrowseNames()[i]} +${request.getBrowseNames().length - 2} more'
+                      : '${request.getBrowseNames()[i]}',
+                    )
+              ],
             ),
+          trailing: Column(
+            children: [
+              // TODO have this track when request.isActive = false
+              Text(
+                "${formatTimelapse(getTimelapse(request.timestamp))} ago",
+                style: isStale(getTimelapse(request.timestamp)) 
+                  ? TextStyle(color: Colors.red)
+                  : TextStyle(color: Colors.black)
+              ),
+              Text('Postcode: ${request.postcode}'),
+          ]),
           tileColor: const Color.fromARGB(255, 246, 251, 244),
           onTap: () {
             Navigator.push(
@@ -220,15 +250,37 @@ class _RequestBoardState extends State<LandownerHomePage>
             ],
           ),
           drawer: UserDrawer(username: username, user: widget.user),
-          // Request board area
-          body: ListView.builder(
-            itemCount: allProfiles.length,
-            itemBuilder: (context, index) {
-                final request = allProfiles[index];
-                if (isActive(request.state)) {
-                    return requestTile(request);
-                  }
-                  return Container();
+          // Profile board area
+          body: FutureBuilder<List<Landowner>>(
+            future: futureRequests,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              
+              if (snapshot.hasError) {
+                return Center(child: Text('Snapshot Error: ${snapshot.error}'));
+              }
+              
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No requests found'));
+              }
+              
+              List<Landowner> allRequests = snapshot.data!;
+
+              // Filter the requests before build
+              final filteredRequests = allRequests.where((request) {
+                return request.isActive;
+              }).toList();
+
+              return ListView.builder(
+                itemCount: filteredRequests.length,
+                itemBuilder: (context, index) {
+                  final request = filteredRequests[index];
+                  
+                  return requestTile(request, widget.user);
+                },
+              );
             }
           ),
         ),
@@ -271,7 +323,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                request.userID, // TODO Need to give proper padding
+                'Property contact: ${request.landownerName}', // TODO Need to give proper padding
                 style: TextStyle(color: Color.fromARGB(235, 16, 17, 17)),
               ),
             ),
@@ -375,7 +427,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
     );
   }
 
-  Widget visitingTimes(visit) {
+  Widget visitingTimes(List<String> days, List<String> times) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Column(
@@ -385,18 +437,19 @@ class _LandownerProfileState extends State<LandownerProfile> {
             children: [
               Icon(Icons.time_to_leave, size: 14),
               Text(
-                "Visiting Times:",
+                "Days and times available:",
                 style: TextStyle(fontWeight: FontWeight.bold),
                 ),
             ], 
           ),
-          Text('$visit'),
-        ]
-      ),
-    );
-  }
+          Text('Days: ${days.join(' - ')}'),
+          Text('Times: ${times.join(', ')}'),
+          ],
+        ),
+      );
+    }
 
-  Widget accessDetails(details) {
+  Widget accessDetails(String? details) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Column(
@@ -413,11 +466,32 @@ class _LandownerProfileState extends State<LandownerProfile> {
             ], 
           ),
           Text(
-            details,
-            style: TextStyle(
-              fontStyle: FontStyle.italic,
-              inherit: false,
+            '$details',
+            ),
+        ]
+      ),
+    );
+  }
+
+
+  Widget extraDetails(String? details) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        // Need this to force left alignment of children
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 14),
+              Text(
+                "Extra details:", 
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
+            ], 
+          ),
+          Text(
+            '$details',
             ),
         ]
       ),
@@ -441,11 +515,9 @@ class _LandownerProfileState extends State<LandownerProfile> {
             ], 
           ),
           Text(
-            preference,
-            style: TextStyle(
-              fontStyle: FontStyle.italic,
-              inherit: false,
-              ),
+            preference
+            ? "Yes"
+            : "No",
             ),
         ]
       ),
@@ -509,7 +581,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-      appBar: AppBar(title: Text('${widget.request.userID}\'s profile')),
+      appBar: AppBar(title: Text('${widget.request.landownerName.split(' ')[0]}\'s profile')),
       // Detailed request view
       body: ListView(
         padding: EdgeInsets.only(left: 30.0),
@@ -536,9 +608,13 @@ class _LandownerProfileState extends State<LandownerProfile> {
               ),
               timelapse(widget.request),
               const SizedBox(height: 10.0),
-              visitingTimes("Monday & Thursday evenings"),
+              visitingTimes(widget.request.getDays(), widget.request.getTimes()),
               const SizedBox(height: 10.0),
-              advanceWarning("Yes"),
+              accessDetails(widget.request.accessDetails),
+              const SizedBox(height: 10.0),              
+              advanceWarning(widget.request.warningRequired),
+              const SizedBox(height: 10.0),
+              extraDetails(widget.request.extraDetails),
               const SizedBox(height: 20.0),
               contactButton(widget.request),
               const SizedBox(height: 10.0),
@@ -547,14 +623,6 @@ class _LandownerProfileState extends State<LandownerProfile> {
         ],
       ),
     );
-  }
-}
-
-bool isActive(state) {
-  if(state == 'Active') {
-    return true;
-  } else {
-    return false;
   }
 }
 

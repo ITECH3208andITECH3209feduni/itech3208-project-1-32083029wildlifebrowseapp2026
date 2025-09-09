@@ -307,7 +307,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                'Caretaker: ${request.name.split(' ')[0]}', // TODO Need to give proper padding
+                'Caretaker: ${request.caretakerName.split(' ')[0]}', // TODO Need to give proper padding
                 style: TextStyle(
                   color: Color.fromARGB(235, 16, 17, 17),
                   fontWeight: FontWeight.bold,

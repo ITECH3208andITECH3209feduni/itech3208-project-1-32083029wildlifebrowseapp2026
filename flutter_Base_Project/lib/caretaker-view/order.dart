@@ -304,7 +304,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                     // Build the final JSON payload
                     // Ensure that the values send as the correct type expected by the request model
                     Map<String, dynamic> deliveryData = {
-                      "name": _fullNameController.text,
+                      "caretaker_name": _fullNameController.text,
                       "address": _deliveryAddressController.text,
                       "postcode": _postcodeController.text,
                       "request_ID": "Request_${DateTime.now().millisecondsSinceEpoch}",

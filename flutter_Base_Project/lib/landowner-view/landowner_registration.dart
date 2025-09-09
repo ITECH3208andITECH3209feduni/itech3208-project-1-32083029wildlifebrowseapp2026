@@ -3,6 +3,9 @@
 // TODO add back button to top of registration to allow cancelling halfway through
 
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
@@ -137,16 +140,44 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
     _tabController.animateTo(_currentTab - 1);
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     final user = widget.user;
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
       final formData = _formKey.currentState!.value;
-      debugPrint(formData.toString());
 
-      // TODO Add code to process form details
+      final finalPayload = {
+        ...formData,
+        'userID': '${user.claims['username']}',
+        'landownerName': '${widget.user.claims['given_name']} ${widget.user.claims['family_name']}',
+        'isActive': 'True',
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
+      try {
+        // Send HTTP POST request
+        debugPrint(jsonEncode(finalPayload));
+        final response = await http.post(
+          Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/landownerAPI'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(finalPayload),
+        );
+
+        // Checks if request was successful (status code 201)
+        if (response.statusCode == 201) {
+          final responseData = jsonDecode(response.body);
+          print(
+            'Registration created for userID: ${responseData['userID']}',
+          );
+        } else {
+          print('Server error: ${response.statusCode}');
+          print(response.body);
+        }
+      } catch (error) {
+        print('Failed to send registration data: $error');
+      }
       
       // Redirects user back to landowner overview page
       Navigator.of(
@@ -173,7 +204,7 @@ class LandDetailsTab extends StatelessWidget {
         child: Column(  
         children: [
           FormBuilderCheckboxGroup<String>(
-            name: 'browse',
+            name: 'browseData',
             decoration: const InputDecoration(
                   labelText: 'What browse do you have on your property?',
                   contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
@@ -210,7 +241,23 @@ class LandDetailsTab extends StatelessWidget {
           ),
           SizedBox(height:16),
           FormBuilderTextField(
-            name: 'access',
+              name: 'postcode',
+              decoration: const InputDecoration(
+                labelText: 'Postcode',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+              validator: FormBuilderValidators.compose(
+                  [
+                    FormBuilderValidators.required(),
+                    FormBuilderValidators.integer(),
+                  ]),
+              onChanged: (val) {
+                  print(val); // Print the text value write into TextField
+              },
+          ),
+          SizedBox(height:16),
+          FormBuilderTextField(
+            name: 'accessDetails',
             decoration: const InputDecoration(
               labelText: 'Please detail how to access your property (optional)',
               contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
@@ -255,7 +302,7 @@ class AvailabilityTab extends StatelessWidget {
         child: Column(  
         children: [
           FormBuilderCheckboxGroup<String>(
-            name: 'daysPreferred',
+            name: 'daysData',
             decoration: const InputDecoration(
                   labelText: 'What days is your property open to browsing?',
                   contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
@@ -276,7 +323,7 @@ class AvailabilityTab extends StatelessWidget {
           ),
           SizedBox(height:16),
           FormBuilderCheckboxGroup<String>(
-            name: 'timesPreferred',
+            name: 'timesData',
             decoration: const InputDecoration(
                   labelText: 'What time of day are you open to browsing?',
                   contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
@@ -314,21 +361,25 @@ Widget build(BuildContext context) {
         child: Column( 
           children: [
             SizedBox(height: 16,),
-            FormBuilderRadioGroup<String>(
-              name: 'advanceWarning',
-              initialValue: 'Yes',
+            FormBuilderRadioGroup<bool>(
+              name: 'warningRequired',
+              initialValue: true,
               decoration: const InputDecoration(
                     labelText: 'Do you require advance warning from Gatherers on entering your land?',
                     contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
                   ),
               validator: FormBuilderValidators.compose(
                   [FormBuilderValidators.required()]),
-              options: ['Yes', 'No']
-              .map((value) => FormBuilderFieldOption(
-                    value: value,
-                    child: Text(value),
-                  ))
-              .toList(growable: false),
+                options: [
+                  FormBuilderFieldOption(
+                    value: true,
+                    child: Text('Yes'),
+                  ),
+                  FormBuilderFieldOption(
+                    value: false, 
+                    child: Text('No'),
+                  ),
+                ],
               controlAffinity: ControlAffinity.leading,
               orientation: OptionsOrientation.wrap,
               onChanged: (val) {

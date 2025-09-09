@@ -5,14 +5,13 @@ class LandownerTimes {
 
   final String times;
 
-  factory LandownerTimes.fromJson(Map<String, dynamic> landownerJson) {
-    
-    final times = landownerJson['times'] as String; 
+  // factory LandownerTimes.fromJson(Map<String, dynamic> landownerJson) {
+  //   final time = landownerJson['times'] as String; 
 
-    return LandownerTimes(
-      times: times,
-    );
-  }
+  //   return LandownerTimes(
+  //     times: time,
+  //   );
+  // }
 
   Map<String, dynamic> toJson() {
     return {

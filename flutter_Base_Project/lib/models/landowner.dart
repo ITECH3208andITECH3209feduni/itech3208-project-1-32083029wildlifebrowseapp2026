@@ -5,15 +5,16 @@ import 'landowner_times.dart';
 class Landowner {
   Landowner({
     required this.userID,
-    required this.state,
+    required this.landownerName,
+    required this.isActive,
     required this.timestamp,
-    required this.browse,
+    required this.browseData,
     required this.address,
     required this.postcode,
     this.accessDetails,
     required this.phone,
-    required this.days,
-    required this.times,
+    required this.daysData,
+    required this.timesData,
     required this.warningRequired,
     this.extraDetails,
   });
@@ -21,92 +22,156 @@ class Landowner {
   // ? Allows null
   // final means it can't be changed later
   final String userID;
-  String state;
+  final String landownerName;
+  bool isActive;
   final String timestamp;
-  List<LandownerBrowse> browse;
+  List<LandownerBrowse> browseData;
   String address;
   int postcode;
   String? accessDetails;
   String phone;
-  List<LandownerDays> days;
-  List<LandownerTimes> times;
+  List<LandownerDays> daysData;
+  List<LandownerTimes> timesData;
   bool warningRequired;
   String? extraDetails;
+
+    // Helper method to create an empty request
+  factory Landowner.empty() {
+    return Landowner(
+      userID: '',
+      landownerName: '',
+      isActive: false,
+      timestamp: '',
+      browseData: [],
+      address: '',
+      postcode: 1000,
+      accessDetails: '',
+      phone: '',
+      daysData: [],
+      timesData: [],
+      warningRequired: false,
+      extraDetails: '',
+    );
+  }
 
   // Helper methods
   // Gets browse names as a list
   List<String> getBrowseNames() {
-    return browse.map((a) => a.browse_Name).toList();
+    return browseData.map((a) => a.browse_Name).toList();
   }
 
   // Gets days as a list
   List<String> getDays() {
-    return days.map((a) => a.days).toList();
+    return daysData.map((a) => a.days).toList();
   }
 
   // Gets times as a list
   List<String> getTimes() {
-    return times.map((a) => a.times).toList();
+    return timesData.map((a) => a.times).toList();
   }
 
-  set updateState(String newState) {
-    state = newState;
+  set updateState(bool newState) {
+    isActive = newState;
   }
+
+  static List<LandownerBrowse> _parseBrowseItems(dynamic itemsData) {
+    if (itemsData == null || itemsData is! List<dynamic>) {
+        return [];
+      }
+      
+      return itemsData.map((item) {
+        try {
+          if (item is String) {
+            return LandownerBrowse(browse_Name: item);
+          } else {
+            print('Wrong browse item type: ${item.runtimeType}');
+            return LandownerBrowse(browse_Name: '');
+          }
+        } catch (e) {
+          print('Error parsing browse item: $e');
+          return LandownerBrowse(browse_Name: '');
+        }
+      }).toList();
+    }
+
+  static List<LandownerDays> _parseDayItems(dynamic itemsData) {
+    if (itemsData == null || itemsData is! List<dynamic>) {
+        return [];
+      }
+      
+      return itemsData.map((item) {
+        try {
+          if (item is String) {
+            return LandownerDays(days: item);
+          } else {
+            print('Wrong day item type: ${item.runtimeType}');
+            return LandownerDays(days: '');
+          }
+        } catch (e) {
+          print('Error parsing day item: $e');
+          return LandownerDays(days: '');
+        }
+      }).toList();
+    }
+
+  static List<LandownerTimes> _parseTimeItems(dynamic itemsData) {
+    if (itemsData == null || itemsData is! List<dynamic>) {
+        return [];
+      }
+      
+      return itemsData.map((item) {
+        try {
+          if (item is String) {
+            return LandownerTimes(times: item);
+          } else {
+            print('Wrong time item type: ${item.runtimeType}');
+            return LandownerTimes(times: '');
+          }
+        } catch (e) {
+          print('Error parsing time item: $e');
+          return LandownerTimes(times: '');
+        }
+      }).toList();
+    }
 
   factory Landowner.fromJson(Map<String, dynamic> requestJson) {
-
-    final userID = requestJson['userID'] as String;
-    final state = requestJson['state'] as String;
-    final timestamp = requestJson['timestamp'] as String;
-    final browseData = requestJson['browse'] as List<dynamic>;
-    final address = requestJson['address'] as String;
-    final postcode = requestJson['postcode'] as int;
-    final accessDetails = requestJson['accessDetails'] as String?;
-    final phone = requestJson['phone'] as String;
-    final daysData = requestJson['days'] as List<dynamic>;
-    final timesData = requestJson['times'] as List<dynamic>;
-    final warningRequired = requestJson['warningRequired'] as bool;
-    final extraDetails = requestJson['extraDetails'] as String?;
-
-    return Landowner(
-      userID: userID,
-      state: state,
-      timestamp: timestamp,
-      browse: browseData
-      .map((data) =>
-        LandownerBrowse.fromJson(data as Map<String, dynamic>))
-      .toList(),
-      address: address,
-      postcode: postcode,
-      accessDetails: accessDetails,
-      phone: phone,
-      days: daysData
-      .map((data) =>
-        LandownerDays.fromJson(data as Map<String, dynamic>))
-      .toList(),
-      times: timesData
-      .map((data) =>
-        LandownerTimes.fromJson(data as Map<String, dynamic>))
-      .toList(),
-      warningRequired: warningRequired,
-      extraDetails: extraDetails,
-    );
+    try {
+      return Landowner(
+        userID: requestJson['userID']?.toString() ?? '',
+        landownerName: requestJson['landownerName']?.toString() ?? '',
+        isActive: requestJson['isActive'] ?? '0',
+        timestamp: requestJson['timestamp']?.toString() ?? '',
+        browseData: _parseBrowseItems(requestJson['browseData']),
+        address: requestJson['address']?.toString() ?? '',
+        postcode: (requestJson['postcode'] as int?) ?? 0,
+        accessDetails: requestJson['accessDetails']?.toString(),
+        phone: requestJson['phone']?.toString() ?? '',
+        daysData: _parseDayItems(requestJson['daysData']),
+        timesData: _parseTimeItems(requestJson['timesData']),
+        warningRequired: requestJson['warningRequired'] ?? '0',
+        extraDetails: requestJson['extraDetails']?.toString(),
+      );
+    } catch (e) {
+      print('Error parsing Landowner: $e');
+      return Landowner.empty();
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
       'userID': userID,
-      'state': state,
+      'landownerName': landownerName,
+      'isActive': isActive,
       'timestamp': timestamp,
-      'browseData': browse,
       'address': address,
       'postcode': postcode,
-      'accessDetails': accessDetails,
       'phone': phone,
-      'daysData': days,
-      'timesData': times,
       'warningRequired': warningRequired,
+      'accessDetails': accessDetails,
       'extraDetails': extraDetails,
+      'browseData': browseData.map((e) => e.toJson()).toList(),
+      'daysData': daysData.map((e) => e.toJson()).toList(),
+      'timesData': timesData.map((e) => e.toJson()).toList(),
     };
   }
 }

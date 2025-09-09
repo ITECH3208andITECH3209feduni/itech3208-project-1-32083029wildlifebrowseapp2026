@@ -2,7 +2,7 @@ import 'deliveryItems.dart';
 
 class Request {
   Request({
-    required this.name,
+    required this.caretakerName,
     required this.postcode,
     required this.address,
     this.requestDetails,
@@ -15,7 +15,7 @@ class Request {
     required this.animal_ID,
   });
 
-  final String name;
+  final String caretakerName;
   final int postcode;
   final String address;
   final String? requestDetails;
@@ -30,7 +30,7 @@ class Request {
   // Helper method to create an empty request
   factory Request.empty() {
     return Request(
-      name: '',
+      caretakerName: '',
       postcode: 0,
       address: '',
       request_ID: '',
@@ -78,7 +78,7 @@ class Request {
   factory Request.fromJson(Map<String, dynamic> requestJson) {
     try {
       return Request(
-        name: requestJson['name']?.toString() ?? '',
+        caretakerName: requestJson['caretakerName']?.toString() ?? '',
         postcode: (requestJson['postcode'] as int?) ?? 0,
         address: requestJson['address']?.toString() ?? '',
         requestDetails: requestJson['requestDetails']?.toString(),
@@ -98,17 +98,17 @@ class Request {
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'postcode': postcode,
-      'address': address,
-      'requestDetails': requestDetails,
       'request_ID': request_ID,
+      'status_Num': status_Num,
+      'caretakerName': caretakerName,
+      'address': address,
+      'postcode': postcode,
+      'requestDetails': requestDetails,
       'timestamp': timestamp,
+      'animal_ID': animal_ID,
       'assigned_User_ID': assigned_User_ID,
       'requester_ID': requester_ID,
-      'status_Num': status_Num,
       'delivery_items': delivery_items.map((e) => e.toJson()).toList(),
-      'animal_ID': animal_ID,
     };
   }
 }
