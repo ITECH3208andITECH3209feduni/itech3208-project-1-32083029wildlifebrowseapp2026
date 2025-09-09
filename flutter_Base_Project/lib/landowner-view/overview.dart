@@ -337,7 +337,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
             children: [
               Icon(Icons.place, size: 14),
               Text(
-                "Delivery address:",
+                "Address:",
                 style: TextStyle(fontWeight: FontWeight.bold),
                 ),
             ], 
@@ -369,7 +369,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
           ),
           _showPhone
               ? Text("$phone")
-              : Text("************"),
+              : Text("To contact the landowner, please click 'contact' below to reveal their phone number"),
         ]
       ),
     );
@@ -435,7 +435,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
             children: [
               Icon(Icons.notification_add, size: 14),
               Text(
-                "Advance warning?", 
+                "Advance warning needed?", 
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ], 
@@ -541,6 +541,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
               advanceWarning("Yes"),
               const SizedBox(height: 20.0),
               contactButton(widget.request),
+              const SizedBox(height: 10.0),
             ],
           ),
         ],
