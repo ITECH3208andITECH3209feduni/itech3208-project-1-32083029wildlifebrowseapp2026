@@ -2,7 +2,7 @@ final dummyLandowner = '''
 {
     "userID": "Reginalds Rescue",
     "state": "Active",
-    "timestamp": "30:08:2025:12:30:10Z",
+    "timestamp": "2025-09-08T19:08:29.632",
     "browse": [
         {
             "browse_Name": "Eucalyptus viminalis"
@@ -12,6 +12,7 @@ final dummyLandowner = '''
         }
     ],
     "address": "901 Morgan St, Ballarat VIC",
+    "postcode": 3356,
     "accessDetails": "Come through the sidegate",
     "phone": "0453245698",
     "days": [

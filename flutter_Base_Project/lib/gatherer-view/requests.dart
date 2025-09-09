@@ -113,7 +113,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
             radius: 20,
           ),
           title: Text(request.animal_ID),
-          subtitle: BrowseQuantityList(browses: request.getPlantID(), quantities: request.getPlantQuantities()),
+          subtitle: BrowseTileList(browses: request.getPlantID(), quantities: request.getPlantQuantities()),
           trailing: Column(
             children: [
               Text(

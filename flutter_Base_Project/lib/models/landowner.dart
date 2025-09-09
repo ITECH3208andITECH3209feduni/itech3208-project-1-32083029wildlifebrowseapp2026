@@ -9,6 +9,7 @@ class Landowner {
     required this.timestamp,
     required this.browse,
     required this.address,
+    required this.postcode,
     this.accessDetails,
     required this.phone,
     required this.days,
@@ -24,6 +25,7 @@ class Landowner {
   final String timestamp;
   List<LandownerBrowse> browse;
   String address;
+  int postcode;
   String? accessDetails;
   String phone;
   List<LandownerDays> days;
@@ -58,6 +60,7 @@ class Landowner {
     final timestamp = requestJson['timestamp'] as String;
     final browseData = requestJson['browse'] as List<dynamic>;
     final address = requestJson['address'] as String;
+    final postcode = requestJson['postcode'] as int;
     final accessDetails = requestJson['accessDetails'] as String?;
     final phone = requestJson['phone'] as String;
     final daysData = requestJson['days'] as List<dynamic>;
@@ -74,6 +77,7 @@ class Landowner {
         LandownerBrowse.fromJson(data as Map<String, dynamic>))
       .toList(),
       address: address,
+      postcode: postcode,
       accessDetails: accessDetails,
       phone: phone,
       days: daysData
@@ -96,6 +100,7 @@ class Landowner {
       'timestamp': timestamp,
       'browseData': browse,
       'address': address,
+      'postcode': postcode,
       'accessDetails': accessDetails,
       'phone': phone,
       'daysData': days,

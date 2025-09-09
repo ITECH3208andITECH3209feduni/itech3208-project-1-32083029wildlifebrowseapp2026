@@ -101,7 +101,14 @@ class _RequestBoardState extends State<LandownerHomePage>
             radius: 20,
           ),
           title: Text(request.userID),
-          subtitle: BrowseList(browses: request.getBrowseNames()),
+          subtitle: Column(
+                      mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int i = 0; i < request.getBrowseNames().length; i++)
+                Text('${request.getBrowseNames()[i]}')
+            ],
+          ),
           trailing: Text(
               " ${formatTimelapse(getTimelapse(request.timestamp))} ago",
               style: isStale(getTimelapse(request.timestamp)) 
@@ -277,81 +284,173 @@ class _LandownerProfileState extends State<LandownerProfile> {
   Widget browsePanel(browses) {
     return Align(
       alignment: Alignment.bottomLeft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Browse Available"), 
-          BrowseList(browses: browses),
-        ]
+      child: IntrinsicWidth(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                offset: Offset.zero,
+                blurRadius: 4,
+                spreadRadius: 3,
+              ),
+            ]
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DefaultTextStyle(
+                  style: TextStyle(
+                    color: const Color.fromARGB(255, 230, 230, 230),
+                  ),
+                  child: Text(
+                    "Browse Available",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold
+                    ),
+                  )
+                ),
+                for (int i = 0; i < widget.request.getBrowseNames().length; i++)
+                  Text(
+                    '${widget.request.getBrowseNames()[i]}',
+                    style: TextStyle(color: Color.fromARGB(255, 230, 230, 230))
+                    ),
+              ],
+            )
+          )
+        )
       )
     );
   }
 
-  Widget landownerAddress(address) {
+  Widget landownerAddress(address, postcode) {
     return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(child: Icon(Icons.place, size: 14)),
-            _showAddress
-                ? TextSpan(text: "Address\n$address")
-                // Will probably reimplement this to dynamically call for address once request accepted, for security
-                // TODO lookup postcode for name of suburb to add to address
-                : TextSpan(text: "Address\n********"),
-          ],
-        ),
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.place, size: 14),
+              Text(
+                "Delivery address:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+            ], 
+          ),
+          _showAddress
+            ? Text("$address, $postcode")
+            // Will probably reimplement this to dynamically call for address once request accepted, for security
+            // TODO lookup postcode for name of suburb to add to address
+            : Text("Postcode: $postcode"),
+        ]
       ),
     );
   }
 
-
   Widget phoneNumber(phone) {
     return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(child: Icon(Icons.phone_android_outlined, size: 14)),
-            _showPhone
-                ? TextSpan(text: "Phone\n$phone")
-                : TextSpan(text: "Phone\n "),
-          ],
-        ),
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.phone_android_outlined, size: 14),
+              Text(
+                "Phone:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+            ], 
+          ),
+          _showPhone
+              ? Text("$phone")
+              : Text("************"),
+        ]
       ),
     );
   }
 
   Widget visitingTimes(visit) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: RichText(
-          text: TextSpan(
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              WidgetSpan(child: Icon(Icons.time_to_leave, size: 14)),
-              TextSpan(text: "Visiting Times"),
-              TextSpan(text: visit),
-              TextSpan(text: visit),
-            ],
+              Icon(Icons.time_to_leave, size: 14),
+              Text(
+                "Visiting Times:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+            ], 
           ),
-        ),
-      );
-    }
+          Text('$visit'),
+        ]
+      ),
+    );
+  }
 
-    Widget advanceWarning(advance) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: RichText(
-          text: TextSpan(
+  Widget accessDetails(details) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        // Need this to force left alignment of children
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              WidgetSpan(child: Icon(Icons.notification_add, size: 14)),
-              TextSpan(text: "Advance Warning"),
-              TextSpan(text: advance),
-            ],
+              Icon(Icons.call_to_action_outlined, size: 14),
+              Text(
+                "Property access details:", 
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ], 
           ),
-        ),
-      );
-    }
+          Text(
+            details,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              inherit: false,
+              ),
+            ),
+        ]
+      ),
+    );
+  }
+
+  Widget advanceWarning(preference) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Column(
+        // Need this to force left alignment of children
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.notification_add, size: 14),
+              Text(
+                "Advance warning?", 
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ], 
+          ),
+          Text(
+            preference,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              inherit: false,
+              ),
+            ),
+        ]
+      ),
+    );
+  }
 
   Widget timelapse(request) {
     return Align(
@@ -426,25 +525,20 @@ class _LandownerProfileState extends State<LandownerProfile> {
               phoneNumber(widget.request.phone),
               const SizedBox(
                 height: 15.0,
-              ), // TODO May need to change this to a relative unit// TODO May need to change this to a relative unit
+              ), // TODO May need to change this to a relative unit
               browsePanel(widget.request.getBrowseNames()),
               const SizedBox(
                 height: 15.0,
-              ), // TODO May need to change this to a relative unit
-              landownerAddress(widget.request.address),
+              ),
+              landownerAddress(widget.request.address, widget.request.postcode),
               const SizedBox(
                 height: 10.0,
-              ), // TODO May need to change this to a relative unit
-              // Archived directions
-              // directionsPanel(),
-              // const SizedBox(
-              //   height: 10.0,
-              // ), // TODO May need to change this to a relative unit
+              ),
               timelapse(widget.request),
               const SizedBox(height: 10.0),
-              visitingTimes("Monday"),
+              visitingTimes("Monday & Thursday evenings"),
               const SizedBox(height: 10.0),
-              advanceWarning("Advance Warning required"),
+              advanceWarning("Yes"),
               const SizedBox(height: 20.0),
               contactButton(widget.request),
             ],
@@ -455,7 +549,6 @@ class _LandownerProfileState extends State<LandownerProfile> {
   }
 }
 
-
 bool isActive(state) {
   if(state == 'Active') {
     return true;
@@ -464,16 +557,17 @@ bool isActive(state) {
   }
 }
 
-// TODO use DateTime.difference
 String getTimelapse(requestTime) {
-  final DateTime now = DateTime.now();
-  final List<int> timeParts = requestTime.substring(0, requestTime.length - 1).split(":").map<int>((str) => int.parse(str)).toList();
+  // Will need to handle parsing better once dealing with different timezones, use toUTC or toLocal?
+  DateTime parsedDate = DateTime.parse(requestTime);
+  Duration difference = DateTime.now().difference(parsedDate);
+  int parsedDifference = difference.inSeconds;
 
-  int daysElapsed = now.day - timeParts[0];
-  int hourElapsed = now.hour - timeParts[3];
-  int minElapsed = now.minute - timeParts[4];
+  int daysElapsed = parsedDifference ~/ (24 * 3600);
+  int hoursElapsed = (parsedDifference % (24 * 3600)) ~/ 3600;
+  int minutesElapsed = (parsedDifference % 3600) ~/ 60;
 
-  String timelapse = '${daysElapsed}:${hourElapsed}:${minElapsed}';
+  String timelapse = '${daysElapsed}:${hoursElapsed}:${minutesElapsed}';
 
   return timelapse;
 }
@@ -485,14 +579,14 @@ String formatTimelapse(timelapse) {
   int hourElapsed = timeParts[1];
   int minElapsed = timeParts[2];
 
-    if(daysElapsed != 0) {
+  if(daysElapsed != 0) {
     timelapse = '${daysElapsed} days';
   } else {
     if(hourElapsed != 0) {
       timelapse = '${hourElapsed}h ${minElapsed}m';
       
     } else {
-      timelapse = '${hourElapsed}m';
+      timelapse = '${minElapsed}m';
     }
   }
 
