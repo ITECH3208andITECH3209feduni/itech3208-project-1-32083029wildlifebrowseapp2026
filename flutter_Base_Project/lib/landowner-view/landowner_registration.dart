@@ -211,7 +211,7 @@ class LandDetailsTab extends StatelessWidget {
                 ),
             validator: FormBuilderValidators.compose(
                 [FormBuilderValidators.required()]),
-            options: ['Banksia','Callistemon', 'Camellia', 'Correa', 'Eucalytpus', 'Grevillea', 'Lilly Pilly']
+            options: ['Banksia','Callistemon', 'Camellia', 'Correa', 'Manna Gum', 'Blue Gum', 'Grevillea', 'Lilly Pilly']
               .map((browse) => FormBuilderFieldOption(
                     value: browse,
                     child: Text(browse),

@@ -70,16 +70,14 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
       TextEditingController();
 
   final List<String> _animalOptions = ['Koala', 'Wombat', 'Kangaroo', 'Possum', 'Other'];
-  final List<String> _browseOptions = ['River Red Gum (Eucalyptus camaldulensis)', 'Tasmanian Blue Gum (Eucalyptus globulus)', 'Manna Gum (Eucalyptus viminalis)'];
+  final List<String> _browseOptions = ['Tasmanian Blue Gum (Eucalyptus globulus)', 'Manna Gum (Eucalyptus viminalis)', 'Banksia','Callistemon', 'Camellia', 'Correa', 'Grevillea', 'Lilly Pilly'];
 
   String? _selectedAnimal;
   String? _selectedBrowseItem;
 
   // List of delivery items
   // TODO create DeliveryItem on submission so can have impression of a empty list when open page
-  final List<DeliveryItem> _deliveryItems = [
-    DeliveryItem(browseName: "Tasmanian Blue Gum (Eucalyptus globulus)", browseQuantity: "1"),
-  ];
+  final List<DeliveryItem> _deliveryItems = [];
 
   @override
   void dispose() {
