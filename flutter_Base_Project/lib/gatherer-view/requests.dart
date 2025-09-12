@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 
 import '../templates/drawer.dart';
 import '../templates/browseList.dart';
-import '../jsonParser.dart';
 import '../auth/auth.dart';
 
 import '../models/request.dart';
@@ -307,7 +306,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                'Caretaker: ${request.caretakerName.split(' ')[0]}', // TODO Need to give proper padding
+                'Caretaker: ${request.caretakerName}', // TODO Need to give proper padding
                 style: TextStyle(
                   color: Color.fromARGB(235, 16, 17, 17),
                   fontWeight: FontWeight.bold,

@@ -4,15 +4,10 @@ import 'package:http/http.dart' as http;
 import 'dart:math';
 
 import '../templates/drawer.dart';
-import '../templates/browseList.dart';
-import '../jsonParser.dart';
 import '../auth/auth.dart';
 
 import '../models/landowner.dart';
 import '../models/landowner_response.dart';
-
-// Dummy request json data
-import '../test/dummy_landowner.dart';
 
 class LandownerRoute extends StatelessWidget {
 

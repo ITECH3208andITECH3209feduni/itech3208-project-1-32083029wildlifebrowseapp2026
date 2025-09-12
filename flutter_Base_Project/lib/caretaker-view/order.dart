@@ -244,35 +244,6 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                 ),
 
                 SizedBox(height: 32),
-                // Button to send data to terminal so its properly being read
-                ElevatedButton(
-                  onPressed: () {
-                    print("Full Name: ${_fullNameController.text}");
-                    print("Address: ${_deliveryAddressController.text}");
-                    print("Postcode: ${_postcodeController.text}");
-                    print("Specifications: ${_specificationsController.text}");
-                    int animalIndex =
-                        _selectedAnimal != null
-                            ? _animalOptions.indexOf(_selectedAnimal!)
-                            : -1;
-                    print(
-                      "Selected Animal: $_selectedAnimal (Index: $animalIndex)",
-                    );
-                    print("DeliveryItems:");
-                    for (int i = 0; i < _deliveryItems.length; i++) {
-                      int browseIndex =
-                          _selectedBrowseItem != null
-                              ? _browseOptions.indexOf(_selectedBrowseItem!)
-                              : -1;
-                      print(
-                        '     ${i + 1}. ${_deliveryItems[i].browseName}(Index: $browseIndex):${_deliveryItems[i].browseQuantity}m³',
-                      );
-                    }
-                  },
-                  child: Text('Test Complete Form To Terminal'),
-                ),
-
-                SizedBox(height: 12),
 
                 // Button to send data to the DynamoDB Server Through AWS Gateway
                 ElevatedButton(
@@ -302,7 +273,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                     // Build the final JSON payload
                     // Ensure that the values send as the correct type expected by the request model
                     Map<String, dynamic> deliveryData = {
-                      "caretaker_name": _fullNameController.text,
+                      "caretakerName": _fullNameController.text,
                       "address": _deliveryAddressController.text,
                       "postcode": _postcodeController.text,
                       "request_ID": "Request_${DateTime.now().millisecondsSinceEpoch}",
@@ -348,7 +319,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                       print('Failed Send Delivery: $error');
                     }
                   },
-                  child: Text('Submit Form To DynamoDB'),
+                  child: Text('Submit order'),
                 ),
               ],
             ),
