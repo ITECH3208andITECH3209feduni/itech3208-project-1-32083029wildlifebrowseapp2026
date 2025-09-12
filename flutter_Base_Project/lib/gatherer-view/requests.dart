@@ -126,7 +126,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
           tileColor: 
             // Changes colour of tile depending whether the user is doing the request or not
             isWip 
-              ?Color.fromARGB(255, 255, 247, 230)
+              ?Color.fromARGB(255, 255, 224, 156)
               :Color.fromARGB(255, 246, 251, 244),
           onTap: () {
             Navigator.push(
