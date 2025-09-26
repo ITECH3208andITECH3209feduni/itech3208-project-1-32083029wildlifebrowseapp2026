@@ -36,4 +36,23 @@ class LandOwnerResponse {
       }
     }).toList();
   }
+
+  // Method to return a filtered list of Landowners based on a given filter (type of browse)
+  List<Landowner> filterItems(List<String> filter) {
+  List<Landowner> filteredList = [];
+
+  for (Landowner testedLandowner in items) {
+    // assuming getBrowseNames() returns List<String>
+    List<String> browseNames = testedLandowner.getBrowseNames();
+
+    // Check if any of the filter items match the browse names
+    bool matches = filter.any((f) => browseNames.contains(f));
+
+    if (matches) {
+      filteredList.add(testedLandowner);
+    }
+  }
+
+  return filteredList;
+}
 }
