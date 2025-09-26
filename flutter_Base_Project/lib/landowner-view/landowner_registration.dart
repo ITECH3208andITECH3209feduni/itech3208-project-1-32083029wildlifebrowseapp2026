@@ -39,6 +39,9 @@ class LandownerFormTabs extends StatefulWidget {
   _LandownerFormTabs createState() => _LandownerFormTabs();
 }
 
+
+
+
 class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormBuilderState>();
   final _phoneFieldKey = GlobalKey<FormBuilderFieldState>();
@@ -134,6 +137,17 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
       // }
       _tabController.animateTo(_currentTab + 1);
     }
+    else if (_currentTab == 1){
+      if (!_formKey.currentState!.fields['daysData']!.validate() ||
+          !_formKey.currentState!.fields['timesData']!.validate()) {;
+      }
+      else if (!_formKey.currentState!.fields['browseData']!.validate() ||
+          !_formKey.currentState!.fields['address']!.validate() ||
+          !_formKey.currentState!.fields['postcode']!.validate() ||
+          !_formKey.currentState!.fields['phone']!.validate()) {
+        _tabController.animateTo(_currentTab - 1);
+      }
+    }
   }
 
   void _goToPreviousTab() {
@@ -188,17 +202,49 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
         arguments: {'user': user},
         );
     }
+    else{
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Inputs Missing/Invalid'),
+            content: Text('Please check all fields are filled out correctly.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      _tabController.animateTo(_currentTab - 2);
+
+    }
   }
 }
 
-class LandDetailsTab extends StatelessWidget {
+class LandDetailsTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
-  LandDetailsTab({required this.formKey, required this.phoneFieldKey});
+  const LandDetailsTab({required this.formKey, required this.phoneFieldKey, super.key});
+
+  @override
+  _LandDetailsTabState createState() => _LandDetailsTabState();
+
+}
+class _LandDetailsTabState extends State<LandDetailsTab> with AutomaticKeepAliveClientMixin {
+  
+  @override
+  bool get wantKeepAlive => true;
+
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); 
     return Padding(
       padding: EdgeInsets.all(16.0),
         child: Column(  
@@ -250,6 +296,9 @@ class LandDetailsTab extends StatelessWidget {
                   [
                     FormBuilderValidators.required(),
                     FormBuilderValidators.integer(),
+                    FormBuilderValidators.equalLength(4),
+                    FormBuilderValidators.positiveNumber()
+
                   ]),
               onChanged: (val) {
                   print(val); // Print the text value write into TextField
@@ -268,7 +317,7 @@ class LandDetailsTab extends StatelessWidget {
           ),
           SizedBox(height:16),
           FormBuilderTextField(
-              key: phoneFieldKey,
+              key: widget.phoneFieldKey,
               name: 'phone',
               decoration: const InputDecoration(
                 labelText: 'Phone number',
@@ -278,6 +327,7 @@ class LandDetailsTab extends StatelessWidget {
                   [
                     FormBuilderValidators.required(),
                     FormBuilderValidators.phoneNumber(),
+                    FormBuilderValidators.equalLength(10)
                   ]),
               onChanged: (val) {
                   print(val); // Print the text value write into TextField
@@ -289,14 +339,23 @@ class LandDetailsTab extends StatelessWidget {
   }
 }
 
-class AvailabilityTab extends StatelessWidget {
+
+
+class AvailabilityTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
   AvailabilityTab({required this.formKey, required this.phoneFieldKey});
+  @override
+  _AvalabilityTabState createState() => _AvalabilityTabState();
+}
+class  _AvalabilityTabState extends State <AvailabilityTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Padding(
       padding: EdgeInsets.all(16.0),
         child: Column(  
@@ -348,14 +407,22 @@ class AvailabilityTab extends StatelessWidget {
   }
 }
 
-class PreferencesTab extends StatelessWidget {
+class PreferencesTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
   PreferencesTab({required this.formKey, required this.phoneFieldKey});
-
+  
+  @override
+  _PreferencesTabState createState() => _PreferencesTabState();
+  
+  }
+class _PreferencesTabState extends State<PreferencesTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   @override
 Widget build(BuildContext context) {
+  super.build(context);
     return Padding(
       padding: EdgeInsets.all(16.0),
         child: Column( 
