@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+
 import '../templates/drawer.dart';
 import '../auth/auth.dart';
 
@@ -27,12 +30,14 @@ class CaretakerRoute extends StatelessWidget {
 
 class DeliveryItem {
   final String browseName;
-  final String browseQuantity;
+  final String browseAmount;
+  final String amountType;
   bool isSelected;
 
   DeliveryItem({
     required this.browseName,
-    required this.browseQuantity,
+    required this.browseAmount,
+    required this.amountType,
 
     this.isSelected = false,
   });
@@ -48,46 +53,12 @@ class CaretakerHomePage extends StatefulWidget {
   State<CaretakerHomePage> createState() => _CaretakerHomePageState();
 }
 
-class _CaretakerHomePageState extends State<CaretakerHomePage> {
-  late final String defaultFullName;
-  late final TextEditingController _fullNameController;
-  late final TextEditingController _deliveryAddressController;
-  late final TextEditingController _postcodeController;
-  
-  @override
-  void initState() {
-    super.initState();
-    String defaultFullName = "${widget.user.claims['given_name']} ${widget.user.claims['family_name']}";
-    _fullNameController = TextEditingController(text: defaultFullName);
-
-    _deliveryAddressController = TextEditingController(text: "${widget.user.claims['address']['formatted']}");
-    _postcodeController = TextEditingController(text: "${widget.user.claims['custom:postcode']}");
-  }
-
-  final TextEditingController _specificationsController =
-      TextEditingController();
-  final TextEditingController _browseQuantityController =
-      TextEditingController();
-
-  final List<String> _animalOptions = ['Koala', 'Wombat', 'Kangaroo', 'Possum', 'Other'];
-  final List<String> _browseOptions = ['Tasmanian Blue Gum (Eucalyptus globulus)', 'Manna Gum (Eucalyptus viminalis)', 'Banksia','Callistemon', 'Camellia', 'Correa', 'Grevillea', 'Lilly Pilly'];
-
-  String? _selectedAnimal;
-  String? _selectedBrowseItem;
+class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormBuilderState>();
 
   // List of delivery items
   // TODO create DeliveryItem on submission so can have impression of a empty list when open page
   final List<DeliveryItem> _deliveryItems = [];
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _deliveryAddressController.dispose();
-    _postcodeController.dispose();
-    _specificationsController.dispose();
-    _browseQuantityController.dispose();
-    super.dispose();
-  }
 
   String selectedDrawerPage = '';
 
@@ -163,33 +134,181 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
           drawer: UserDrawer(username: username, user: widget.user),
           body: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: ListView(
+            child: FormBuilder(
+              key: _formKey, 
+              child: ListView(
               children: [
-                SizedBox(height: 32),
-                inputField("Full Name", _fullNameController),
-                SizedBox(height: 32),
-                inputField("Address", _deliveryAddressController),
-                SizedBox(height: 32),
-                inputFieldInt("Postcode", _postcodeController),
-                SizedBox(height: 32),
-                inputField("Request Details", _specificationsController),
-                SizedBox(height: 32),
-                animalDropdown(),
-                SizedBox(height: 32),
-                browseDropdown(),
-                SizedBox(height: 12),
-                inputFieldInt(
-                  "Quantity Of Browse",
-                  _browseQuantityController,
-                  hint: "m³",
+                SizedBox(height:16),
+                FormBuilderTextField(
+                  name: 'caretakerName',
+                  initialValue: "${widget.user.claims['given_name']} ${widget.user.claims['family_name']}",
+                  decoration: const InputDecoration(
+                    labelText: 'Full name',
+                    contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                  ),
+                  validator: FormBuilderValidators.compose(
+                      [
+                        FormBuilderValidators.required(),
+                        //TODO add a validator for firstname and lastname
+                      ]),
+                  onChanged: (val) {
+                      print(val); // Print the text value write into TextField
+                  },
                 ),
-                SizedBox(height: 12),
+                SizedBox(height:16),
+                FormBuilderTextField(
+                    name: 'address',
+                    initialValue: "${widget.user.claims['address']['formatted']}",
+                    decoration: const InputDecoration(
+                      labelText: 'Address',
+                      contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    ),
+                    validator: FormBuilderValidators.compose(
+                        [
+                          FormBuilderValidators.required(),
+                          FormBuilderValidators.street(),
+                        ]),
+                    onChanged: (val) {
+                        print(val); // Print the text value write into TextField
+                    },
+                ),
+                SizedBox(height:16),
+                FormBuilderTextField(
+                    name: 'postcode',
+                    initialValue: "${widget.user.claims['postcode']}",
+                    decoration: const InputDecoration(
+                      labelText: 'Postcode',
+                      contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    ),
+                    validator: FormBuilderValidators.compose(
+                        [
+                          FormBuilderValidators.required(),
+                          FormBuilderValidators.integer(),
+                          FormBuilderValidators.equalLength(4),
+                          FormBuilderValidators.positiveNumber()
 
+                        ]),
+                    onChanged: (val) {
+                        print(val); // Print the text value write into TextField
+                    },
+                ),
+                SizedBox(height:16),
+                FormBuilderTextField(
+                  name: 'requestDetails',
+                  decoration: const InputDecoration(
+                    labelText: 'Please add additional requests to your request here (Optional)',
+                    contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                  ),
+                  onChanged: (val) {
+                      print(val); // Print the text value write into TextField
+                  },
+                ),
+                SizedBox(height:16),
+                FormBuilderDropdown<String>(
+                  name: 'animal_ID', 
+                  initialValue: 'Ring-tailed Possum',
+                  decoration: InputDecoration(
+                    labelText: 'Animal',
+                    hintText: 'Select Animal'
+                  ),
+                  items: ['Koala','Ring-tailed Possum', 'Brush-tailed Possum', 'Kangaroo', 'Wombat', 'Kookaburra']
+                    .map((animal) => DropdownMenuItem(
+                          alignment: AlignmentDirectional.center,
+                          value: animal,
+                          child: Text(animal),
+                        ))
+                    .toList(growable: false),
+                  validator: FormBuilderValidators.compose(
+                    [FormBuilderValidators.required()]
+                  ),
+                  // Disables changing of animal once a browse item is added to a request
+                  onChanged: (selectedAnimal) {
+                    _isAnimalLock
+                        ? null
+                        : (newValue) {
+                          setState(() {
+                            selectedAnimal = newValue;
+                          });
+                    };
+                    print(selectedAnimal); // Print the text value write into TextField
+                  },
+                ),
+                SizedBox(height:16),
+                FormBuilderDropdown<String>(
+                  name: 'browseData', 
+                  initialValue: 'Manna Gum (Eucalyptus viminalis)',
+                  decoration: const InputDecoration(
+                    labelText: 'Browse',
+                    hintText: 'Select Browse'
+                  ),
+                  items: ['Tasmanian Blue Gum (Eucalyptus globulus)', 'Manna Gum (Eucalyptus viminalis)', 'Banksia','Callistemon', 'Camellia', 'Correa', 'Grevillea', 'Lilly Pilly', 'Mealworms']
+                    .map((browse) => DropdownMenuItem(
+                          alignment: AlignmentDirectional.center,
+                          value: browse,
+                          child: Text(browse),
+                        ))
+                    .toList(growable: false),
+                  validator: FormBuilderValidators.compose(
+                      [FormBuilderValidators.required()]
+                  ),
+                  onChanged: (val) {
+                    print(val); // Print the text value write into TextField
+                  },
+                ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: 
+                        FormBuilderTextField(
+                          name: 'browseAmount',
+                          initialValue: '1',
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            labelText: 'Amount',
+                            hintText: 'Enter amount of browse needed'
+                          ),
+                          validator: FormBuilderValidators.compose(
+                              [
+                                FormBuilderValidators.required(),
+                                FormBuilderValidators.integer(),
+                                FormBuilderValidators.range(1, 99)
+                              ]),
+                          onChanged: (val) {
+                              print(val); // Print the text value write into TextField
+                          },
+                      )
+                    ),
+                    Flexible(
+                      child:
+                      FormBuilderDropdown<String>(
+                        name: 'amountType', 
+                        initialValue: 'branch/es',
+                        decoration: const InputDecoration(
+                          labelText: 'Amount type',
+                          hintText: 'Select quantity type'
+                        ),
+                        items: ['branch/es', 'bucket/s']
+                          .map((amountType) => DropdownMenuItem(
+                                alignment: AlignmentDirectional.centerStart,
+                                value: amountType,
+                                child: Text(amountType),
+                              ))
+                          .toList(growable: false),
+                        validator: FormBuilderValidators.compose(
+                            [FormBuilderValidators.required()]
+                        ),
+                        onChanged: (val) {
+                          print(val); // Print the text value write into TextField
+                        },
+                      )
+                    )
+                  ]
+                ),
                 ..._deliveryItems.map((item) {
-                  // Changed to ListTile to format browseName and browseQuantity together
+                  // Returns a list of browse added so far to the order
                   return ListTile(
-                    // Format as browseName: browseQuantity
-                    title: Text("${item.browseName}: ${item.browseQuantity}m³"),
+                    // Formats each DeliveryItem object in the deliveryItems list in a string format
+                    title: Text("${item.browseName}: ${item.browseAmount} ${item.amountType}"),
 
                     trailing: Checkbox(
                       value: item.isSelected,
@@ -201,35 +320,15 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                     ),
                   );
                 }),
-
                 // Add delivery item button
                 ElevatedButton(
                   onPressed: () {
-                    // _browseQuantityController.text can't be 0 due to input formatter in inputFieldInt widget
-                    if (_selectedBrowseItem != null &&
-                        _browseQuantityController.text != "") {
-                      print("Delivery Item Added");
-                      setState(() {
-                        _isAnimalLock = true;
-                        _deliveryItems.add(
-                          DeliveryItem(
-                            browseName: "$_selectedBrowseItem",
-                            browseQuantity: _browseQuantityController.text,
-                          ),
-                        );
-                        // Clears the browse selection and quantity input after adding
-                        _selectedBrowseItem = null;
-                        _browseQuantityController.clear();
-                      });
-                    } else {
-                      print('Please select a browse and quantity');
-                    }
+                        // This adds to the order request list - not sent to database yet
+                        _addDeliveryItem();                   
                   },
                   child: Text('Add Delivery Item'),
                 ),
-
                 SizedBox(height: 8),
-
                 ElevatedButton(
                   onPressed: () {
                     print("Delivery Item/s Removed");
@@ -242,86 +341,16 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
                   },
                   child: const Text('Remove Selected Items'),
                 ),
-
                 SizedBox(height: 32),
-
                 // Button to send data to the DynamoDB Server Through AWS Gateway
                 ElevatedButton(
                   onPressed: () async {
-                    // Build your items list from _deliveryItems
-                    int? animalIndex;
-                    if (_selectedAnimal != null) {
-                      // Why do we use this, I don't get referring things via numbers rather than strings
-                      animalIndex = _animalOptions.indexOf(_selectedAnimal!);
-                    } else {
-                      print('Please select an animal');
-                      return;
-                    }
-
-                    List<Map<String, dynamic>> items =
-                        _deliveryItems
-                            .map(
-                              (item) => {
-                                // TODO Plant names currently too long, selecting first part for now, will need to fix ListTiles in request.dart
-                                'plant_ID': item.browseName.split(' (')[0],
-                                // Quantity needs to be an int in database
-                                'quantity': int.parse(item.browseQuantity),
-                              },
-                            )
-                            .toList();
-
-                    // Build the final JSON payload
-                    // Ensure that the values send as the correct type expected by the request model
-                    Map<String, dynamic> deliveryData = {
-                      "caretakerName": _fullNameController.text,
-                      "address": _deliveryAddressController.text,
-                      "postcode": _postcodeController.text,
-                      "request_ID": "Request_${DateTime.now().millisecondsSinceEpoch}",
-                      "requestDetails": _specificationsController.text,
-                      "timestamp": DateTime.now().toIso8601String(),
-                      "assigned_User_ID": null,
-                      "requester_ID": widget.user.claims['username'],
-                      "status_Num": 1,
-                      "delivery_items": items,
-                      "animal_ID": _selectedAnimal
-                    };
-
-                    try {
-                      // Send HTTP POST request
-                      debugPrint(jsonEncode(deliveryData));
-                      final response = await http.post(
-                        Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
-                        headers: {"Content-Type": "application/json"},
-                        body: jsonEncode(deliveryData),
-                      );
-
-                      // Checks if request was successful (status code 201)
-                      if (response.statusCode == 201) {
-                        final responseData = jsonDecode(response.body);
-                        print(
-                          'Delivery Created ID: ${responseData['delivery_ID']}',
-                        );
-                        // Clears form on successful submission
-                        setState(() {
-                          _fullNameController.clear();
-                          _deliveryAddressController.clear();
-                          _postcodeController.clear();
-                          _specificationsController.clear();
-                          // TODO setting it to null is causing it to disable dropdown?
-                          _selectedAnimal = null;
-                          _deliveryItems.clear();
-                        });
-                      } else {
-                        print('Server Error: ${response.statusCode}');
-                        print(response.body);
-                      }
-                    } catch (error) {
-                      print('Failed Send Delivery: $error');
-                    }
+                    _submitForm();
                   },
                   child: Text('Submit order'),
                 ),
               ],
+            ),
             ),
           ),
         ),
@@ -329,81 +358,103 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> {
     );
   }
 
-  TextField inputField(
-    String labelName,
-    TextEditingController controller, {
-    String? hint,
-  }) => TextField(
-    controller: controller,
-    decoration: InputDecoration(
-      labelText: labelName,
-      hintText: hint,
-      border: OutlineInputBorder(),
-    ),
-  );
+  void _addDeliveryItem() {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
 
-  // Input field that only accepts int
-  TextField inputFieldInt(
-    String labelName,
-    TextEditingController controller, {
-    String? hint,
-  }) => TextField(
-    controller: controller,
-    decoration: InputDecoration(
-      labelText: labelName,
-      hintText: hint,
-      border: OutlineInputBorder(),
-    ),
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      FilteringTextInputFormatter.deny(RegExp('^0+')),
-    ],
-  );
+      final formData = _formKey.currentState!.value;
 
-  DropdownButtonFormField<String> animalDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Animal',
-        border: OutlineInputBorder(),
-      ),
-      value: _selectedAnimal,
-      items:
-          _animalOptions
-              .map(
-                (animal) =>
-                    DropdownMenuItem(value: animal, child: Text(animal)),
-              )
-              .toList(),
-      onChanged:
-          _isAnimalLock
-              ? null
-              : (newValue) {
-                setState(() {
-                  _selectedAnimal = newValue;
-                });
-              },
-    );
+      final newItem = DeliveryItem(
+        browseName: formData['browseData'],
+        browseAmount: formData['browseAmount'],
+        amountType: formData['amountType'],
+      );
+
+      setState(() {
+        _isAnimalLock = true;
+        _deliveryItems.add(newItem);
+        print("Delivery Item Added");
+      });
+    } else {
+      print('Please select a browse, amount and a quantity type');
+      debugPrint(
+        'browseName: ${_formKey.currentState!.fields['browseData']},\nbrowseAmount: ${_formKey.currentState!.fields['browseAmount']},\namountType: ${_formKey.currentState!.fields['amountType']}'
+      );
+    }
   }
 
-  DropdownButtonFormField<String> browseDropdown() =>
-      DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          labelText: 'Browse',
-          border: OutlineInputBorder(),
-        ),
-        value: _selectedBrowseItem,
-        items:
-            _browseOptions
-                .map(
-                  (browse) =>
-                      DropdownMenuItem(value: browse, child: Text(browse)),
-                )
-                .toList(),
-        onChanged: (newValue) {
-          setState(() {
-            _selectedBrowseItem = newValue;
-          });
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      final formData = _formKey.currentState!.value;
+      // Clear form once data is saved to formData
+      _formKey.currentState!.reset();
+
+      List<Map<String, dynamic>> items =
+        _deliveryItems
+            .map(
+              (item) => {
+                // TODO Plant names currently too long, will need to fix ListTiles in request.dart
+                'plant_ID': item.browseName,
+                // Quantity needs to be an int in database
+                'quantity': int.parse(item.browseAmount),
+                'type': item.amountType,
+              },
+            )
+            .toList();
+
+      final finalPayload = {
+        ...formData,
+        'request_ID': "Request_${DateTime.now().millisecondsSinceEpoch}",
+        'timestamp': DateTime.now().toIso8601String(),
+        "assigned_User_ID": null,
+        'requester_ID': widget.user.claims['username'],
+        'status_Num': 1,
+        'delivery_items': items,
+      };
+
+      try {
+        // Send HTTP POST request
+        debugPrint(jsonEncode(finalPayload));
+        final response = await http.post(
+          Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(finalPayload),
+        );
+
+        // Checks if request was successful (status code 201)
+        if (response.statusCode == 201) {
+          final responseData = jsonDecode(response.body);
+          print(
+            'Registration created for requester_ID: ${responseData['items']?[0]?['requester_ID']}',
+          );
+        } else {
+          print('Server error: ${response.statusCode}');
+          print(response.body);
+        }
+      } catch (error) {
+        print('Failed to send registration data: $error');
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Inputs Missing/Invalid'),
+            content: Text('Please check all fields are filled out correctly.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
         },
       );
+    }
+  }
+
 }

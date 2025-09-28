@@ -39,9 +39,6 @@ class LandownerFormTabs extends StatefulWidget {
   _LandownerFormTabs createState() => _LandownerFormTabs();
 }
 
-
-
-
 class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormBuilderState>();
   final _phoneFieldKey = GlobalKey<FormBuilderFieldState>();
@@ -228,6 +225,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
 
 class LandDetailsTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
+  // Need to remember why phone field needs its own key
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
   const LandDetailsTab({required this.formKey, required this.phoneFieldKey, super.key});

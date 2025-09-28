@@ -2,23 +2,23 @@ class DeliveryItems {
   DeliveryItems({
     required this.plant_ID,
     required this.quantity,
-    // this.plant_Name,
+    required this.type,
   });
 
   final String plant_ID;
   final int quantity;
-  // final String? plant_Name;
+  final String type;
 
 
   factory DeliveryItems.fromJson(Map<String, dynamic> requestJson) {
     final plant_ID = requestJson['plant_ID'] as String; 
-    final quantity = requestJson['quantity'] as int; 
-    // final plant_Name = requestJson['plant_Name'] as String?;
+    final quantity = requestJson['quantity'] as int;
+    final type = requestJson['type'] as String? ?? 'branch/es';
 
     return DeliveryItems(
       plant_ID: plant_ID,
       quantity: quantity,
-      // plant_Name: plant_Name,
+      type: type,
     );
   }
 
@@ -26,7 +26,7 @@ class DeliveryItems {
     return {
       'plant_ID': plant_ID,
       'quantity': quantity,
-      // 'plant_Name': plant_Name,
+      'type': type,
     };
   }
 }

@@ -20,7 +20,7 @@ class BrowseTileList extends StatefulWidget {
 class _BrowseTileList extends State<BrowseTileList> {
   @override
   Widget build(BuildContext context) {
-// Bool that checks if browse list is Greater Than two
+    // Bool that checks if browse list is Greater Than two
     bool isBrowseGTTwo = widget.browses.length > 2 ? true : false;
 
     return Row(

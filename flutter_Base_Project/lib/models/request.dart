@@ -70,7 +70,7 @@ class Request {
       } catch (e) {
         print('Error parsing delivery item: $e');
         // Return a empty DeliveryItems instance if parsing fails
-        return DeliveryItems(plant_ID: '', quantity: 0);
+        return DeliveryItems(plant_ID: '', quantity: 0, type: '');
       }
     }).toList();
   }
