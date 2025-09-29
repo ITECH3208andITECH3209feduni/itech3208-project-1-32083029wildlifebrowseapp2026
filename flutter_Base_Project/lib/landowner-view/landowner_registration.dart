@@ -39,6 +39,8 @@ class LandownerFormTabs extends StatefulWidget {
   _LandownerFormTabs createState() => _LandownerFormTabs();
 }
 
+
+
 class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormBuilderState>();
   final _phoneFieldKey = GlobalKey<FormBuilderFieldState>();
@@ -134,11 +136,20 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
       // }
       _tabController.animateTo(_currentTab + 1);
     }
+    // Checking if the current tab is avalabiliy tab, validate both it, and the previous tab
     else if (_currentTab == 1){
+      //First check if avaliability tab is valid
       if (!_formKey.currentState!.fields['daysData']!.validate() ||
           !_formKey.currentState!.fields['timesData']!.validate()) {;
       }
-      else if (!_formKey.currentState!.fields['browseData']!.validate() ||
+      // Check if Land Details tab is valid and go back if not 
+      
+      // The reason for this is becuase of a issue that *could* happen, where if the user fills out the avaliability tab corretly
+      // but the land details tab is invalid, the user would be stuck on the avaliability tab with no error shown
+      // Now when a user tries to go to the third tab in that scenario, they are instead redirected to the tab with the mistakes. 
+      else if (
+      
+          !_formKey.currentState!.fields['browseData']!.validate() ||
           !_formKey.currentState!.fields['address']!.validate() ||
           !_formKey.currentState!.fields['postcode']!.validate() ||
           !_formKey.currentState!.fields['phone']!.validate()) {
@@ -235,7 +246,8 @@ class LandDetailsTab extends StatefulWidget {
 
 }
 class _LandDetailsTabState extends State<LandDetailsTab> with AutomaticKeepAliveClientMixin {
-  
+   // To keep this tab's state when switching tabs (used for cross tab validation)
+   // Otherwise the state of the field would reset when switching tabs thus the validation would always fail.
   @override
   bool get wantKeepAlive => true;
 
@@ -348,6 +360,8 @@ class AvailabilityTab extends StatefulWidget {
   _AvalabilityTabState createState() => _AvalabilityTabState();
 }
 class  _AvalabilityTabState extends State <AvailabilityTab> with AutomaticKeepAliveClientMixin {
+// To keep this tab's state when switching tabs (used for cross tab validation)
+// Otherwise the state of the field would reset when switching tabs thus the validation would always fail.
   @override
   bool get wantKeepAlive => true;
 
@@ -417,6 +431,8 @@ class PreferencesTab extends StatefulWidget {
   }
 class _PreferencesTabState extends State<PreferencesTab> with AutomaticKeepAliveClientMixin {
   @override
+  // To keep this tab's state when switching tabs (used for cross tab validation)
+  // Otherwise the state of the field would reset when switching tabs thus the validation would always fail.
   bool get wantKeepAlive => true;
   @override
 Widget build(BuildContext context) {
