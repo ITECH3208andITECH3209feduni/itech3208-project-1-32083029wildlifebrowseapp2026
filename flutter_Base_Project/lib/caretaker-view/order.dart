@@ -71,7 +71,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
     };
   }
 
-  bool _isAnimalLock = false;
+  bool disabledOnAddItem = true;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +149,11 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                   validator: FormBuilderValidators.compose(
                       [
                         FormBuilderValidators.required(),
-                        //TODO add a validator for firstname and lastname
+                        // Full name regex matches two or more words and handles cases such as O'Connor and Eastman-Smart
+                        FormBuilderValidators.match(
+                          RegExp(r"^[a-zA-Z]+([-' ][a-zA-Z]+)*\s+[a-zA-Z]+([-' ][a-zA-Z]+)*$"), 
+                          errorText: 'Please enter your first and last name'
+                        )
                       ]),
                   onChanged: (val) {
                       print(val); // Print the text value write into TextField
@@ -166,7 +170,11 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                     validator: FormBuilderValidators.compose(
                         [
                           FormBuilderValidators.required(),
-                          FormBuilderValidators.street(),
+                          // Regex will pass following variations: 407/82 Hay St, A314/1 O'Brien Street, (LOT1022) 60 Johnston Rd, 17 Jump St, LOT1022 Johnston Rd, (LOT1022) Johnston Rd
+                          // Regex uses negative lookaheads in the optional 1st group and 2nd group to not pass if there's a 0 in the format 0/1, A0/1, (LOT0000), LOT0000 or 0
+                          // More advanced validation will require an API
+                          FormBuilderValidators.street(regex: RegExp(r"^(?![A-Za-z]*0|\(?LOT0000)([a-zA-Z0-9\/\(\)]*)\s?(?!0)[1-9]*[0-9]*\s[a-zA-Z']+\s[a-zA-Z]+$")),
+                          FormBuilderValidators.minWordsCount(3)
                         ]),
                     onChanged: (val) {
                         print(val); // Print the text value write into TextField
@@ -207,6 +215,8 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                 FormBuilderDropdown<String>(
                   name: 'animal_ID', 
                   initialValue: 'Ring-tailed Possum',
+                  // Prevents changing of animal after a user clicks 'Add delivery item' button
+                  enabled: disabledOnAddItem,
                   decoration: InputDecoration(
                     labelText: 'Animal',
                     hintText: 'Select Animal'
@@ -221,15 +231,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                   validator: FormBuilderValidators.compose(
                     [FormBuilderValidators.required()]
                   ),
-                  // Disables changing of animal once a browse item is added to a request
                   onChanged: (selectedAnimal) {
-                    _isAnimalLock
-                        ? null
-                        : (newValue) {
-                          setState(() {
-                            selectedAnimal = newValue;
-                          });
-                    };
                     print(selectedAnimal); // Print the text value write into TextField
                   },
                 ),
@@ -271,7 +273,8 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                               [
                                 FormBuilderValidators.required(),
                                 FormBuilderValidators.integer(),
-                                FormBuilderValidators.range(1, 99)
+                                FormBuilderValidators.positiveNumber(),
+                                FormBuilderValidators.between(1, 50)
                               ]),
                           onChanged: (val) {
                               print(val); // Print the text value write into TextField
@@ -320,18 +323,19 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                     ),
                   );
                 }),
+                SizedBox(height: 8),
                 // Add delivery item button
                 ElevatedButton(
                   onPressed: () {
                         // This adds to the order request list - not sent to database yet
                         _addDeliveryItem();                   
                   },
-                  child: Text('Add Delivery Item'),
+                  child: Text('Add delivery item'),
                 ),
                 SizedBox(height: 8),
+                // Remove selected delivery item button
                 ElevatedButton(
                   onPressed: () {
-                    print("Delivery Item/s Removed");
                     if (_deliveryItems.isNotEmpty) {
                       setState(() {
                         // Removes all delivery items that are currently selected
@@ -339,10 +343,10 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                       });
                     }
                   },
-                  child: const Text('Remove Selected Items'),
+                  child: const Text('Remove selected items'),
                 ),
                 SizedBox(height: 32),
-                // Button to send data to the DynamoDB Server Through AWS Gateway
+                // Button to send data to the DynamoDB Server via AWS Gateway
                 ElevatedButton(
                   onPressed: () async {
                     _submitForm();
@@ -371,12 +375,11 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
       );
 
       setState(() {
-        _isAnimalLock = true;
+        disabledOnAddItem = false;
         _deliveryItems.add(newItem);
-        print("Delivery Item Added");
       });
     } else {
-      print('Please select a browse, amount and a quantity type');
+      debugPrint('Please select a browse, amount and a quantity type');
       debugPrint(
         'browseName: ${_formKey.currentState!.fields['browseData']},\nbrowseAmount: ${_formKey.currentState!.fields['browseAmount']},\namountType: ${_formKey.currentState!.fields['amountType']}'
       );
@@ -384,12 +387,14 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    // Validates the fields including whether the delivery item list has an item in it
+    if (_formKey.currentState!.validate() && _deliveryItems.isNotEmpty) {
       _formKey.currentState!.save();
 
       final formData = _formKey.currentState!.value;
       // Clear form once data is saved to formData
       _formKey.currentState!.reset();
+      disabledOnAddItem = true;
 
       List<Map<String, dynamic>> items =
         _deliveryItems

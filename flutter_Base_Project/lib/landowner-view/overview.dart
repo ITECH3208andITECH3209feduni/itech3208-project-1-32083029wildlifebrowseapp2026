@@ -231,7 +231,7 @@ class _RequestBoardState extends State<LandownerHomePage>
                   ),
                 ),
                 child: Text(
-                  'Create new listing',
+                  'Create/Update listing',
                   style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
                   textAlign: TextAlign.center,
                 ),
