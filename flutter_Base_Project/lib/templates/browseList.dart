@@ -67,12 +67,14 @@ class BrowseQuantityList extends StatefulWidget {
   const BrowseQuantityList({
     super.key, 
     required this.browses, 
-    required this.quantities, 
+    required this.quantities,
+    required this.types,
     this.fontColor = Colors.black
   });
   
   final List<String> browses;
   final List<int> quantities;
+  final List<String> types;
   final Color fontColor;
 
   @override
@@ -88,8 +90,8 @@ class _BrowseQuantityList extends State<BrowseQuantityList> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Quantities and Browses length should always be the same but this is to handle in case it doesn't
-            for (int i = 0; i < min(widget.browses.length, widget.quantities.length); i++)
+            // Quantities, Browses and Types length should always be the same but this is to handle in case it doesn't
+            for (int i = 0; i < min(min(widget.browses.length, widget.quantities.length), widget.types.length); i++)
               Text(
                 '${widget.quantities[i]}x ',
                 style: TextStyle(
@@ -102,10 +104,10 @@ class _BrowseQuantityList extends State<BrowseQuantityList> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Quantities and Browses length should always be the same but this is to handle in case it doesn't
-            for (int i = 0; i < min(widget.browses.length, widget.quantities.length); i++)
+            // Quantities, Browses and Types length should always be the same but this is to handle in case it doesn't
+            for (int i = 0; i < min(min(widget.browses.length, widget.quantities.length), widget.types.length); i++)
               Text(
-                '${widget.browses[i]}',
+                '${widget.browses[i]} ${widget.types[i]}',
                 style: TextStyle(
                   color: widget.fontColor,
                 )

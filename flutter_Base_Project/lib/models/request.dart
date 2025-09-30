@@ -43,12 +43,16 @@ class Request {
   }
 
   // Items helper methods
-  List<String> getPlantID() {
-    return delivery_items.map((a) => a.plant_ID).toList();
+  List<String> getBrowseNames() {
+    return delivery_items.map((a) => a.name).toList();
   }
 
-  List<int> getPlantQuantities() {
+  List<int> getBrowseQuantities() {
     return delivery_items.map((a) => a.quantity).toList();
+  }
+
+  List<String> getBrowseTypes() {
+    return delivery_items.map((a) => a.type).toList();
   }
 
   set updateState(int newState) {
@@ -70,7 +74,7 @@ class Request {
       } catch (e) {
         print('Error parsing delivery item: $e');
         // Return a empty DeliveryItems instance if parsing fails
-        return DeliveryItems(plant_ID: '', quantity: 0, type: '');
+        return DeliveryItems(name: '', quantity: 0, type: '');
       }
     }).toList();
   }

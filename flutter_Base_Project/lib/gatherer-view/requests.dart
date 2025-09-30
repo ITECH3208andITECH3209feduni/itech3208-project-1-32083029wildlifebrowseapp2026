@@ -112,7 +112,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
             radius: 20,
           ),
           title: Text(request.animal_ID),
-          subtitle: BrowseTileList(browses: request.getPlantID(), quantities: request.getPlantQuantities()),
+          subtitle: BrowseTileList(browses: request.getBrowseNames(), quantities: request.getBrowseQuantities()),
           trailing: Column(
             children: [
               Text(
@@ -319,7 +319,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
-  Widget browsePanel(browses, quantities) {
+  Widget browsePanel(browses, quantities, types) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: IntrinsicWidth(
@@ -352,7 +352,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
                     ),
                   )
                 ),
-                BrowseQuantityList(browses: browses, quantities: quantities, fontColor:Color.fromARGB(255, 230, 230, 230)),
+                BrowseQuantityList(browses: browses, quantities: quantities, types: types, fontColor:Color.fromARGB(255, 230, 230, 230)),
               ],
             )
           )
@@ -507,7 +507,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
             children: <Widget>[
               header(widget.request),
               const SizedBox(height: 10.0), // TODO May need to change this to a relative unit
-              browsePanel(widget.request.getPlantID(), widget.request.getPlantQuantities()),
+              browsePanel(widget.request.getBrowseNames(), widget.request.getBrowseQuantities(), widget.request.getBrowseTypes()),
               const SizedBox(height: 10.0),
               Align(
                 alignment: Alignment.bottomLeft,
