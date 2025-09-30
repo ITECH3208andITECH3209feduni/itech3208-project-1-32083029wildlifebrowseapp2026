@@ -13,7 +13,7 @@ class BrowseDetailPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(
-        title: const Text('Plant Information', style: TextStyle(color: Colors.black)),
+        title: const Text('Browse Information', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         elevation: 0,

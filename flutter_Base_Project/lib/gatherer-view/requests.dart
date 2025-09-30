@@ -106,8 +106,9 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
         elevation: 4,
         child: ListTile(
           leading: CircleAvatar(
+            // Split and join the animal string so we can avoid 'space in path' issues when searching the image
             backgroundImage: AssetImage(
-              'assets/images/${request.animal_ID}.jpg',
+              'assets/images/${request.animal_ID.toLowerCase().split(" ").join("-")}.jpg',
             ),
             radius: 20,
           ),
@@ -287,7 +288,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
           width: 100,
           height: 100,
           child: Image(
-            image: AssetImage('assets/images/${request.animal_ID}.jpg'),
+            // Split and join the animal string so we can avoid 'space in path' issues when searching the image
+            image: AssetImage('assets/images/${request.animal_ID.toLowerCase().split(" ").join("-")}.jpg'),
             fit: BoxFit.cover,
           ),
         ),
