@@ -65,7 +65,6 @@ class CognitoManager {
     final cognitoUser = CognitoUser(email, userPool);
     final authDetails =
         AuthenticationDetails(username: email, password: password);
-
     try {
       final session = await cognitoUser.authenticateUser(authDetails);
       if (session == null) {

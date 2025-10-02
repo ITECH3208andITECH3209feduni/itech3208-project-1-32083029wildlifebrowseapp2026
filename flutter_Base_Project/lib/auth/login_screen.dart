@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'auth.dart';
 import 'package:flutter/services.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -263,7 +265,10 @@ class _SignInViewState extends State<SignInView> {
     final email = _emailController.text;
     final password = _passwordController.text;
 
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
     try {
+      await prefs.setString('password', password);
       final user = await _cognitoManager.signIn(email, password);
       final String defaultView;
       if(user.claims['custom:role'] == 'Gatherer') {

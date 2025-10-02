@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../templates/drawer.dart';
-import '../templates/browseList.dart';
-import '../jsonParser.dart';
 import '../auth/auth.dart';
+import '../auth/config.dart';
+import '../auth/user_service.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:change_case/change_case.dart';
+
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
 
 class ProfileRoute extends StatelessWidget {
 
@@ -41,32 +47,108 @@ class Profile extends StatefulWidget {
   State<Profile> createState() => _Profile();
 }
 
-class _Profile extends State<Profile>
-    with TickerProviderStateMixin {
-  late final AnimationController _fadeController;
-  late final Animation<double> _fadeAnimation;
-
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
+class _Profile extends State<Profile> {
 
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
+  }
+
+  void showEditDialogTwo(String key1, String key2, String editDialog) {
+    TextEditingController firstController = TextEditingController(
+      text: key1 == 'address' 
+    ? widget.user.claims[key1]['formatted']
+    : widget.user.claims[key1].toString(),
     );
 
-    // Start animations
-    _fadeController.forward();
+    TextEditingController secondController = TextEditingController(text: widget.user.claims[key2].toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit $editDialog'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: firstController,
+              decoration: InputDecoration(labelText: key1.split('_').join(' ').toCapitalCase()),
+            ),
+            TextField(
+              controller: secondController,
+              decoration: InputDecoration(labelText: key2.split('_').join(' ').toCapitalCase()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                widget.user.claims[key1] = firstController.text;
+                widget.user.claims[key2] = secondController.text;
+              });
+              
+              if (mounted) {
+                Navigator.pop(context);
+              }
+              
+             updateUserAttributes({
+              key1: firstController.text,
+              key2: secondController.text
+             });
+            },
+            child: Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  void showEditDialogOne(String key) {
+    TextEditingController firstController = TextEditingController(text: widget.user.claims[key].toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit ${key.split('_').join(' ').toCapitalCase()}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: firstController,
+              decoration: InputDecoration(labelText: key.split('_').join(' ').toCapitalCase()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                widget.user.claims[key] = firstController.text;
+              });
+              
+              if (mounted) {
+                Navigator.pop(context);
+              }
+              
+             updateUserAttributes(
+              {key: firstController.text}
+             );
+            },
+            child: Text('Save'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -137,14 +219,102 @@ class _Profile extends State<Profile>
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text('Work in progress, return to the UAT'),
-              Text('Name: $username ${widget.user.claims['family_name']}'),
-              Text('DOB: ${widget.user.claims['birthdate']}'),
-              Text('Picture: ${widget.user.claims['picture']}'),
-              Text('Email: ${widget.user.claims['email']}'),
-              Text('Email verified? ${widget.user.claims['email_verified']}'),
-              personalAddress(widget.user.claims['address']['formatted'], widget.user.claims['custom:postcode']),
-              Text('Role: ${widget.user.claims['custom:role']}')
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Name: $username ${widget.user.claims['family_name']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogTwo('given_name', 'family_name', 'Name');
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Birthdate: ${widget.user.claims['birthdate']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogOne('birthdate');
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Image: ${widget.user.claims['picture']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogOne('picture');
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Email: ${widget.user.claims['email']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogOne('email');
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Email verified? ${widget.user.claims['email_verified']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogOne('email_verified');
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Icon(Icons.place, size: 14),
+                  Text(
+                    "Your address: ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Expanded(
+                    child: Text('${widget.user.claims['address']['formatted']}, ${widget.user.claims['custom:postcode']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogTwo('address', 'custom:postcode', 'Address');
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Role: ${widget.user.claims['custom:role']}'),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showEditDialogOne('custom:role');
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -153,65 +323,61 @@ class _Profile extends State<Profile>
   }
 }
 
-Widget personalAddress(address, postcode) {
-  return Align(
-    alignment: Alignment.centerLeft,
-    child: RichText(
-      text: TextSpan(
-        children: [
-          WidgetSpan(child: Icon(Icons.place, size: 14)),
-          TextSpan(text: "Address\n$address, $postcode")
-        ],
-      ),
-    ),
-  );
-}
-
-bool _showPhone = true;
-
 Widget phoneNumber(phone) {
-  return Align(
-    alignment: Alignment.centerLeft,
-    child: RichText(
-      text: TextSpan(
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          WidgetSpan(child: Icon(Icons.phone_android_outlined, size: 14)),
-          _showPhone
-              ? TextSpan(text: "Phone\n$phone")
-              : TextSpan(text: "Phone\n "),
-        ],
-      ),
-    ),
+          Icon(Icons.phone_android_outlined, size: 14),
+          Text(
+            "Phone: ",
+            style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          Text("$phone"),
+        ], 
   );
 }
 
 Widget visitingTimes(visit) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(child: Icon(Icons.time_to_leave, size: 14)),
-            TextSpan(text: "Visiting Times"),
-            TextSpan(text: visit),
-            TextSpan(text: visit),
-          ],
-        ),
-      ),
-    );
-  }
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.time_to_leave, size: 14),
+          Text(
+            "My visiting times: ",
+            style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          Text("$visit"),
+        ], 
+  );
+}
 
-  Widget advanceWarning(advance) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(child: Icon(Icons.notification_add, size: 14)),
-            TextSpan(text: "Advance Warning"),
-            TextSpan(text: advance),
-          ],
-        ),
-      ),
-    );
+Widget advanceWarning(advance) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.notification_add, size: 14),
+          Text(
+            "Advance warning needed? ",
+            style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          Text("$advance"),
+        ], 
+  );
+}
+
+Future<void> updateUserAttributes(Map<String, String> attributes) async {
+  final config = await loadConfig();
+  final authService = UserPoolAuthService(config.userPoolID, config.clientID);
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final String? password = prefs.getString('password');
+
+  final success = await authService.updateUserAttributes(
+    attributes, password!
+  );
+
+  if (success) {
+    print("Attributes updated successfully");
+  } else {
+    print("Attributes weren't updated");
   }
+}
