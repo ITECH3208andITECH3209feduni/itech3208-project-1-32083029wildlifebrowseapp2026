@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -95,6 +98,8 @@ class _SignUpViewState extends State<SignUpView> {
     final familyName = _familyNameController.text;
     final password = _passwordController.text;
 
+    // final fullBirthDate = '${birthYear}-${birthMonth}-${birthDay}'
+
     try {
       await _cognitoManager.signUp(role, email, postcode, address, birthdate, picture, givenName, familyName, password);
       DefaultTabController.of(context).animateTo(1);
@@ -144,7 +149,11 @@ class _SignUpViewState extends State<SignUpView> {
           SizedBox(height: 16),
           addressInputField("Address", _addressController),
           SizedBox(height: 16),
-          birthdateInputField("Birthdate", _birthdateController),
+          Row(
+            children: [
+              // Replace with calls to the 3 new birthdate functions
+              birthdateInputField("Birthdate", _birthdateController),
+          ],),
           SizedBox(height: 16),
           // TODO add image upload support (prob need to add a new package to pubspec)
           inputField("Upload profile picture", _pictureController),
@@ -446,11 +455,11 @@ TextField emailInputField(
 // Requires dates to be 10 char long
 // So either in this format if day is one digit: 9-Oct-1940 or 09-10-1940
 // Or this if day is two digits: 21/08/1920
-TextField birthdateInputField(
+TextFormField birthdateInputField(
   String labelName,
   TextEditingController controller, {
   String? hint,
-}) => TextField(
+}) => TextFormField(
   controller: controller,
   decoration: InputDecoration(
     labelText: labelName,
