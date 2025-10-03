@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../templates/drawer.dart';
 import '../auth/auth.dart';
@@ -20,7 +21,7 @@ class ProfileRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '${user.claims['given_name']}\'s profile',
+      title: '${user.claims['given_name'].toString().toCapitalCase()}\'s profile',
       theme: ThemeData(
         listTileTheme: const ListTileThemeData(textColor: Colors.black),
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
@@ -28,7 +29,7 @@ class ProfileRoute extends StatelessWidget {
         useMaterial3: true,
       ),
       // Set username of Gatherer here
-      home: Profile(title: '${user.claims['given_name']}\'s profile', user: user),
+      home: Profile(title: '${user.claims['given_name'].toString().toCapitalCase()}\'s profile', user: user),
     );
   }
 }
@@ -54,63 +55,12 @@ class _Profile extends State<Profile> {
     super.initState();
   }
 
-  void showEditDialogTwo(String key1, String key2, String editDialog) {
-    TextEditingController firstController = TextEditingController(
-      text: key1 == 'address' 
-    ? widget.user.claims[key1]['formatted']
-    : widget.user.claims[key1].toString(),
-    );
-
-    TextEditingController secondController = TextEditingController(text: widget.user.claims[key2].toString());
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit $editDialog'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: firstController,
-              decoration: InputDecoration(labelText: key1.split('_').join(' ').toCapitalCase()),
-            ),
-            TextField(
-              controller: secondController,
-              decoration: InputDecoration(labelText: key2.split('_').join(' ').toCapitalCase()),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              setState(() {
-                widget.user.claims[key1] = firstController.text;
-                widget.user.claims[key2] = secondController.text;
-              });
-              
-              if (mounted) {
-                Navigator.pop(context);
-              }
-              
-             updateUserAttributes({
-              key1: firstController.text,
-              key2: secondController.text
-             });
-            },
-            child: Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   void showEditDialogOne(String key) {
-    TextEditingController firstController = TextEditingController(text: widget.user.claims[key].toString());
+    // Disables the capitalising when loading values for birthdate, picture and email fields
+    TextEditingController firstController = TextEditingController(text:  key != 'birthdate' && key != 'picture' && key != 'email'
+      ? widget.user.claims[key].toString().toCapitalCase()
+      : widget.user.claims[key].toString());
 
     showDialog(
       context: context,
@@ -119,9 +69,26 @@ class _Profile extends State<Profile> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
+            TextFormField(
               controller: firstController,
+              // Label in edit dialog
               decoration: InputDecoration(labelText: key.split('_').join(' ').toCapitalCase()),
+              inputFormatters: [
+                TextInputFormatter.withFunction(
+                  (oldValue, newValue) {
+                    // Disables the capitalising for birthdate, picture and email fields when inputting new text
+                    return key != 'birthdate' &&  key != 'picture' && key != 'email'
+                      ? newValue.copyWith(text: newValue.text.toCapitalCase())
+                      : newValue;
+                  },
+                )
+              ],
+              autovalidateMode: AutovalidateMode.always,
+              validator: FormBuilderValidators.compose(
+            [
+              FormBuilderValidators.required(),
+              getValidatorForKeys(key)
+            ]),
             ),
           ],
         ),
@@ -133,7 +100,7 @@ class _Profile extends State<Profile> {
           TextButton(
             onPressed: () async {
               setState(() {
-                widget.user.claims[key] = firstController.text;
+                widget.user.claims[key] = firstController.text.toLowerCase();
               });
               
               if (mounted) {
@@ -141,7 +108,7 @@ class _Profile extends State<Profile> {
               }
               
              updateUserAttributes(
-              {key: firstController.text}
+              {key: firstController.text.toLowerCase()}
              );
             },
             child: Text('Save'),
@@ -151,11 +118,116 @@ class _Profile extends State<Profile> {
     );
   }
 
+  void showEditDialogTwo(String key1, String key2, String editDialog) {
+    TextEditingController firstController = TextEditingController(
+      text: key1 == 'address' 
+    ? widget.user.claims[key1]['formatted'].toString().toCapitalCase()
+    : widget.user.claims[key1].toString().toCapitalCase(),
+    );
+
+    TextEditingController secondController = TextEditingController(text: widget.user.claims[key2].toString().toCapitalCase());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit $editDialog'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+          TextFormField(
+              controller: firstController,
+              decoration: InputDecoration(labelText: key1.split('_').join(' ').toCapitalCase()),
+              inputFormatters: [
+                TextInputFormatter.withFunction(
+                  (oldValue, newValue) {
+                    return newValue.copyWith(text: newValue.text.toCapitalCase());
+                  },
+                )
+              ],
+              autovalidateMode: AutovalidateMode.always,
+              validator: FormBuilderValidators.compose(
+            [
+              FormBuilderValidators.required(),
+              getValidatorForKeys(key1)
+            ]),
+            ),
+            TextFormField(
+              controller: secondController,
+              inputFormatters: [
+                TextInputFormatter.withFunction(
+                  (oldValue, newValue) {
+                    return newValue.copyWith(text: newValue.text.toCapitalCase());
+                  },
+                )
+              ],
+              decoration: InputDecoration(labelText: key2.split('_').join(' ').toCapitalCase()),
+              autovalidateMode: AutovalidateMode.always,
+              validator: FormBuilderValidators.compose(
+            [
+              FormBuilderValidators.required(),
+              getValidatorForKeys(key2)
+            ]),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                widget.user.claims[key1] = firstController.text.toLowerCase();
+                widget.user.claims[key2] = secondController.text.toLowerCase();
+              });
+              
+              if (mounted) {
+                Navigator.pop(context);
+              }
+              
+             updateUserAttributes({
+              key1: firstController.text.toLowerCase(),
+              key2: secondController.text.toLowerCase(),
+             });
+            },
+            child: Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  FormFieldValidator<String> getValidatorForKeys(String key) {
+    switch(key) {
+      case 'birthdate':
+        return FormBuilderValidators.datePast();
+      case 'email':
+        return FormBuilderValidators.email();
+      case 'picture':
+        return FormBuilderValidators.fileSize(5000000);
+      case 'custom:role':
+        return FormBuilderValidators.match(RegExp(r"^Gatherer$|^Caretaker$|^Landholder$"));
+      case 'given_name':
+        return FormBuilderValidators.firstName();
+      case 'family_name':
+        return FormBuilderValidators.lastName();
+      case 'custom:postcode':
+        return FormBuilderValidators.range(999, 9999);
+      case 'address':
+        // Regex will pass following variations: 407/82 Hay St, A314/1 O'Brien Street, (LOT1022) 60 Johnston Rd, 17 Jump St, LOT1022 Johnston Rd, (LOT1022) Johnston Rd
+        // Regex uses negative lookaheads in the optional 1st group and 2nd group to not pass if there's a 0 in the format 0/1, A0/1, (LOT0000), LOT0000 or 0
+        // More advanced validation will require an API
+        return FormBuilderValidators.street(regex: RegExp(r"^(?![A-Za-z]*0|\(?LOT0000)([a-zA-Z0-9\/\(\)]*)\s?(?!0)[1-9]*[0-9]*\s[a-zA-Z']+\s[a-zA-Z]+$"));
+      default:
+        throw('No validator available');
+    }
+  }
+
   @override
   // Profile initial state
   Widget build(BuildContext context) {
-    final String appTitle = '${widget.user.claims['given_name']}\'s profile';
-    final String username = widget.user.claims['given_name'];
+    final String appTitle = '${widget.user.claims['given_name'].toString().toCapitalCase()}\'s profile';
 
     return MaterialApp(
       theme: ThemeData(
@@ -214,7 +286,7 @@ class _Profile extends State<Profile> {
               ),
             ],
           ),
-          drawer: UserDrawer(username: username, user:widget.user),
+          drawer: UserDrawer(username: widget.user.claims['given_name'].toString().toCapitalCase(), user:widget.user),
           // Profile body
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -222,7 +294,7 @@ class _Profile extends State<Profile> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Name: $username ${widget.user.claims['family_name']}'),
+                    child: Text('Name: ${widget.user.claims['given_name'].toString().toCapitalCase()} ${widget.user.claims['family_name'].toString().toCapitalCase()}'),
                   ),
                   IconButton(
                     icon: Icon(Icons.edit),
@@ -271,18 +343,9 @@ class _Profile extends State<Profile> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('Email verified? ${widget.user.claims['email_verified']}'),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () {
-                      showEditDialogOne('email_verified');
-                    },
-                  ),
-                ],
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Email verified? ${widget.user.claims['email_verified'].toString().toCapitalCase()}'),
               ),
               Row(
                 children: [
@@ -292,7 +355,7 @@ class _Profile extends State<Profile> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Expanded(
-                    child: Text('${widget.user.claims['address']['formatted']}, ${widget.user.claims['custom:postcode']}'),
+                    child: Text('${widget.user.claims['address']['formatted'].toString().toCapitalCase()}, ${widget.user.claims['custom:postcode']}'),
                   ),
                   IconButton(
                     icon: Icon(Icons.edit),
@@ -305,7 +368,7 @@ class _Profile extends State<Profile> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Role: ${widget.user.claims['custom:role']}'),
+                    child: Text('Role: ${widget.user.claims['custom:role'].toString().toCapitalCase()}'),
                   ),
                   IconButton(
                     icon: Icon(Icons.edit),
@@ -321,48 +384,6 @@ class _Profile extends State<Profile> {
       ),
     );
   }
-}
-
-Widget phoneNumber(phone) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.phone_android_outlined, size: 14),
-          Text(
-            "Phone: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          Text("$phone"),
-        ], 
-  );
-}
-
-Widget visitingTimes(visit) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.time_to_leave, size: 14),
-          Text(
-            "My visiting times: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          Text("$visit"),
-        ], 
-  );
-}
-
-Widget advanceWarning(advance) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.notification_add, size: 14),
-          Text(
-            "Advance warning needed? ",
-            style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          Text("$advance"),
-        ], 
-  );
 }
 
 Future<void> updateUserAttributes(Map<String, String> attributes) async {

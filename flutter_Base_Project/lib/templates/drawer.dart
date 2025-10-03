@@ -51,7 +51,7 @@ class _UserDrawer extends State<UserDrawer> {
           // ),
           ListTile(
             leading: const Icon(Icons.account_circle),
-            title: const Text('Profile'),
+            title: const Text('Your account'),
             onTap: drawerButton('/profile', widget.user),
           ),
           // ListTile(
