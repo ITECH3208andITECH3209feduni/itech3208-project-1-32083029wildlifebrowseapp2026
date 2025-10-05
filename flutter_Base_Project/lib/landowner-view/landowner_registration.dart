@@ -207,8 +207,13 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
         context,
         rootNavigator: true,
       ).pushNamed(
+<<<<<<< HEAD
         '/request-board',
         arguments: {'user': user},
+=======
+        '/landowner',
+        arguments: {'user': user, 'uploadSuccess': true},
+>>>>>>> 1b5f75082a1e6ed823f9c061e245f3b15d9aa265
         );
     }
     else{
