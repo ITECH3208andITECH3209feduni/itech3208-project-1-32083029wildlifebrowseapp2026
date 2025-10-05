@@ -166,7 +166,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                   SizedBox(height:16),
                   FormBuilderTextField(
                       name: 'address',
-                      initialValue: widget.user.claims['address']['formatted'].toString().toCapitalCase(),
+                      initialValue: widget.user.claims['custom:address'].toString().toCapitalCase(),
                       decoration: const InputDecoration(
                         labelText: 'Address',
                         contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),

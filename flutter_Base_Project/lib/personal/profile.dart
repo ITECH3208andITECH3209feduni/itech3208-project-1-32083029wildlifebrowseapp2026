@@ -120,9 +120,7 @@ class _Profile extends State<Profile> {
 
   void showEditDialogTwo(String key1, String key2, String editDialog) {
     TextEditingController firstController = TextEditingController(
-      text: key1 == 'address' 
-    ? widget.user.claims[key1]['formatted'].toString().toCapitalCase()
-    : widget.user.claims[key1].toString().toCapitalCase(),
+      text: widget.user.claims[key1].toString().toCapitalCase(),
     );
 
     TextEditingController secondController = TextEditingController(text: widget.user.claims[key2].toString().toCapitalCase());
@@ -185,7 +183,7 @@ class _Profile extends State<Profile> {
               if (mounted) {
                 Navigator.pop(context);
               }
-              
+
              updateUserAttributes({
               key1: firstController.text.toLowerCase(),
               key2: secondController.text.toLowerCase(),
@@ -214,7 +212,7 @@ class _Profile extends State<Profile> {
         return FormBuilderValidators.lastName();
       case 'custom:postcode':
         return FormBuilderValidators.range(999, 9999);
-      case 'address':
+      case 'custom:address':
         // Regex will pass following variations: 407/82 Hay St, A314/1 O'Brien Street, (LOT1022) 60 Johnston Rd, 17 Jump St, LOT1022 Johnston Rd, (LOT1022) Johnston Rd
         // Regex uses negative lookaheads in the optional 1st group and 2nd group to not pass if there's a 0 in the format 0/1, A0/1, (LOT0000), LOT0000 or 0
         // More advanced validation will require an API
@@ -355,12 +353,12 @@ class _Profile extends State<Profile> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Expanded(
-                    child: Text('${widget.user.claims['address']['formatted'].toString().toCapitalCase()}, ${widget.user.claims['custom:postcode']}'),
+                    child: Text('${widget.user.claims['custom:address'].toString().toCapitalCase()}, ${widget.user.claims['custom:postcode'].toString().toCapitalCase()}'),
                   ),
                   IconButton(
                     icon: Icon(Icons.edit),
                     onPressed: () {
-                      showEditDialogTwo('address', 'custom:postcode', 'Address');
+                      showEditDialogTwo('custom:address', 'custom:postcode', 'Address');
                     },
                   ),
                 ],

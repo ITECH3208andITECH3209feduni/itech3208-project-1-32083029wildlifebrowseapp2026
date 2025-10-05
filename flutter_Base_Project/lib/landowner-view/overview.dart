@@ -12,10 +12,11 @@ import '../models/landowner_response.dart';
 class LandownerRoute extends StatelessWidget {
 
   final User user;
+  final List<String> browseFilter;
   // Added for snackbar handling
   final bool uploadSuccess;
 
- const LandownerRoute({super.key, required this.user, this.uploadSuccess = false});
+ const LandownerRoute({super.key, required this.user, required this.browseFilter, this.uploadSuccess = false});
  
   // This widget is the root of your application.
   @override
@@ -29,7 +30,7 @@ class LandownerRoute extends StatelessWidget {
         useMaterial3: true,
       ),
       // Set username of Gatherer here
-      home: LandownerHomePage(title: 'Places to find browse', user: user, uploadSuccess: this.uploadSuccess),
+      home: LandownerHomePage(title: 'Places to find browse', user: user, browseFilter: browseFilter, uploadSuccess: this.uploadSuccess),
     );
   }
 }
@@ -39,11 +40,13 @@ class LandownerHomePage extends StatefulWidget {
     super.key,
     required this.title,
     required this.user,
+    required this.browseFilter,
     this.uploadSuccess = false,
   });
 
   final String title;
   final User user;
+  final List<String> browseFilter;
   final bool uploadSuccess;
   @override
   State<LandownerHomePage> createState() => _RequestBoardState();
@@ -278,17 +281,31 @@ class _RequestBoardState extends State<LandownerHomePage>
               }
               
 
-              List<Landowner> allRequests = snapshot.data!;
+              List<Landowner> allListings = snapshot.data!;
 
-              // Filter the requests before build
-              final filteredRequests = allRequests.where((request) {
-                return request.isActive;
+              // Filter the listings before build
+              // Returns any listings that match at least one of the browse in browseFilter and is currently active
+              final List<Landowner> filteredListings = allListings.where((sublist) {
+                return sublist.browseData.any((item) => widget.browseFilter.contains(item.getBrowseName())) && sublist.isActive;
               }).toList();
 
+              // Sorts listing by postcode low to high after subtracting user's postcode
+              // This assumes that the lowest postcode is the nearest to the user
+              int userLocation = int.parse(widget.user.claims['custom:postcode']);
+              
+              filteredListings.sort((a,b) {
+                int c = max(a.postcode, userLocation) - min(a.postcode, userLocation);
+                int d = max(b.postcode, userLocation) - min(b.postcode, userLocation);
+                return c.compareTo(d);
+                });
+
+              // Empties the allListings array
+              allListings.clear();
+
               return ListView.builder(
-                itemCount: filteredRequests.length,
+                itemCount: filteredListings.length,
                 itemBuilder: (context, index) {
-                  final request = filteredRequests[index];
+                  final request = filteredListings[index];
                   
                   return requestTile(request, widget.user);
                 },

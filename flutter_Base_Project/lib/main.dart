@@ -29,6 +29,7 @@ void main() {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return LandownerRoute(
             user: args['user'],
+            browseFilter: args['browseFilter'],
             uploadSuccess: args['uploadSuccess'] ?? false,
             );
         },

@@ -12,6 +12,10 @@ class LandownerBrowse {
   //     browse_Name: browse_Name,
   //   );
   // }
+  
+  String getBrowseName() {
+    return browse_Name;
+  }
 
   Map<String, dynamic> toJson() {
     return {

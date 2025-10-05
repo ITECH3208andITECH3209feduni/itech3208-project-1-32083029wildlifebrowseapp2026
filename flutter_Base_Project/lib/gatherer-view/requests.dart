@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:math';
 
 import '../templates/drawer.dart';
 import '../templates/browseList.dart';
@@ -248,6 +249,20 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
                       (!isActive(request.status_Num) && isUserAssigned);
               }).toList();
 
+              // Sorts listing by postcode low to high after subtracting user's postcode
+              // This assumes that the lowest postcode number to the user is actually closest geographically
+              int userLocation = int.parse(widget.user.claims['custom:postcode']);
+              filteredRequests.sort((a,b) {
+                int c = max(a.postcode, userLocation) - min(a.postcode, userLocation);
+                int d = max(b.postcode, userLocation) - min(b.postcode, userLocation);
+                return c.compareTo(d);
+              });
+
+              // Moves requests that are WIP (status_Num = 2) to top of list above posted requests (status_Num = 1)
+              filteredRequests.sort((a,b) {
+                return b.status_Num.compareTo(a.status_Num);
+              });
+
               return ListView.builder(
                 itemCount: filteredRequests.length,
                 itemBuilder: (context, index) {
@@ -494,6 +509,22 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
+  Widget showListings(browseFilter) {
+    return TextButton.icon(
+      icon: const Icon(Icons.edit_location_outlined),
+      label: Text('See nearby browse'),
+      onPressed: () {
+          Navigator.of(
+            context,
+            rootNavigator: true,
+          ).pushNamed(
+            '/landowner', 
+            arguments: {'user': widget.user, 'browseFilter': browseFilter},
+            );
+        },
+      );
+  }
+
   // Builder for detail requests
   @override
   Widget build(BuildContext context) {
@@ -544,7 +575,10 @@ class _DetailedRequestState extends State<DetailedRequest> {
                 ),
               ),
               const SizedBox(height: 20.0),
+              // Checks if the user viewing isn't the creator of the request and that the request isn't WIP, if both true then show the accept button
               (widget.user.claims['username'] != widget.request.requester_ID) && (widget.request.status_Num != 2) ? requestButtons(widget.request): Container(),
+              // Checks if the user viewing isn't the creator of the reuqest and that the request IS a WIP, if both true then show landholders with the browse listed on request
+              (widget.user.claims['username'] != widget.request.requester_ID) && (widget.request.status_Num == 2) ? showListings(widget.request.getBrowseNames()): Container(),
             ],
           ),
         ],

@@ -55,6 +55,10 @@ class Request {
     return delivery_items.map((a) => a.type).toList();
   }
 
+  int getState() {
+    return status_Num;
+  }
+
   set updateState(int newState) {
     status_Num = newState;
   }
