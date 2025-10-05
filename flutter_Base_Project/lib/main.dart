@@ -27,7 +27,10 @@ void main() {
         },
         '/landowner': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return LandownerRoute(user: args['user']);
+          return LandownerRoute(
+            user: args['user'],
+            uploadSuccess: args['uploadSuccess'] ?? false,
+            );
         },
         '/landowner-registration': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

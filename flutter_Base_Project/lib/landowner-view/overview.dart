@@ -12,8 +12,11 @@ import '../models/landowner_response.dart';
 class LandownerRoute extends StatelessWidget {
 
   final User user;
-  const LandownerRoute({super.key, required this.user});
+  // Added for snackbar handling
+  final bool uploadSuccess;
 
+ const LandownerRoute({super.key, required this.user, this.uploadSuccess = false});
+ 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -26,7 +29,7 @@ class LandownerRoute extends StatelessWidget {
         useMaterial3: true,
       ),
       // Set username of Gatherer here
-      home: LandownerHomePage(title: 'Places to find browse', user: user),
+      home: LandownerHomePage(title: 'Places to find browse', user: user, uploadSuccess: this.uploadSuccess),
     );
   }
 }
@@ -36,11 +39,12 @@ class LandownerHomePage extends StatefulWidget {
     super.key,
     required this.title,
     required this.user,
+    this.uploadSuccess = false,
   });
 
   final String title;
   final User user;
-
+  final bool uploadSuccess;
   @override
   State<LandownerHomePage> createState() => _RequestBoardState();
 }
@@ -94,7 +98,7 @@ class _RequestBoardState extends State<LandownerHomePage>
     // Start animations
     _fadeController.forward();
   }
-
+  
   // Args passed from Request board initial state widget
   // String animal = animal.animal_Name
   // String browse = item.plant_Name
@@ -247,6 +251,7 @@ class _RequestBoardState extends State<LandownerHomePage>
           drawer: UserDrawer(username: username, user: widget.user),
           // Profile board area
           body: FutureBuilder<List<Landowner>>(
+            
             future: futureRequests,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -260,7 +265,19 @@ class _RequestBoardState extends State<LandownerHomePage>
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return Center(child: Text('No requests found'));
               }
+              if (widget.uploadSuccess == true)
+                   {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Listing successfully created/updated!'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                });
+              }
               
+
               List<Landowner> allRequests = snapshot.data!;
 
               // Filter the requests before build
@@ -658,6 +675,7 @@ String formatTimelapse(timelapse) {
 }
 
 bool isStale(timelapse) {
+
   List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
 
   // timeParts[0] = Days elapsed

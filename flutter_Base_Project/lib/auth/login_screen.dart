@@ -3,9 +3,13 @@ import 'auth.dart';
 import 'package:flutter/services.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+
+// Used to track if the user has just uploaded a new potentail account
+// If so signal to the next page to show the success snackbar
+bool showSignUp = false;
+
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -103,6 +107,8 @@ class _SignUpViewState extends State<SignUpView> {
     try {
       await _cognitoManager.signUp(role, email, postcode, address, birthdate, picture, givenName, familyName, password);
       DefaultTabController.of(context).animateTo(1);
+      showSignUp = true;
+    
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message)),
@@ -196,6 +202,19 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
     super.initState();
     _cognitoManager = CognitoManager();
     _initCognitoManager();
+
+    // Checks if the transition to this tab was from a successful sign-up
+    // If so, shows a snackbar to inform the user
+    if(showSignUp) {
+      // Build its own thing
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign-up successful! Please check your email for the confirmation code.')),
+        );
+      });
+      // Resets it so it doesn't keep showing up, only on the first time a user signs up
+      showSignUp = false;
+    }
   }
 
   Future<void> _initCognitoManager() async {
@@ -243,8 +262,11 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
               child: const Text('Confirm Sign-Up'),
             ),
           ],
+          
         ),
+        
       ),
+     
     );
   }
 }
