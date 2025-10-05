@@ -151,8 +151,11 @@ class _SignUpViewState extends State<SignUpView> {
           SizedBox(height: 16),
           Row(
             children: [
-              // Replace with calls to the 3 new birthdate functions
-              birthdateInputField("Birthdate", _birthdateController),
+              // Expanded widget helps to constrain the widge of birthdateInputField to that of Row
+              Expanded(
+                // Replace with calls to the 3 new birthdate functions
+                child: birthdateInputField("Birthdate", _birthdateController),
+              ),
           ],),
           SizedBox(height: 16),
           // TODO add image upload support (prob need to add a new package to pubspec)
@@ -285,7 +288,7 @@ class _SignInViewState extends State<SignInView> {
       } else if(user.claims['custom:role'] == 'Caretaker') {
           defaultView = '/caretaker'; 
       } else {
-          defaultView = '/landowner'; 
+          defaultView = '/landowner-registration'; 
       }
       Navigator.of(
           context,

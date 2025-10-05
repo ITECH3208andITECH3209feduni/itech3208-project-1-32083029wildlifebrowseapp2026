@@ -66,7 +66,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        title: const Text('List your property for browse gathering'),
         backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
@@ -75,7 +75,8 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
               context,
               rootNavigator: true,
             ).pushNamed(
-              '/landowner', 
+              // Redirects to request board for now
+              '/request-board', 
               arguments: {'user': widget.user},
               );
           },
@@ -201,12 +202,12 @@ class _LandownerFormTabs extends State<LandownerFormTabs> with SingleTickerProvi
         print('Failed to send registration data: $error');
       }
       
-      // Redirects user back to landowner overview page
+      // Redirects user back to the request board for now
       Navigator.of(
         context,
         rootNavigator: true,
       ).pushNamed(
-        '/landowner',
+        '/request-board',
         arguments: {'user': user},
         );
     }

@@ -9,6 +9,8 @@ import '../auth/auth.dart';
 import '../models/request.dart';
 import '../models/response.dart';
 
+import 'package:change_case/change_case.dart';
+
 class GathererRoute extends StatelessWidget {
 
   final User user;
@@ -159,7 +161,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
     // Request = jsonToObject(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
 
     const String appTitle = 'Requests';
-    final String username = widget.user.claims['given_name'];
+    final String username = widget.user.claims['given_name'].toString().toCapitalCase();
     // TODO iterate over requests here
 
     return MaterialApp(
@@ -195,13 +197,13 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
               ),
               IconButton(
                 icon: const Icon(Icons.edit_location_outlined),
-                tooltip: 'List your land',
+                tooltip: 'List/Register a listing',
                 onPressed: () {
                   Navigator.of(
                     context,
                     rootNavigator: true,
                   ).pushNamed(
-                    '/landowner', 
+                    '/landowner-registration', 
                     arguments: {'user': widget.user},
                     );
                 },
@@ -530,7 +532,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          deliveryAddress(widget.request.address, widget.request.postcode),
+                          deliveryAddress(widget.request.address.toString().toCapitalCase(), widget.request.postcode),
                           const SizedBox(height: 10.0),
                           widget.request.requestDetails != null ? requestDetails(widget.request.requestDetails): Container(),
                           const SizedBox(height: 10.0),

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:change_case/change_case.dart';
 
 import '../templates/drawer.dart';
 import '../auth/auth.dart';
@@ -77,7 +78,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
   @override
   Widget build(BuildContext context) {
     const String appTitle = 'Order';
-    final String username = widget.user.claims['given_name'];
+    final String username = widget.user.claims['given_name'].toString().toCapitalCase();
 
     return MaterialApp(
       theme: ThemeData(
@@ -109,13 +110,13 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_location_outlined),
-                  tooltip: 'List your land',
+                  tooltip: 'Register/View your listing',
                   onPressed: () {
                     Navigator.of(
                       context,
                       rootNavigator: true,
                     ).pushNamed(
-                      '/landowner', 
+                      '/landowner-registration', 
                       arguments: {'user': widget.user},
                       );
                   },
@@ -144,7 +145,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                   SizedBox(height:16),
                   FormBuilderTextField(
                     name: 'caretakerName',
-                    initialValue: "${widget.user.claims['given_name']} ${widget.user.claims['family_name']}",
+                    initialValue: "${widget.user.claims['given_name'].toString().toCapitalCase()} ${widget.user.claims['family_name'].toString().toCapitalCase()}",
                     decoration: const InputDecoration(
                       labelText: 'Full name',
                       contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
@@ -165,7 +166,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                   SizedBox(height:16),
                   FormBuilderTextField(
                       name: 'address',
-                      initialValue: "${widget.user.claims['address']['formatted']}",
+                      initialValue: widget.user.claims['address']['formatted'].toString().toCapitalCase(),
                       decoration: const InputDecoration(
                         labelText: 'Address',
                         contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
