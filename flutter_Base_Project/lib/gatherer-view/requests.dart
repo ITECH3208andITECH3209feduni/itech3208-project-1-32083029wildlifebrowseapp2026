@@ -102,6 +102,17 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   // int quantity = item.quantity
   // int postcode = request.postcode
   Widget requestTile(Request request, User user, bool isWip) {
+    Color tileColor;
+
+    // CHANGED: Highlight requests created by the user 
+    if (request.requester_ID == user.claims['username']) {
+      tileColor = const Color.fromARGB(255, 173, 216, 230); // Light blue
+    } else if (isWip) {
+      tileColor = const Color.fromARGB(255, 255, 224, 156); // Orange-ish
+    } else {
+      tileColor = const Color.fromARGB(255, 246, 251, 244); // Default green-ish
+    }
+
     return Hero(
       tag: request.request_ID,
       // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
@@ -127,11 +138,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
               ),
               Text('Postcode: ${request.postcode}'),
           ]),
-          tileColor: 
-            // Changes colour of tile depending whether the user is doing the request or not
-            isWip 
-              ?Color.fromARGB(255, 255, 224, 156)
-              :Color.fromARGB(255, 246, 251, 244),
+          tileColor: tileColor,
           onTap: () {
             Navigator.push(
               context,
@@ -338,6 +345,51 @@ class _DetailedRequestState extends State<DetailedRequest> {
     );
   }
 
+  Widget disclaimer() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.warning_amber_rounded, color: Colors.white),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orangeAccent,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        label: const Text(
+          'Legal Disclaimer',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Important Legal Notice'),
+                content: const Text(
+                  'Gatherers are reminded that browse must only be collected '
+                  'from private property with the owner’s permission. '
+                  'Collecting from Crown land (public or state land) is illegal '
+                  'and may result in legal action.\n\n'
+                  'Always verify property ownership and obtain consent before gathering.',
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('I Understand'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    ),
+  }
+
   Widget browsePanel(browses, quantities, types) {
     return Align(
       alignment: Alignment.bottomLeft,
@@ -540,6 +592,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
             children: <Widget>[
               header(widget.request),
               const SizedBox(height: 10.0), // TODO May need to change this to a relative unit
+              disclaimer(),
+              const SizedBox(height: 10.0),
               browsePanel(widget.request.getBrowseNames(), widget.request.getBrowseQuantities(), widget.request.getBrowseTypes()),
               const SizedBox(height: 10.0),
               Align(

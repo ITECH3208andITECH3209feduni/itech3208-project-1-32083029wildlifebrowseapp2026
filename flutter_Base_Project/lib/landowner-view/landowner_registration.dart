@@ -479,6 +479,22 @@ Widget build(BuildContext context) {
                   print(val); // Print the text value write into TextField
               },
             ),
+            SizedBox(height: 16,),
+             // ADDED NONPROFIT DISCLAIMER FIELD
+            FormBuilderCheckbox(
+              name: 'privatePropertyAcknowledgement',
+              title: const Text(
+                'I acknowledge that the property I am registering is privately owned and not located on public or Crown land. '
+                'I understand that only private properties may be listed on this platform.',
+                style: TextStyle(fontSize: 14),
+              ),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.equal(
+                  true,
+                  errorText: 'You must accept this disclaimer to proceed.',
+                ),
+              ]),
+            ),
         ],
       ),
     );

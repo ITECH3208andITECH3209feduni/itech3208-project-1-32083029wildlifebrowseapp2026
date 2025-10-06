@@ -74,10 +74,12 @@ class _SignUpViewState extends State<SignUpView> {
   final _postcodeController = TextEditingController();
   final _addressController = TextEditingController();
   final _birthdateController = TextEditingController();
-  final _pictureController = TextEditingController();
   final _givenNameController = TextEditingController();
   final _familyNameController = TextEditingController();
   final _passwordController = TextEditingController();
+  // Added default profile picture for Cognito
+  final defaultPicture = 'assets/images/default_profile_pic.jpg';
+  
   late final CognitoManager _cognitoManager;
 
   @override
@@ -97,7 +99,7 @@ class _SignUpViewState extends State<SignUpView> {
     final postcode = _postcodeController.text;
     final address = _addressController.text;
     final birthdate = _birthdateController.text;
-    final picture = _pictureController.text;
+    final picture = defaultPicture;
     final givenName = _givenNameController.text;
     final familyName = _familyNameController.text;
     final password = _passwordController.text;
@@ -165,7 +167,7 @@ class _SignUpViewState extends State<SignUpView> {
           ],),
           SizedBox(height: 16),
           // TODO add image upload support (prob need to add a new package to pubspec)
-          inputField("Upload profile picture", _pictureController),
+          // inputField("Upload profile picture", _pictureController),
           SizedBox(height: 16),
           TextField(
             controller: _passwordController,
