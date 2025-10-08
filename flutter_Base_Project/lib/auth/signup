@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Signup/Login Flow',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const LandingPage(),
+    );
+  }
+}
+
+// Landing Page with Login & Signup Buttons
+class LandingPage extends StatelessWidget {
+  const LandingPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Welcome!',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SignUpFlow(startAtLogin: true),
+                    ),
+                  );
+                },
+                child: const Text('Login'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SignUpFlow(startAtLogin: false),
+                    ),
+                  );
+                },
+                child: const Text('Signup'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Multi-tab Sign-Up/Login Flow
+class SignUpFlow extends StatefulWidget {
+  final bool startAtLogin;
+  const SignUpFlow({super.key, required this.startAtLogin});
+
+  @override
+  State<SignUpFlow> createState() => _SignUpFlowState();
+}
+
+class _SignUpFlowState extends State<SignUpFlow> with TickerProviderStateMixin {
+  late TabController _tabController;
+  final List<bool> _tabUnlocked = [true, false, false]; // Unlock flow control
+
+  @override
+  void initState() {
+    super.initState();
+    int initialIndex = widget.startAtLogin ? 2 : 0; // Login tab = index 2
+    _tabController = TabController(length: 3, vsync: this, initialIndex: initialIndex);
+  }
+
+  void unlockNextTab(int index) {
+    if (index + 1 < _tabUnlocked.length) {
+      setState(() {
+        _tabUnlocked[index + 1] = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Sign-Up Flow")),
+      body: TabBarView(
+        controller: _tabController,
+        physics: const NeverScrollableScrollPhysics(), // Disable swipe
+        children: [
+          buildTab(0, "Step 1: Enter Info"),
+          buildTab(1, "Step 2: More Info"),
+          buildTab(2, "Login Tab"),
+        ],
+      ),
+      bottomNavigationBar: Material(
+        color: Colors.blue,
+        child: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Step 1'),
+            Tab(text: 'Step 2'),
+            Tab(text: 'Login'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTab(int index, String content) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(content, style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _tabUnlocked[index]
+                ? () {
+                    unlockNextTab(index);
+                    if (index < _tabController.length - 1) {
+                      _tabController.animateTo(index + 1);
+                    }
+                  }
+                : null,
+            child: const Text('Next'),
+          ),
+        ],
+      ),
+    );
+  }
+}
