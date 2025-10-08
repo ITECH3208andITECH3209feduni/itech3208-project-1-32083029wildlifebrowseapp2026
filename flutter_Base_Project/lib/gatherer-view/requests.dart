@@ -387,7 +387,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
           );
         },
       ),
-    ),
+    );
   }
 
   Widget browsePanel(browses, quantities, types) {
