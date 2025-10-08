@@ -418,7 +418,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
             children: [
               Icon(Icons.place, size: 14),
               Text(
-               "Landholder's address:", //Updated text here
+               "Landholder's address:",
                 style: TextStyle(fontWeight: FontWeight.bold),
                 ),
             ], 
