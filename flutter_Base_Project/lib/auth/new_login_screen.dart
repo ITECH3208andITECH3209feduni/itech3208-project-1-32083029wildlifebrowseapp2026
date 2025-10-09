@@ -1,0 +1,203 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:dio/dio.dart'; // NEW
+import 'package:image_picker/image_picker.dart'; // NEW
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+
+import '../auth/auth.dart'; // Ensure this includes CognitoManager
+
+class LandholderRegistration extends StatefulWidget {
+  final User user;
+
+  const LandholderRegistration({super.key, required this.user});
+
+  @override
+  State<LandholderRegistration> createState() => _LandholderRegistrationState();
+}
+
+class _LandholderRegistrationState extends State<LandholderRegistration> {
+  final _formKey = GlobalKey<FormBuilderState>();
+  final Dio _dio = Dio(); // NEW
+  final ImagePicker _picker = ImagePicker(); // NEW
+  File? _selectedImage; // NEW
+  String? _uploadedUrl; //NEW
+  bool _isUploading = false; //NEW
+
+  late final CognitoManager _cognitoManager; // NEW
+
+  @override
+  void initState() {
+    super.initState();
+    _cognitoManager = CognitoManager();
+    _initCognitoManager();
+  }
+
+  Future<void> _initCognitoManager() async {
+    await _cognitoManager.init();
+  }
+
+  // Pick Image
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  //  Upload Image
+  Future<void> _uploadImage() async {
+    if (_selectedImage == null) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final fileName = _selectedImage!.path.split('/').last;
+      FormData formData = FormData.fromMap({
+        "file": await MultipartFile.fromFile(
+          _selectedImage!.path,
+          filename: fileName,
+        ),
+      });
+
+      //  Replace with your actual upload API or presigned S3 URL
+      final response = await _dio.post(
+        "https://your-upload-endpoint.com/upload",
+        data: formData,
+        options: Options(headers: {"Content-Type": "multipart/form-data"}),
+      );
+
+      final imageUrl = response.data["url"];
+
+      setState(() {
+        _uploadedUrl = imageUrl;
+        _isUploading = false;
+      });
+
+      // Update user attribute in Cognito
+      await _cognitoManager.updateUserAttribute(widget.user, "picture", imageUrl);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile picture uploaded successfully!")),
+      );
+    } catch (e) {
+      setState(() => _isUploading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Upload failed: $e")),
+      );
+    }
+  }
+
+  //   Add submission handling (keep your original form logic)
+  Future<void> _submitForm() async {
+    if (_formKey.currentState?.saveAndValidate() ?? false) {
+      final formData = _formKey.currentState!.value;
+      final submission = {
+        ...formData,
+        'profileImageUrl': _uploadedUrl ?? 'assets/images/default_profile_pic.jpg', //  NEW
+      };
+
+      final response = await http.post(
+        Uri.parse('https://example.com/register'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(submission),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${response.body}')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Landholder Registration')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            //  Profile Picture Section
+            Center(
+              child: Column(
+                children: [
+                  _selectedImage != null
+                      ? CircleAvatar(
+                          backgroundImage: FileImage(_selectedImage!),
+                          radius: 60,
+                        )
+                      : CircleAvatar(
+                          backgroundImage: _uploadedUrl != null
+                              ? NetworkImage(_uploadedUrl!)
+                              : const AssetImage('assets/images/default_profile_pic.jpg')
+                                  as ImageProvider,
+                          radius: 60,
+                        ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.image),
+                        label: const Text("Choose"),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        onPressed: _isUploading ? null : _uploadImage,
+                        icon: const Icon(Icons.upload),
+                        label: Text(_isUploading ? "Uploading..." : "Upload"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // MODIFIED: Main Form
+            FormBuilder(
+              key: _formKey,
+              child: Column(
+                children: [
+                  FormBuilderTextField(
+                    name: 'property_name',
+                    decoration: const InputDecoration(labelText: 'Property Name'),
+                    validator: FormBuilderValidators.required(),
+                  ),
+                  FormBuilderTextField(
+                    name: 'address',
+                    decoration: const InputDecoration(labelText: 'Address'),
+                    validator: FormBuilderValidators.required(),
+                  ),
+                  FormBuilderTextField(
+                    name: 'contact_number',
+                    decoration: const InputDecoration(labelText: 'Contact Number'),
+                    validator: FormBuilderValidators.numeric(),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _submitForm,
+                    child: const Text('Submit Registration'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
