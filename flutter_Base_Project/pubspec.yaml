@@ -45,6 +45,8 @@ dependencies:
   video_player: ^2.10.0
   shared_preferences: ^2.5.3
   change_case: ^2.2.0
+  image_picker: ^1.2.0
+  aws_client: ^0.7.1
 
 dev_dependencies:
   flutter_test:

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'auth.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+
+import '../models/image.dart';
 
 // Used to track if the user has just uploaded a new potentail account
 // If so signal to the next page to show the success snackbar
@@ -70,6 +74,8 @@ String? enteredEmail;
 class _SignUpViewState extends State<SignUpView> {
   String roleTmp = '';
 
+  File? galleryFile;
+  final ImagePicker picker = ImagePicker();
   final _emailController = TextEditingController();
   final _postcodeController = TextEditingController();
   final _addressController = TextEditingController();
@@ -77,7 +83,13 @@ class _SignUpViewState extends State<SignUpView> {
   final _givenNameController = TextEditingController();
   final _familyNameController = TextEditingController();
   final _passwordController = TextEditingController();
-  // Added default profile picture for Cognito
+
+  final S3ImageManager _s3Manager = S3ImageManager(
+    region: 'us-east-1', 
+    bucketName: 'profile-pictures33'
+  );
+
+  // Default profile picture
   final defaultPicture = 'assets/images/default_profile_pic.jpg';
   
   late final CognitoManager _cognitoManager;
@@ -94,12 +106,14 @@ class _SignUpViewState extends State<SignUpView> {
   }
 
   void _signUp() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
     final role = roleTmp;
     final email = _emailController.text;
     final postcode = _postcodeController.text;
     final address = _addressController.text;
     final birthdate = _birthdateController.text;
-    final picture = defaultPicture;
+    final picture = prefs.getString('profilePic') ?? defaultPicture;
     final givenName = _givenNameController.text;
     final familyName = _familyNameController.text;
     final password = _passwordController.text;
@@ -110,6 +124,7 @@ class _SignUpViewState extends State<SignUpView> {
       await _cognitoManager.signUp(role, email, postcode, address, birthdate, picture, givenName, familyName, password);
       DefaultTabController.of(context).animateTo(1);
       showSignUp = true;
+      _s3Manager.putS3Image(picture);
     
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,6 +135,14 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
+    File? _profileImage;
+
+    void _onImageSelected(File? image) {
+      setState(() {
+        _profileImage = image;
+      });
+    }
+
     const List<String> roles = <String>['Gatherer', 'Caretaker', 'Landowner'];
     roleTmp = roles.first;
 
@@ -166,23 +189,36 @@ class _SignUpViewState extends State<SignUpView> {
               ),
           ],),
           SizedBox(height: 16),
-          // TODO add image upload support (prob need to add a new package to pubspec)
-          // inputField("Upload profile picture", _pictureController),
-          SizedBox(height: 16),
           TextField(
             controller: _passwordController,
             decoration: const InputDecoration(labelText: 'Password'),
             obscureText: true,
           ),
           SizedBox(height: 16),
+          // Image picker
+          ImagePickerWidget(
+              onImageSelected: _onImageSelected,
+            ),
+          // Image display
+          _profileImage != null 
+          ? SizedBox(
+            height: 200.0,
+            width: 300.0,
+            child: Center(child: Image.file(_profileImage!)),
+          )
+          : Container(),
+          SizedBox(height: 16),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               enteredEmail = _emailController.text;
               _signUp();
             },
             child: Text(
-              'Accept',
-              style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+              'Submit details',
               textAlign: TextAlign.center,
             ),
           ),

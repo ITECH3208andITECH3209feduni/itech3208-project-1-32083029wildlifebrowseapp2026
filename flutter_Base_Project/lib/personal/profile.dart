@@ -12,6 +12,9 @@ import 'package:change_case/change_case.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
+import '../models/image.dart';
+import 'dart:io';
+
 class ProfileRoute extends StatelessWidget {
 
   final User user;
@@ -49,11 +52,39 @@ class Profile extends StatefulWidget {
 }
 
 class _Profile extends State<Profile> {
-
   @override
   void initState() {
     super.initState();
+    _loadProfileFromS3();
   }
+
+  final S3ImageManager s3Manager = S3ImageManager(
+    region: 'us-east-1', 
+    bucketName: 'profile-pictures33'
+  );
+
+  File? _profileImage;
+
+  Future<void> _loadProfileFromS3() async {
+      try {
+        await s3Manager.getS3Image(widget.user.claims['picture']
+        );
+      } catch (e) {
+        print('Error loading from S3: $e');
+      }
+    }
+
+  void _onImageSelected(File? image) async {
+      try {
+        // Upload new image to S3
+        await s3Manager.putS3Image(widget.user.claims['picture']);
+
+        // Reload from S3
+        await _loadProfileFromS3();
+      } catch (e) {
+        print('Error updating profile picture: $e');
+      }
+    }
 
 
   void showEditDialogOne(String key) {
@@ -225,6 +256,7 @@ class _Profile extends State<Profile> {
   @override
   // Profile initial state
   Widget build(BuildContext context) {
+
     final String appTitle = '${widget.user.claims['given_name'].toString().toCapitalCase()}\'s profile';
 
     return MaterialApp(
@@ -318,12 +350,21 @@ class _Profile extends State<Profile> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Image: ${widget.user.claims['picture']}'),
+                  child: SizedBox(
+                      height: 200.0,
+                      width: 300.0,
+                      child: Center(
+                        child: _profileImage != null 
+                          ? Image.file(_profileImage!)
+                          : Image.asset('assets/images/default_profile_pic.jpg')),
+                    )
                   ),
                   IconButton(
                     icon: Icon(Icons.edit),
                     onPressed: () {
-                      showEditDialogOne('picture');
+                      ImagePickerWidget(
+                        onImageSelected: _onImageSelected,
+                      );
                     },
                   ),
                 ],
