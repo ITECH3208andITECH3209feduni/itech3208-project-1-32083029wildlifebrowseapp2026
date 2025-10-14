@@ -106,7 +106,7 @@ class _BrowseQuantityList extends State<BrowseQuantityList> {
           children: [
             // Quantities, Browses and Types length should always be the same but this is to handle in case it doesn't
             for (int i = 0; i < min(min(widget.browses.length, widget.quantities.length), widget.types.length); i++)
-              Text(
+              SelectableText(
                 '${widget.browses[i]} ${widget.types[i]}',
                 style: TextStyle(
                   color: widget.fontColor,

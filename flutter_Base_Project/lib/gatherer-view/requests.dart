@@ -476,8 +476,8 @@ class _DetailedRequestState extends State<DetailedRequest> {
             ], 
           ),
           isShowAddress(widget.request, widget.user)
-            ? Text("$address, $postcode")
-            : Text("Postcode: $postcode"),
+            ? SelectableText("$address, $postcode")
+            : SelectableText("Postcode: $postcode"),
         ]
       ),
     );
