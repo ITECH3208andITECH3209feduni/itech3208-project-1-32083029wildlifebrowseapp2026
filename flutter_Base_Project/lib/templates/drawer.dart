@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../auth/auth.dart';
+import '../donate.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({super.key, required this.username, required this.user});
@@ -54,6 +55,15 @@ class _UserDrawer extends State<UserDrawer> {
             title: const Text('Your account'),
             onTap: drawerButton('/profile', widget.user),
           ),
+
+          ListTile(
+            leading: const Icon(Icons.volunteer_activism),
+            title: const Text('Support / Donate'),
+            onTap: () {
+              Donate.openPayPal(); 
+              },
+          ),
+
           // ListTile(
           //   leading: const Icon(Icons.settings),
           //   title: const Text('Settings'),
