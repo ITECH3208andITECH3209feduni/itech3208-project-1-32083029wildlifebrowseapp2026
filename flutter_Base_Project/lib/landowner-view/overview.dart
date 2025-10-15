@@ -424,10 +424,10 @@ class _LandownerProfileState extends State<LandownerProfile> {
             ], 
           ),
           _showAddress
-            ? Text("$address, $postcode")
+            ? SelectableText("$address, $postcode")
             // Will probably reimplement this to dynamically call for address once request accepted, for security
             // TODO lookup postcode for name of suburb to add to address
-            : Text("Postcode: $postcode"),
+            : SelectableText("Postcode: $postcode"),
         ]
       ),
     );
