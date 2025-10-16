@@ -11,6 +11,8 @@ import '../models/request.dart';
 import '../models/response.dart';
 
 import 'package:change_case/change_case.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class GathererRoute extends StatelessWidget {
 
@@ -305,6 +307,35 @@ class DetailedRequest extends StatefulWidget {
 
 class _DetailedRequestState extends State<DetailedRequest> {
 
+  // I added: once-per-session offline reminder for no reception
+Future<void> _maybeShowOfflineNotice() async {
+  final prefs = await SharedPreferences.getInstance();
+  final shown = prefs.getBool('offlineNoticeShown') ?? false;
+
+  if (!shown) {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Offline reminder'),
+          content: const Text(
+            'Please screenshot this request and the relevant landholder listings and browse pages. '
+            'Some images may not load without mobile reception when gathering browse.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+    await prefs.setBool('offlineNoticeShown', true);
+  }
+}
+
   Widget header(Request request) {
     return Row(
       children: <Widget>[
@@ -518,16 +549,17 @@ class _DetailedRequestState extends State<DetailedRequest> {
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
               ),
-              onPressed: () {
-                // Accept button action
+              // I added: offline reminder before accepting (Scrum-191)
+              onPressed: () async {
+                await _maybeShowOfflineNotice(); // I added Accept button action (unchanged)
                 setState(() {
                   request.assignGatherer = widget.user.claims['username'];
                   request.updateState = 2;
-
+                  
                   // Sends updated request to database        
                   updateRequest(request);
-                });
-              },
+                  });
+                  },
               child: Text(
                 'Accept',
                 style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
