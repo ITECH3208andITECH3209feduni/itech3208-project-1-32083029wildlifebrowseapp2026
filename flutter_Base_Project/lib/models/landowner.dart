@@ -17,6 +17,7 @@ class Landowner {
     required this.timesData,
     required this.warningRequired,
     this.extraDetails,
+    this.restrictions, // CHANGE: new optional field
   });
 
   // ? Allows null
@@ -34,8 +35,9 @@ class Landowner {
   List<LandownerTimes> timesData;
   bool warningRequired;
   String? extraDetails;
+  String? restrictions; // CHANGE: new field
 
-    // Helper method to create an empty request
+  // Helper method to create an empty request
   factory Landowner.empty() {
     return Landowner(
       userID: '',
@@ -51,6 +53,7 @@ class Landowner {
       timesData: [],
       warningRequired: false,
       extraDetails: '',
+      restrictions: '', // CHANGE: default empty
     );
   }
 
@@ -76,63 +79,63 @@ class Landowner {
 
   static List<LandownerBrowse> _parseBrowseItems(dynamic itemsData) {
     if (itemsData == null || itemsData is! List<dynamic>) {
-        return [];
-      }
-      
-      return itemsData.map((item) {
-        try {
-          if (item is String) {
-            return LandownerBrowse(browse_Name: item);
-          } else {
-            print('Wrong browse item type: ${item.runtimeType}');
-            return LandownerBrowse(browse_Name: '');
-          }
-        } catch (e) {
-          print('Error parsing browse item: $e');
+      return [];
+    }
+
+    return itemsData.map((item) {
+      try {
+        if (item is String) {
+          return LandownerBrowse(browse_Name: item);
+        } else {
+          print('Wrong browse item type: ${item.runtimeType}');
           return LandownerBrowse(browse_Name: '');
         }
-      }).toList();
-    }
+      } catch (e) {
+        print('Error parsing browse item: $e');
+        return LandownerBrowse(browse_Name: '');
+      }
+    }).toList();
+  }
 
   static List<LandownerDays> _parseDayItems(dynamic itemsData) {
     if (itemsData == null || itemsData is! List<dynamic>) {
-        return [];
-      }
-      
-      return itemsData.map((item) {
-        try {
-          if (item is String) {
-            return LandownerDays(days: item);
-          } else {
-            print('Wrong day item type: ${item.runtimeType}');
-            return LandownerDays(days: '');
-          }
-        } catch (e) {
-          print('Error parsing day item: $e');
+      return [];
+    }
+
+    return itemsData.map((item) {
+      try {
+        if (item is String) {
+          return LandownerDays(days: item);
+        } else {
+          print('Wrong day item type: ${item.runtimeType}');
           return LandownerDays(days: '');
         }
-      }).toList();
-    }
+      } catch (e) {
+        print('Error parsing day item: $e');
+        return LandownerDays(days: '');
+      }
+    }).toList();
+  }
 
   static List<LandownerTimes> _parseTimeItems(dynamic itemsData) {
     if (itemsData == null || itemsData is! List<dynamic>) {
-        return [];
-      }
-      
-      return itemsData.map((item) {
-        try {
-          if (item is String) {
-            return LandownerTimes(times: item);
-          } else {
-            print('Wrong time item type: ${item.runtimeType}');
-            return LandownerTimes(times: '');
-          }
-        } catch (e) {
-          print('Error parsing time item: $e');
+      return [];
+    }
+
+    return itemsData.map((item) {
+      try {
+        if (item is String) {
+          return LandownerTimes(times: item);
+        } else {
+          print('Wrong time item type: ${item.runtimeType}');
           return LandownerTimes(times: '');
         }
-      }).toList();
-    }
+      } catch (e) {
+        print('Error parsing time item: $e');
+        return LandownerTimes(times: '');
+      }
+    }).toList();
+  }
 
   factory Landowner.fromJson(Map<String, dynamic> requestJson) {
     try {
@@ -150,6 +153,7 @@ class Landowner {
         timesData: _parseTimeItems(requestJson['timesData']),
         warningRequired: requestJson['warningRequired'] ?? '0',
         extraDetails: requestJson['extraDetails']?.toString(),
+        restrictions: requestJson['restrictions']?.toString(), // CHANGE: map from JSON
       );
     } catch (e) {
       print('Error parsing Landowner: $e');
@@ -169,6 +173,7 @@ class Landowner {
       'warningRequired': warningRequired,
       'accessDetails': accessDetails,
       'extraDetails': extraDetails,
+      'restrictions': restrictions, // CHANGE: include in JSON
       'browseData': browseData.map((e) => e.toJson()).toList(),
       'daysData': daysData.map((e) => e.toJson()).toList(),
       'timesData': timesData.map((e) => e.toJson()).toList(),
