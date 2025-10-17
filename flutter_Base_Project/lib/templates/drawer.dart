@@ -10,12 +10,11 @@ class UserDrawer extends StatefulWidget {
 
   @override
   State<UserDrawer> createState() => _UserDrawer();
- }
+}
 
 class _UserDrawer extends State<UserDrawer> {
   
   // String selectedDrawerPage = '';
-
   GestureTapCallback drawerButton(String page, User user) {
     return () {
       setState(() {
@@ -25,7 +24,7 @@ class _UserDrawer extends State<UserDrawer> {
         ).pushNamed(
           page,
           arguments: {'user': widget.user},
-          );
+        );
       });
       Navigator.pop(context);
     };
@@ -46,13 +45,20 @@ class _UserDrawer extends State<UserDrawer> {
             ),
           ),
           // ListTile(
-          //   leading: const Icon(Icons.message),
-          //   title: const Text('Messages'),
-          //   onTap: drawerButton('Messages'),
+          // leading: const Icon(Icons.message),
+          // title: const Text('Messages'),
+          // onTap: drawerButton('Messages'),
           // ),
           ListTile(
             leading: const Icon(Icons.account_circle),
             title: const Text('Your account'),
+            onTap: drawerButton('/profile', widget.user),
+          ),
+
+          // I added: quick access to Landowner Profile (Scrum-153)
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: const Text('Landowner Profile'),
             onTap: drawerButton('/profile', widget.user),
           ),
 
@@ -61,13 +67,12 @@ class _UserDrawer extends State<UserDrawer> {
             title: const Text('Support / Donate'),
             onTap: () {
               Donate.openPayPal(); 
-              },
+            },
           ),
-
           // ListTile(
-          //   leading: const Icon(Icons.settings),
-          //   title: const Text('Settings'),
-          //   onTap: drawerButton('/settings', widget.user),
+          // leading: const Icon(Icons.settings),
+          // title: const Text('Settings'),
+          // onTap: drawerButton('/settings', widget.user),
           // ),
         ],
       ),
