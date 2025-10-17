@@ -336,6 +336,35 @@ Future<void> _maybeShowOfflineNotice() async {
   }
 }
 
+// I added: once-per-session environmental care reminder (Scrum-197)
+  Future<void> _maybeShowEnvironmentalCareNotice() async {
+    final prefs = await SharedPreferences.getInstance();
+    final shown = prefs.getBool('environmentalCareNoticeShown') ?? false;
+
+    if (!shown) {
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Gather responsibly'),
+            content: const Text(
+              'Please respect the integrity of the plants by taking only what is necessary so the plant can regenerate. '
+              'Clean and disinfect your tools and bags before and after gathering to avoid spreading plant diseases or pests.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      await prefs.setBool('environmentalCareNoticeShown', true);
+    }
+  }
+
   Widget header(Request request) {
     return Row(
       children: <Widget>[
@@ -551,7 +580,10 @@ Future<void> _maybeShowOfflineNotice() async {
               ),
               // I added: offline reminder before accepting (Scrum-191)
               onPressed: () async {
-                await _maybeShowOfflineNotice(); // I added Accept button action (unchanged)
+                await _maybeShowOfflineNotice(); 
+                await _maybeShowEnvironmentalCareNotice();
+                
+                // I added Accept button action (unchanged)
                 setState(() {
                   request.assignGatherer = widget.user.claims['username'];
                   request.updateState = 2;
