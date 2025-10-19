@@ -1,3 +1,6 @@
+// The signup screen that directs users to either the login tab or to start of signup flow
+// TODO needs to be integrated into the actual app
+
 import 'package:flutter/material.dart';
 
 void main() {
