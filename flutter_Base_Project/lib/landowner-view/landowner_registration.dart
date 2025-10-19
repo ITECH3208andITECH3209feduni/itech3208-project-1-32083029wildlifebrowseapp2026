@@ -18,7 +18,7 @@ class LandownerRegistration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Landowner registration',
+      title: 'Landholder registration',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),

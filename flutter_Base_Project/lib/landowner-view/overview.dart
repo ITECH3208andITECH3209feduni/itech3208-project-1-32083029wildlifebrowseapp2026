@@ -22,7 +22,7 @@ class LandownerRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Landowner Profiles',
+      title: 'Landholder Profiles',
       theme: ThemeData(
         listTileTheme: const ListTileThemeData(textColor: Colors.black),
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
@@ -155,7 +155,7 @@ class _RequestBoardState extends State<LandownerHomePage>
                 // Redirects from board to a landowner profile
                 builder:
                     (BuildContext context) => LandownerProfile(
-                      title: 'Landowner Profile',
+                      title: 'Landholder Profile',
                       request: request,
                     ),
               ),
@@ -450,7 +450,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
           ),
           _showPhone
               ? Text("$phone")
-              : Text("To contact the landowner, please click 'contact' below to reveal their phone number"),
+              : Text("To contact the landholder, please click 'contact' below to reveal their phone number"),
         ]
       ),
     );
@@ -595,7 +595,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
               });
             },
             child: Text(
-              'Contact Landowner',
+              'Contact Landholder',
               style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
               textAlign: TextAlign.center,
             ),
