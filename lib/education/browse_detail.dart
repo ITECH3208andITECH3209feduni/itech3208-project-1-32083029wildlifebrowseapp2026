@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/browseInformation.dart';
 
+import 'package:video_player/video_player.dart';
 
 class BrowseDetailPage extends StatelessWidget {
   final Browse browse;
