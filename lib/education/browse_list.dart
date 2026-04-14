@@ -3,6 +3,8 @@ import '../models/browseInformation.dart';
 import 'browse_detail.dart';
 
 class BrowseListPage extends StatefulWidget {
+  const BrowseListPage({super.key});
+
   @override
   _BrowseListPageState createState() => _BrowseListPageState();
 }

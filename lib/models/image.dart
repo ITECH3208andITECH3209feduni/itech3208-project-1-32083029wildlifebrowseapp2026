@@ -68,10 +68,10 @@ class ImagePickerWidget extends StatefulWidget {
   final S3ImageManager? s3Manager;
   
   const ImagePickerWidget({
-    Key? key,
+    super.key,
     required this.onImageSelected,
     this.s3Manager,
-  }) : super(key: key);
+  });
   
   @override
   _ImagePickerWidgetState createState() => _ImagePickerWidgetState();

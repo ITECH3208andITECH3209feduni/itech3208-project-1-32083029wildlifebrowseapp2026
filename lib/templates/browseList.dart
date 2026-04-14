@@ -51,7 +51,7 @@ class _BrowseTileList extends State<BrowseTileList> {
                 // Checks if there's more than 2 browse listed adding an elipse to the second one to indicate there's more  on the requestTile
                 (isBrowseGTTwo && i == 1)
                 ? '${widget.browses[i]}...'
-                : '${widget.browses[i]}',
+                : widget.browses[i],
                 style: TextStyle(
                   color: widget.fontColor,
                 )

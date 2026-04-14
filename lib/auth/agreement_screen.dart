@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../app_intro.dart';
 
 class AgreementScreen extends StatefulWidget {
   const AgreementScreen({super.key});
@@ -19,7 +20,12 @@ class _AgreementScreenState extends State<AgreementScreen> {
     await prefs.setBool('user_agreed', true);
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/login');
+    Navigator.of(context).pushReplacement (
+      MaterialPageRoute(
+        builder: (context) => const AppIntroScreen() ,
+
+    ) ,
+    ) ;
   }
 
   @override

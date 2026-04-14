@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/browseInformation.dart';
 
-import 'package:video_player/video_player.dart';
 
 class BrowseDetailPage extends StatelessWidget {
   final Browse browse;
 
-  const BrowseDetailPage({Key? key, required this.browse}) : super(key: key);
+  const BrowseDetailPage({super.key, required this.browse});
 
   @override
   Widget build(BuildContext context) {

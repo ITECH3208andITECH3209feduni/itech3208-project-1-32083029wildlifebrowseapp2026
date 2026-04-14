@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
 import '../models/image.dart';
@@ -58,6 +57,8 @@ class LoginScreen extends StatelessWidget {
 }
 
 class SignUpView extends StatefulWidget {
+  const SignUpView({super.key});
+
   @override
   _SignUpViewState createState() => _SignUpViewState();
 }
@@ -184,11 +185,11 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
-    File? _profileImage;
+    File? profileImage;
 
-    void _onImageSelected(File? image) {
+    void onImageSelected(File? image) {
       setState(() {
-        _profileImage = image;
+        profileImage = image;
       });
     }
 
@@ -205,7 +206,7 @@ class _SignUpViewState extends State<SignUpView> {
         padding: const EdgeInsets.all(8.0),
         children: [
           DropdownButtonFormField(
-            value: roleTmp,
+            initialValue: roleTmp,
             icon: const Icon(Icons.arrow_downward),
             elevation: 10,
             decoration: const InputDecoration(labelText: 'What role are you signing up for?'),
@@ -275,14 +276,14 @@ class _SignUpViewState extends State<SignUpView> {
 
           // Image picker
           ImagePickerWidget(
-            onImageSelected: _onImageSelected,
+            onImageSelected: onImageSelected,
           ),
           // Image display
-          _profileImage != null
+          profileImage != null
               ? SizedBox(
                   height: 200.0,
                   width: 300.0,
-                  child: Center(child: Image.file(_profileImage!)),
+                  child: Center(child: Image.file(profileImage!)),
                 )
               : Container(),
           const SizedBox(height: 16),
@@ -370,6 +371,8 @@ class _SignUpViewState extends State<SignUpView> {
 }
 
 class ConfirmSignUpView extends StatefulWidget {
+  const ConfirmSignUpView({super.key});
+
   @override
   _ConfirmSignUpViewState createState() => _ConfirmSignUpViewState();
 }
@@ -448,6 +451,8 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
 }
 
 class SignInView extends StatefulWidget {
+  const SignInView({super.key});
+
   @override
   _SignInViewState createState() => _SignInViewState();
 }
@@ -545,7 +550,7 @@ class UserDetailsPage extends StatelessWidget {
         child: ListView(
           children: [
             Text("Token Valid: ${user.sessionValid}"),
-            ...user.claims.entries.map((entry) => Text('${entry.key}: ${entry.value}')).toList(),
+            ...user.claims.entries.map((entry) => Text('${entry.key}: ${entry.value}')),
           ],
         ),
       ),

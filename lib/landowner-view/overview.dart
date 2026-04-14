@@ -30,7 +30,7 @@ class LandownerRoute extends StatelessWidget {
         useMaterial3: true,
       ),
       // Set username of Gatherer here
-      home: LandownerHomePage(title: 'Places to find browse', user: user, browseFilter: browseFilter, uploadSuccess: this.uploadSuccess),
+      home: LandownerHomePage(title: 'Places to find browse', user: user, browseFilter: browseFilter, uploadSuccess: uploadSuccess),
     );
   }
 }
@@ -132,12 +132,13 @@ class _RequestBoardState extends State<LandownerHomePage>
                   Text(
                     (isBrowseGTTwo && i == 1)
                       ? '${request.getBrowseNames()[i]} +${request.getBrowseNames().length - 2} more'
-                      : '${request.getBrowseNames()[i]}',
+                      : request.getBrowseNames()[i],
                     )
               ],
             ),
           trailing: Column(
             children: [
+              
               // TODO have this track when request.isActive = false
               Text(
                 "${formatTimelapse(getTimelapse(request.timestamp))} ago",
@@ -397,7 +398,7 @@ class _LandownerProfileState extends State<LandownerProfile> {
                 ),
                 for (int i = 0; i < widget.request.getBrowseNames().length; i++)
                   Text(
-                    '${widget.request.getBrowseNames()[i]}',
+                    widget.request.getBrowseNames()[i],
                     style: TextStyle(color: Color.fromARGB(255, 230, 230, 230))
                     ),
               ],
@@ -665,7 +666,7 @@ String getTimelapse(requestTime) {
   int hoursElapsed = (parsedDifference % (24 * 3600)) ~/ 3600;
   int minutesElapsed = (parsedDifference % 3600) ~/ 60;
 
-  String timelapse = '${daysElapsed}:${hoursElapsed}:${minutesElapsed}';
+  String timelapse = '$daysElapsed:$hoursElapsed:$minutesElapsed';
 
   return timelapse;
 }
@@ -678,7 +679,7 @@ String formatTimelapse(timelapse) {
   int minElapsed = timeParts[2];
 
   if(daysElapsed != 0) {
-    timelapse = '${daysElapsed} days';
+    timelapse = '$daysElapsed days';
   } else {
     if(hourElapsed != 0) {
       timelapse = '${hourElapsed}h ${minElapsed}m';

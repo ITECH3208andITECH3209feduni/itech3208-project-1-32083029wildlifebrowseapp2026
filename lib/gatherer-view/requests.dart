@@ -68,6 +68,30 @@ Future<List<Request>> fetchRequests() async {
     throw Exception('Error: $e');
   }
 }
+Future<bool> deleteRequest(String requestId, int statusNum) async {
+  try {
+    final response = await http.delete(
+      Uri.parse(
+        'https://uuy1e4eof1.execute-api.us-east-1.amazonaws.com/dev/requestsAPI/$requestId/$statusNum',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      print('Request deleted successfully');
+      return true;
+    } else {
+      print('Delete failed: ${response.statusCode}');
+      print(response.body);
+      return false;
+    }
+  } catch (e) {
+    print('Error deleting request: $e');
+    return false;
+  }
+}
 
 class _RequestBoardState extends State<GathererHomePage> with TickerProviderStateMixin {
   late final AnimationController _fadeController;
@@ -128,18 +152,78 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
             ),
             radius: 20,
           ),
+          
           title: Text(request.animal_ID),
           subtitle: BrowseTileList(browses: request.getBrowseNames(), quantities: request.getBrowseQuantities()),
-          trailing: Column(
-            children: [
-              Text(
-                "${formatTimelapse(getTimelapse(request.timestamp))} ago",
-                style: isStale(getTimelapse(request.timestamp)) 
-                  ? TextStyle(color: Colors.red)
-                  : TextStyle(color: Colors.black)
+          trailing: SizedBox(
+  width: 120,
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              "${formatTimelapse(getTimelapse(request.timestamp))} ago",
+              style: isStale(getTimelapse(request.timestamp))
+                  ? const TextStyle(color: Colors.red)
+                  : const TextStyle(color: Colors.black),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              'Postcode: ${request.postcode}',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+      IconButton(
+        icon: const Icon(Icons.delete, color: Colors.red),
+        onPressed: () async {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Delete Request'),
+              content: const Text('Are you sure you want to delete this request?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm == true) {
+            final success = await deleteRequest(
+              request.request_ID.toString(),
+              request.status_Num,
+            );
+
+            if (!context.mounted) return; // 🔥 important
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  success ? 'Deleted successfully' : 'Delete failed',
+                ),
               ),
-              Text('Postcode: ${request.postcode}'),
-          ]),
+            );
+
+            // 🔥 Remove item instantly from UI
+            
+          }
+        },
+      ),
+    ],
+  ),
+),
           tileColor: tileColor,
           onTap: () {
             Navigator.push(
@@ -724,7 +808,7 @@ String getTimelapse(requestTime) {
   int hoursElapsed = (parsedDifference % (24 * 3600)) ~/ 3600;
   int minutesElapsed = (parsedDifference % 3600) ~/ 60;
 
-  String timelapse = '${daysElapsed}:${hoursElapsed}:${minutesElapsed}';
+  String timelapse = '$daysElapsed:$hoursElapsed:$minutesElapsed';
 
   return timelapse;
 }
@@ -737,7 +821,7 @@ String formatTimelapse(timelapse) {
   int minElapsed = timeParts[2];
 
   if(daysElapsed != 0) {
-    timelapse = '${daysElapsed} days';
+    timelapse = '$daysElapsed days';
   } else {
     if(hourElapsed != 0) {
       timelapse = '${hourElapsed}h ${minElapsed}m';

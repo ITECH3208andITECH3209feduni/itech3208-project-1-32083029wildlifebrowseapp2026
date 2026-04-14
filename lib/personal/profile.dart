@@ -9,7 +9,6 @@ import '../auth/user_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:change_case/change_case.dart';
 
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
 import '../models/image.dart';

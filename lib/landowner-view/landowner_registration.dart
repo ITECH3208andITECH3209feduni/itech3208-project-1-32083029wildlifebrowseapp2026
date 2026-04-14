@@ -299,7 +299,7 @@ class _LandDetailsTabState extends State<LandDetailsTab> with AutomaticKeepAlive
 class AvailabilityTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
-  const AvailabilityTab({required this.formKey, required this.phoneFieldKey});
+  const AvailabilityTab({super.key, required this.formKey, required this.phoneFieldKey});
 
   @override
   _AvalabilityTabState createState() => _AvalabilityTabState();
@@ -360,7 +360,7 @@ class PreferencesTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
-  const PreferencesTab({required this.formKey, required this.phoneFieldKey});
+  const PreferencesTab({super.key, required this.formKey, required this.phoneFieldKey});
 
   @override
   _PreferencesTabState createState() => _PreferencesTabState();
