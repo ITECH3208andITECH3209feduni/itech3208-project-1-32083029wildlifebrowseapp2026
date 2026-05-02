@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'onboarding_videos_screen.dart';
 
+import 'package:flutter/material.dart';
+import 'instruction_screen.dart';
 class AppIntroScreen extends StatelessWidget {
   const AppIntroScreen({super.key});
 
@@ -57,7 +57,7 @@ class AppIntroScreen extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const OnboardingVideosScreen(),
+                        builder: (_) => const InstructionScreen(),
                       ),
                     );
                   },
