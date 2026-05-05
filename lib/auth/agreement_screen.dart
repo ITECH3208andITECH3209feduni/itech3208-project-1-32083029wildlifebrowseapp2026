@@ -20,12 +20,27 @@ class _AgreementScreenState extends State<AgreementScreen> {
     await prefs.setBool('user_agreed', true);
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacement (
-      MaterialPageRoute(
-        builder: (context) => const AppIntroScreen() ,
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const AppIntroScreen()),
+    );
+  }
 
-    ) ,
-    ) ;
+  void _decline() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Agreement Required'),
+        content: const Text(
+          'You must accept the user agreement to use this app.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -41,7 +56,6 @@ class _AgreementScreenState extends State<AgreementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ——— Client-supplied legal text (kept as-is) ———
             const Text(
               "Ballarat Wildlife Rehabilitation & Conservation Inc App User Agreement\n"
               "Effective Date: 18/10/2025\n"
@@ -93,14 +107,28 @@ class _AgreementScreenState extends State<AgreementScreen> {
               "• Release BWRAC from any and all liability in relation to your use of the App and participation in related activities.\n",
               style: TextStyle(fontSize: 14, height: 1.5),
             ),
+
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _saving ? null : _agreeAndContinue,
-                child: Text(_saving ? 'Saving…' : 'I Agree'),
-              ),
+
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _decline,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                    ),
+                    child: const Text("Decline"),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _agreeAndContinue,
+                    child: Text(_saving ? 'Saving…' : 'I Agree'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
