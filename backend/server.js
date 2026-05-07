@@ -1,47 +1,152 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import dotenv from "dotenv";
+
 import Request from "./models/Request.js";
+import Landholder from "./models/Landholder.js";
+
+dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// 🔴 Put your correct password here
-const MONGO_URI = "mongodb://wildlife_user:Wildlife12345@ac-wd6zvgv-shard-00-00.xwlzzcc.mongodb.net:27017,ac-wd6zvgv-shard-00-01.xwlzzcc.mongodb.net:27017,ac-wd6zvgv-shard-00-02.xwlzzcc.mongodb.net:27017/?ssl=true&replicaSet=atlas-m90467-shard-0&authSource=admin&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI;
 
-// Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.log("❌ Error:", err));
+  .catch((err) => console.log("❌ MongoDB Error:", err));
 
-// Test route
 app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
+  res.send("Backend running 🚀");
 });
 
-// 🔥 GET all requests
-app.get("/requests", async (req, res) => {
-  const requests = await Request.find();
-  res.json(requests);
+
+// =======================
+// REQUEST ROUTES
+// =======================
+
+// GET all requests
+app.get("/requestsAPI", async (req, res) => {
+  try {
+    const requests = await Request.find();
+    res.status(200).json({ items: requests });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
 });
 
-// 🔥 POST new request
-app.post("/requests", async (req, res) => {
-  const newRequest = new Request(req.body);
-  await newRequest.save();
-  res.json(newRequest);
+// POST new request
+app.post("/requestsAPI", async (req, res) => {
+  try {
+    const newRequest = new Request(req.body);
+    await newRequest.save();
+
+    res.status(201).json({
+      message: "Request created successfully",
+      items: [newRequest],
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create request" });
+  }
 });
 
-// 🔥 DELETE request
-app.delete("/requests/:id", async (req, res) => {
-  await Request.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted successfully" });
+// PATCH update request
+app.patch("/requestsAPI/:request_ID/:status_Num", async (req, res) => {
+  try {
+    const { request_ID, status_Num } = req.params;
+
+    const updatedRequest = await Request.findOneAndUpdate(
+      { request_ID: request_ID },
+      {
+        ...req.body,
+        status_Num: Number(status_Num),
+      },
+      { returnDocument: "after" }
+    );
+
+    if (!updatedRequest) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    res.status(200).json({
+      message: "Request updated successfully",
+      items: [updatedRequest],
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update request" });
+  }
 });
 
-// Start server
-app.listen(5000, () => {
+// DELETE request
+app.delete("/requestsAPI/:request_ID/:status_Num", async (req, res) => {
+  try {
+    const { request_ID } = req.params;
+
+    const deletedRequest = await Request.findOneAndDelete({
+      request_ID: request_ID,
+    });
+
+    if (!deletedRequest) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    res.status(200).json({
+      message: "Request deleted successfully",
+      items: [deletedRequest],
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete request" });
+  }
+});
+
+
+// =======================
+// LANDHOLDER ROUTES
+// =======================
+
+// GET all landholders
+app.get("/landholders", async (req, res) => {
+  try {
+    const data = await Landholder.find();
+    res.status(200).json({ items: data });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch landholders" });
+  }
+});
+
+// POST landholder
+app.post("/landholders", async (req, res) => {
+  try {
+    const newData = new Landholder(req.body);
+    await newData.save();
+
+    res.status(201).json({
+      message: "Landholder saved",
+      items: [newData],
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save landholder" });
+  }
+});
+
+// DELETE landholder
+app.delete("/landholders/:id", async (req, res) => {
+  try {
+    await Landholder.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
+
+
+// =======================
+// SERVER START
+// =======================
+
+app.listen(5000, "0.0.0.0", () => {
   console.log("🚀 Server running on port 5000");
 });

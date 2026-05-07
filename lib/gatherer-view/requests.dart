@@ -12,6 +12,7 @@ import '../models/response.dart';
 
 import 'package:change_case/change_case.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 
 class GathererRoute extends StatelessWidget {
@@ -52,7 +53,7 @@ class GathererHomePage extends StatefulWidget {
 
 Future<List<Request>> fetchRequests() async {
   try {
-    final response = await http.get(Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'));
+    final response = await http.get(Uri.parse(ApiConfig.requestsAPI));
 
     final Map<String, dynamic> responseData = json.decode(response.body);
 
@@ -72,7 +73,7 @@ Future<bool> deleteRequest(String requestId, int statusNum) async {
   try {
     final response = await http.delete(
       Uri.parse(
-        'https://uuy1e4eof1.execute-api.us-east-1.amazonaws.com/dev/requestsAPI/$requestId/$statusNum',
+        '${ApiConfig.requestsAPI}/$requestId/$statusNum'
       ),
       headers: {
         'Content-Type': 'application/json',
@@ -297,7 +298,7 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
                     context,
                     rootNavigator: true,
                   ).pushNamed(
-                    '/landowner-registration', 
+                    '/landowner-tutorial', 
                     arguments: {'user': widget.user},
                     );
                 },
@@ -844,29 +845,28 @@ bool isStale(timelapse) {
 
 void updateRequest(Request updatedRequest) async {
   try {
+    print('PATCH URL: ${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2');
+    print('PATCH BODY: ${jsonEncode(updatedRequest.toJson())}');
+
     final response = await http.patch(
-      Uri.parse(
-        'https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI/${updatedRequest.request_ID}/2'
-        ),
+      Uri.parse('${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(updatedRequest.toJson()),
     );
-    final responseData = jsonDecode(response.body);
-    // Checks if request was successful (status code 201)
+
+    print('PATCH status: ${response.statusCode}');
+    print('PATCH response: ${response.body}');
+
     if (response.statusCode == 200) {
-      print(
-        'Update successfully updated $responseData',
-      );
+      print('Update successfully saved');
     } else {
       print('Server Error: ${response.statusCode}');
       debugPrint(response.body);
     }
-  } 
-  catch(e) {
+  } catch (e) {
     print('Failed to update request: $e');
   }
 }
-
 bool isShowAddress(Request request, User user) {
   // Checks if the user is the one that is working on the request
   if(!isActive(request.status_Num) && user.claims['username'] == request.assigned_User_ID) {

@@ -8,6 +8,7 @@ import 'package:change_case/change_case.dart';
 
 import '../templates/drawer.dart';
 import '../auth/auth.dart';
+import '../config/api_config.dart';
 
 class CaretakerRoute extends StatelessWidget {
   final User user;
@@ -437,9 +438,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
 
       try {
         // Send HTTP POST request
-        debugPrint(jsonEncode(finalPayload));
+        debugPrint('Posting to: ${ApiConfig.requestsAPI}');
         final response = await http.post(
-          Uri.parse('https://uuy1e4eofl.execute-api.us-east-1.amazonaws.com/requestsAPI'),
+          Uri.parse(ApiConfig.requestsAPI),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode(finalPayload),
         );

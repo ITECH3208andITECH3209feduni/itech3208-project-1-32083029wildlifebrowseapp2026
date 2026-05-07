@@ -488,7 +488,7 @@ class _SignInViewState extends State<SignInView> {
       } else if (user.claims['custom:role'] == 'Caretaker') {
         defaultView = '/caretaker';
       } else {
-        defaultView = '/landowner-registration';
+        defaultView = '/landholder-tutorial';
       }
       Navigator.of(context, rootNavigator: true).pushNamed(
         defaultView,

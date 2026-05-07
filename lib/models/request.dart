@@ -87,7 +87,7 @@ class Request {
     try {
       return Request(
         caretakerName: requestJson['caretakerName']?.toString() ?? '',
-        postcode: (requestJson['postcode'] as int?) ?? 0,
+        postcode: int.tryParse(requestJson['postcode'].toString()) ?? 0,
         address: requestJson['address']?.toString() ?? '',
         requestDetails: requestJson['requestDetails']?.toString(),
         request_ID: requestJson['request_ID']?.toString() ?? '',
