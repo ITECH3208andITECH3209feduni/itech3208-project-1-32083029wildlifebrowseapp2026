@@ -9,23 +9,23 @@ class BrowseListPage extends StatefulWidget {
   _BrowseListPageState createState() => _BrowseListPageState();
 }
 
-class _BrowseListPageState extends State<BrowseListPage>
-
- {
+class _BrowseListPageState extends State<BrowseListPage> {
   final List<Browse> allBrowses = [
     Browse(
       id: '1',
       commonName: 'Southern blue gum, Blue gum',
       latinName: 'Eucalyptus globulus',
       topImageUrl: 'assets/images/manna_gum_m_morey_01_copyright.jpg',
-      description: 'A species of flowering plant in the family Myrtaceae. It is a tall, evergreen tree, with four subspecies, all endemic to southeastern Australia',
+      description:
+          'A species of flowering plant in the family Myrtaceae. It is a tall, evergreen tree, with four subspecies, all endemic to southeastern Australia',
       leafShape: 'Lanceolate (Long narrow leaf shape pointed like a lance)',
       leafImageUrl: 'assets/images/manna_gum_m_morey_02_copyright.jpg',
       plantShape: 'Tall tree with a dense canopy',
       plantImageUrl: 'assets/images/manna_gum_m_morey_03_copyright.jpg',
       barkTexture: 'Usually smooth and white to cream-coloured',
       barkImageUrl: 'assets/images/manna_gum_m_morey_04_copyright.jpg',
-      flowers: 'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers',
+      flowers:
+          'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers',
       flowersImageUrl: 'assets/images/manna_gum_m_morey_05_copyright.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
@@ -34,14 +34,18 @@ class _BrowseListPageState extends State<BrowseListPage>
       commonName: 'Manna gum, White gum, Ribbon gum',
       latinName: 'Eucalyptus viminalis',
       topImageUrl: 'assets/images/blueGumNut.jpg',
-      description: 'Ranges in height from small to very tall, typically about 50m in height but can reach 90m. Endemic to southeastern Australia',
-      leafShape: 'Lanceolate (Long narrow leaf shape pointed like a lance) with a slight curve',
+      description:
+          'Ranges in height from small to very tall, typically about 50m in height but can reach 90m. Endemic to southeastern Australia',
+      leafShape:
+          'Lanceolate (Long narrow leaf shape pointed like a lance) with a slight curve',
       leafImageUrl: 'assets/images/blueGumLeaf.jpg',
       plantShape: 'Adult leaves are arranged alternately',
       plantImageUrl: 'assets/images/blueGumTree.jpg',
-      barkTexture: 'Has smooth, often powdery, white to pale brown bark that it sheds in long ribbons',
+      barkTexture:
+          'Has smooth, often powdery, white to pale brown bark that it sheds in long ribbons',
       barkImageUrl: 'assets/images/blueGumBark.jpg',
-      flowers: 'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers. Fruit are woody and cup-shaped',
+      flowers:
+          'Ribbed flower buds arranged singly or in groups of three or seven with white-coloured flowers. Fruit are woody and cup-shaped',
       flowersImageUrl: 'assets/images/blueGumFlower.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
@@ -61,7 +65,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       flowersImageUrl: 'assets/images/Banksia_04_M_Morey_flower_COPYRIGHT.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
-      Browse(
+    Browse(
       id: '4',
       commonName: 'Callistemon',
       latinName: 'Callistemon',
@@ -77,7 +81,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       flowersImageUrl: 'assets/images/Callistemon_flower.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
-      Browse(
+    Browse(
       id: '5',
       commonName: 'Camellia',
       latinName: 'Camellia',
@@ -93,7 +97,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       flowersImageUrl: 'assets/images/Camellia_M_Morey_flower_COPYRIGHT.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
-      Browse(
+    Browse(
       id: '6',
       commonName: 'Correa',
       latinName: 'Correa',
@@ -109,7 +113,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       flowersImageUrl: 'assets/images/Correa_M_Morey_flower_COPYRIGHT.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
-      Browse(
+    Browse(
       id: '7',
       commonName: 'Grevillea',
       latinName: 'Grevillea',
@@ -125,7 +129,7 @@ class _BrowseListPageState extends State<BrowseListPage>
       flowersImageUrl: 'assets/images/Grevillea_M_Morey_flower_COPYRIGHT.jpg',
       harvestingVideos: ['assets/videos/BWRAC_Eucalypt_Browse.mp4'],
     ),
-      Browse(
+    Browse(
       id: '8',
       commonName: 'Lilly Pilly',
       latinName: 'Lilly Pilly',
@@ -150,13 +154,11 @@ class _BrowseListPageState extends State<BrowseListPage>
     final filteredBrowses = allBrowses.where((browse) {
       final query = searchQuery.toLowerCase();
       return browse.commonName.toLowerCase().contains(query) ||
-             browse.latinName.toLowerCase().contains(query);
+          browse.latinName.toLowerCase().contains(query);
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Browse catalog"),
-      ),
+      appBar: AppBar(title: Text("Browse catalog")),
       body: Column(
         children: [
           Padding(
@@ -178,17 +180,32 @@ class _BrowseListPageState extends State<BrowseListPage>
               itemCount: filteredBrowses.length,
               itemBuilder: (context, index) {
                 final browse = filteredBrowses[index];
-                return ListTile(
-                  title: Text(browse.commonName),
-                  subtitle: Text(browse.latinName),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BrowseDetailPage(browse: browse),
-                      ),
-                    );
-                  },
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 28,
+                      backgroundImage: AssetImage(browse.topImageUrl),
+                    ),
+                    title: Text(
+                      browse.commonName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(browse.latinName),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BrowseDetailPage(browse: browse),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),
