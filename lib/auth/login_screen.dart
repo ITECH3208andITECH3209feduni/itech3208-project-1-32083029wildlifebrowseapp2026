@@ -482,14 +482,32 @@ class _SignInViewState extends State<SignInView> {
     try {
       await prefs.setString('password', password);
       final user = await _cognitoManager.signIn(email, password);
-      final String defaultView;
-      if (user.claims['custom:role'] == 'Gatherer') {
-        defaultView = '/request-board';
-      } else if (user.claims['custom:role'] == 'Caretaker') {
-        defaultView = '/caretaker';
-      } else {
-        defaultView = '/landholder-tutorial';
-      }
+
+final roleRaw = user.claims['custom:role']?.toString().trim();
+
+final role = roleRaw
+    ?.replaceAll('[', '')
+    .replaceAll(']', '')
+    .trim()
+    .toLowerCase();
+
+debugPrint("ROLE RAW IS: $roleRaw");
+debugPrint("ROLE CLEAN IS: $role");
+
+String defaultView;
+
+
+
+if (role == 'Gatherer' || role == 'gatherer') {
+  defaultView = '/request-board';
+} else if (role == 'landholder') {
+  defaultView = '/landholder-tutorial';
+} else if (role == 'Caretaker') {
+  defaultView = '/request-board'; // temporary
+} else {
+  defaultView = '/request-board';
+}
+debugPrint("GOING TO: $defaultView");
       Navigator.of(context, rootNavigator: true).pushNamed(
         defaultView,
         arguments: {'user': user},

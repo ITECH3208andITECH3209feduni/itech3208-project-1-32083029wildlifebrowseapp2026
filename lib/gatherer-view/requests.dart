@@ -14,13 +14,10 @@ import 'package:change_case/change_case.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 
-
 class GathererRoute extends StatelessWidget {
-
   final User user;
   const GathererRoute({super.key, required this.user});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -28,10 +25,11 @@ class GathererRoute extends StatelessWidget {
       theme: ThemeData(
         listTileTheme: const ListTileThemeData(textColor: Colors.black),
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(46, 165, 107, 1),
+        ),
         useMaterial3: true,
       ),
-      // Set username of Gatherer here
       home: GathererHomePage(title: 'Request Board', user: user),
     );
   }
@@ -56,49 +54,77 @@ Future<List<Request>> fetchRequests() async {
     final response = await http.get(Uri.parse(ApiConfig.requestsAPI));
 
     final Map<String, dynamic> responseData = json.decode(response.body);
-
     final Response requestResponse = Response.fromJson(responseData);
-    if (response.statusCode == 200) {
-      // Requests returned as an array
-      return requestResponse.items; 
 
+    if (response.statusCode == 200) {
+      return requestResponse.items;
     } else {
       throw Exception('Failed to load requests: ${response.statusCode}');
     }
-  } catch(e) {
+  } catch (e) {
     throw Exception('Error: $e');
   }
 }
+
 Future<bool> deleteRequest(String requestId, int statusNum) async {
   try {
     final response = await http.delete(
-      Uri.parse(
-        '${ApiConfig.requestsAPI}/$requestId/$statusNum'
-      ),
+      Uri.parse('${ApiConfig.requestsAPI}/$requestId/$statusNum'),
       headers: {
         'Content-Type': 'application/json',
       },
     );
 
     if (response.statusCode == 200 || response.statusCode == 204) {
-      print('Request deleted successfully');
+      debugPrint('Request deleted successfully');
       return true;
     } else {
-      print('Delete failed: ${response.statusCode}');
-      print(response.body);
+      debugPrint('Delete failed: ${response.statusCode}');
+      debugPrint(response.body);
       return false;
     }
   } catch (e) {
-    print('Error deleting request: $e');
+    debugPrint('Error deleting request: $e');
     return false;
   }
 }
 
-class _RequestBoardState extends State<GathererHomePage> with TickerProviderStateMixin {
+bool isGatherer(User user) {
+  final role = user.claims['custom:role']
+      .toString()
+      .toLowerCase()
+      .replaceAll('[', '')
+      .replaceAll(']', '')
+      .trim();
+
+  return role == 'gatherer';
+}
+
+class _RequestBoardState extends State<GathererHomePage>
+    with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
   late Future<List<Request>> futureRequests;
+
+  @override
+  void initState() {
+    super.initState();
+
+    futureRequests = fetchRequests();
+
+    _fadeController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
+
+    _fadeController.forward();
+  }
 
   @override
   void dispose() {
@@ -106,139 +132,133 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    futureRequests = fetchRequests();
-    _fadeController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
-    );
-
-    // Start animations
-    _fadeController.forward();
-  }
-
-  // Args passed from Request board initial state widget
-  // String animal = animal.animal_Name
-  // String browse = item.plant_Name
-  // int quantity = item.quantity
-  // int postcode = request.postcode
   Widget requestTile(Request request, User user, bool isWip) {
     Color tileColor;
 
-    // CHANGED: Highlight requests created by the user 
-    if (request.requester_ID == user.claims['username']) {
-      tileColor = const Color.fromARGB(255, 173, 216, 230); // Light blue
+    final currentUsername = user.claims['username'];
+    final bool acceptedByMe = request.assigned_User_ID == currentUsername;
+
+    final bool canDelete =
+        isGatherer(user) && request.status_Num == 2 && acceptedByMe;
+
+    if (request.requester_ID == currentUsername) {
+      tileColor = const Color.fromARGB(255, 173, 216, 230);
     } else if (isWip) {
-      tileColor = const Color.fromARGB(255, 255, 224, 156); // Orange-ish
+      tileColor = const Color.fromARGB(255, 255, 224, 156);
     } else {
-      tileColor = const Color.fromARGB(255, 246, 251, 244); // Default green-ish
+      tileColor = const Color.fromARGB(255, 246, 251, 244);
     }
 
     return Hero(
       tag: request.request_ID,
-      // Note if splash effects are needed, will need to change Card() to Material(), this will cause the margin to be lost
       child: Card(
         elevation: 4,
         child: ListTile(
           leading: CircleAvatar(
-            // Split and join the animal string so we can avoid 'space in path' issues when searching the image
             backgroundImage: AssetImage(
               'assets/images/${request.animal_ID.toLowerCase().split(" ").join("-")}.jpg',
             ),
             radius: 20,
           ),
-          
           title: Text(request.animal_ID),
-          subtitle: BrowseTileList(browses: request.getBrowseNames(), quantities: request.getBrowseQuantities()),
+          subtitle: BrowseTileList(
+            browses: request.getBrowseNames(),
+            quantities: request.getBrowseQuantities(),
+          ),
           trailing: SizedBox(
-  width: 120,
-  child: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Expanded(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              "${formatTimelapse(getTimelapse(request.timestamp))} ago",
-              style: isStale(getTimelapse(request.timestamp))
-                  ? const TextStyle(color: Colors.red)
-                  : const TextStyle(color: Colors.black),
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              'Postcode: ${request.postcode}',
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-      IconButton(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        onPressed: () async {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Delete Request'),
-              content: const Text('Are you sure you want to delete this request?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
+            width: canDelete ? 120 : 85,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        "${formatTimelapse(getTimelapse(request.timestamp))} ago",
+                        style: isStale(getTimelapse(request.timestamp))
+                            ? const TextStyle(color: Colors.red)
+                            : const TextStyle(color: Colors.black),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'Postcode: ${request.postcode}',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
+
+                if (canDelete)
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Request'),
+                          content: const Text(
+                            'Are you sure you want to delete this accepted request?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        final success = await deleteRequest(
+                          request.request_ID.toString(),
+                          request.status_Num,
+                        );
+
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? 'Deleted successfully'
+                                  : 'Delete failed',
+                            ),
+                          ),
+                        );
+
+                        if (success) {
+                          setState(() {
+                            futureRequests = fetchRequests();
+                          });
+                        }
+                      }
+                    },
+                  ),
               ],
             ),
-          );
-
-          if (confirm == true) {
-            final success = await deleteRequest(
-              request.request_ID.toString(),
-              request.status_Num,
-            );
-
-            if (!context.mounted) return; // 🔥 important
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  success ? 'Deleted successfully' : 'Delete failed',
+          ),
+          tileColor: tileColor,
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute<Widget>(
+                builder: (BuildContext context) => DetailedRequest(
+                  title: 'Request Details',
+                  request: request,
+                  user: user,
                 ),
               ),
             );
 
-            // 🔥 Remove item instantly from UI
-            
-          }
-        },
-      ),
-    ],
-  ),
-),
-          tileColor: tileColor,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<Widget>(
-                // Redirects from board to a detailed request page
-                builder:
-                    (BuildContext context) => DetailedRequest(
-                      title: 'Request Details',
-                      request: request,
-                      user: user,
-                    ),
-              ),
-            );
+            setState(() {
+              futureRequests = fetchRequests();
+            });
           },
         ),
       ),
@@ -246,127 +266,114 @@ class _RequestBoardState extends State<GathererHomePage> with TickerProviderStat
   }
 
   @override
-  // Request board initial state
   Widget build(BuildContext context) {
-    // *************************************
-    // JSON parsed and variables initialised
-    // Set json file to parse here
-    // Args across gatherer's side of app are updated from here
-    // *************************************
-    // Request = jsonToObject(testRequestJson); // Pass the Json, returning a 3 objects, request, item and animal
-
     const String appTitle = 'Requests';
-    final String username = widget.user.claims['given_name'].toString().toCapitalCase();
-    // TODO iterate over requests here
+
+    final String username =
+        widget.user.claims['given_name'].toString().toCapitalCase();
 
     return MaterialApp(
       theme: ThemeData(
         listTileTheme: const ListTileThemeData(textColor: Colors.black),
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(46, 165, 107, 1),
+        ),
         useMaterial3: true,
       ),
       title: appTitle,
-      // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
       home: SafeArea(
         minimum: const EdgeInsets.all(12.0),
         child: Scaffold(
           backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            title: Text(appTitle),
-            // Icon to move to caretaker order request page
+            title: const Text(appTitle),
             actions: [
               IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
-                tooltip: 'Make a order request',
+                tooltip: 'Make an order request',
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pushNamed(
-                    '/caretaker', 
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                    '/caretaker',
                     arguments: {'user': widget.user},
-                    );
+                  );
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.edit_location_outlined),
                 tooltip: 'List/Register a listing',
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pushNamed(
-                    '/landowner-tutorial', 
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                    '/landowner-tutorial',
                     arguments: {'user': widget.user},
-                    );
+                  );
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.search),
                 tooltip: 'Explore browse',
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pushNamed(
-                    '/education'
-                    );
+                  Navigator.of(context, rootNavigator: true)
+                      .pushNamed('/education');
                 },
               ),
             ],
           ),
-          drawer: UserDrawer(username: username, user: widget.user,),
-          // Request board area
+          drawer: UserDrawer(username: username, user: widget.user),
           body: FutureBuilder<List<Request>>(
             future: futureRequests,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (snapshot.hasError) {
                 return Center(child: Text('Snapshot Error: ${snapshot.error}'));
               }
-              
+
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('No requests found'));
+                return const Center(child: Text('No requests found'));
               }
-              
+
               List<Request> allRequests = snapshot.data!;
 
-              // Filter the requests before build
               final filteredRequests = allRequests.where((request) {
-                final isUserAssigned = widget.user.claims['username'] == request.assigned_User_ID;
-                return isActive(request.status_Num) || 
-                      (!isActive(request.status_Num) && isUserAssigned);
+                final isUserAssigned =
+                    widget.user.claims['username'] == request.assigned_User_ID;
+
+                return isActive(request.status_Num) ||
+                    (!isActive(request.status_Num) && isUserAssigned);
               }).toList();
 
-              // Sorts listing by postcode low to high after subtracting user's postcode
-              // This assumes that the lowest postcode number to the user is actually closest geographically
-              int userLocation = int.parse(widget.user.claims['custom:postcode']);
-              filteredRequests.sort((a,b) {
-                int c = max(a.postcode, userLocation) - min(a.postcode, userLocation);
-                int d = max(b.postcode, userLocation) - min(b.postcode, userLocation);
+              int userLocation =
+                  int.parse(widget.user.claims['custom:postcode']);
+
+              filteredRequests.sort((a, b) {
+                int c = max(a.postcode, userLocation) -
+                    min(a.postcode, userLocation);
+                int d = max(b.postcode, userLocation) -
+                    min(b.postcode, userLocation);
                 return c.compareTo(d);
               });
 
-              // Moves requests that are WIP (status_Num = 2) to top of list above posted requests (status_Num = 1)
-              filteredRequests.sort((a,b) {
+              filteredRequests.sort((a, b) {
                 return b.status_Num.compareTo(a.status_Num);
               });
 
-              return ListView.builder(
-                itemCount: filteredRequests.length,
-                itemBuilder: (context, index) {
-                  final request = filteredRequests[index];
-                  final isWip = !isActive(request.status_Num);
-                  
-                  return requestTile(request, widget.user, isWip);
-                },
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: ListView.builder(
+                  itemCount: filteredRequests.length,
+                  itemBuilder: (context, index) {
+                    final request = filteredRequests[index];
+                    final isWip = !isActive(request.status_Num);
+
+                    return requestTile(request, widget.user, isWip);
+                  },
+                ),
               );
-            }
+            },
           ),
         ),
       ),
@@ -385,49 +392,49 @@ class DetailedRequest extends StatefulWidget {
   final String title;
   final Request request;
   final User user;
-  
+
   @override
   State<DetailedRequest> createState() => _DetailedRequestState();
 }
 
 class _DetailedRequestState extends State<DetailedRequest> {
+  Future<void> _maybeShowOfflineNotice() async {
+    final prefs = await SharedPreferences.getInstance();
+    final shown = prefs.getBool('offlineNoticeShown') ?? false;
 
-  // I added: once-per-session offline reminder for no reception
-Future<void> _maybeShowOfflineNotice() async {
-  final prefs = await SharedPreferences.getInstance();
-  final shown = prefs.getBool('offlineNoticeShown') ?? false;
+    if (!shown) {
+      if (!mounted) return;
 
-  if (!shown) {
-    if (!mounted) return;
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Offline reminder'),
-          content: const Text(
-            'Please screenshot this request and the relevant landholder listings and browse pages. '
-            'Some images may not load without mobile reception when gathering browse.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Offline reminder'),
+            content: const Text(
+              'Please screenshot this request and the relevant landholder listings and browse pages. '
+              'Some images may not load without mobile reception when gathering browse.',
             ),
-          ],
-        );
-      },
-    );
-    await prefs.setBool('offlineNoticeShown', true);
-  }
-}
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
 
-// I added: once-per-session environmental care reminder (Scrum-197)
+      await prefs.setBool('offlineNoticeShown', true);
+    }
+  }
+
   Future<void> _maybeShowEnvironmentalCareNotice() async {
     final prefs = await SharedPreferences.getInstance();
     final shown = prefs.getBool('environmentalCareNoticeShown') ?? false;
 
     if (!shown) {
       if (!mounted) return;
+
       await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -446,6 +453,7 @@ Future<void> _maybeShowOfflineNotice() async {
           );
         },
       );
+
       await prefs.setBool('environmentalCareNoticeShown', true);
     }
   }
@@ -457,31 +465,32 @@ Future<void> _maybeShowOfflineNotice() async {
           width: 100,
           height: 100,
           child: Image(
-            // Split and join the animal string so we can avoid 'space in path' issues when searching the image
-            image: AssetImage('assets/images/${request.animal_ID.toLowerCase().split(" ").join("-")}.jpg'),
+            image: AssetImage(
+              'assets/images/${request.animal_ID.toLowerCase().split(" ").join("-")}.jpg',
+            ),
             fit: BoxFit.cover,
           ),
         ),
         Column(
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                'Animal: ${request.animal_ID}', // TODO Need to give proper padding
-                style: TextStyle(
+                'Animal: ${request.animal_ID}',
+                style: const TextStyle(
                   color: Color.fromARGB(235, 16, 17, 17),
                   fontWeight: FontWeight.bold,
-                  ),
+                ),
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Text(
-                'Caretaker: ${request.caretakerName}', // TODO Need to give proper padding
-                style: TextStyle(
+                'Caretaker: ${request.caretakerName}',
+                style: const TextStyle(
                   color: Color.fromARGB(235, 16, 17, 17),
                   fontWeight: FontWeight.bold,
-                  ),
+                ),
               ),
             ),
           ],
@@ -542,7 +551,7 @@ Future<void> _maybeShowOfflineNotice() async {
         child: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.all(Radius.circular(15)),
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),
@@ -550,30 +559,33 @@ Future<void> _maybeShowOfflineNotice() async {
                 blurRadius: 4,
                 spreadRadius: 3,
               ),
-            ]
+            ],
           ),
           child: Padding(
-            padding: EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DefaultTextStyle(
+                const DefaultTextStyle(
                   style: TextStyle(
-                    color: const Color.fromARGB(255, 230, 230, 230),
+                    color: Color.fromARGB(255, 230, 230, 230),
                   ),
                   child: Text(
                     "Browse Needed",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold
-                    ),
-                  )
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                BrowseQuantityList(browses: browses, quantities: quantities, types: types, fontColor:Color.fromARGB(255, 230, 230, 230)),
+                BrowseQuantityList(
+                  browses: browses,
+                  quantities: quantities,
+                  types: types,
+                  fontColor: const Color.fromARGB(255, 230, 230, 230),
+                ),
               ],
-            )
-          )
-        )
-      )
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -581,26 +593,25 @@ Future<void> _maybeShowOfflineNotice() async {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Column(
-        // Need this to force left alignment of children
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(Icons.call_to_action_outlined, size: 14),
               Text(
-                "Request Details:", 
+                "Request Details:",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-            ], 
+            ],
           ),
           Text(
             details,
-            style: TextStyle(
+            style: const TextStyle(
               fontStyle: FontStyle.italic,
               inherit: false,
-              ),
             ),
-        ]
+          ),
+        ],
       ),
     );
   }
@@ -611,19 +622,19 @@ Future<void> _maybeShowOfflineNotice() async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(Icons.place, size: 14),
               Text(
                 "Delivery address:",
                 style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-            ], 
+              ),
+            ],
           ),
           isShowAddress(widget.request, widget.user)
-            ? SelectableText("$address, $postcode")
-            : SelectableText("Postcode: $postcode"),
-        ]
+              ? SelectableText("$address, $postcode")
+              : SelectableText("Postcode: $postcode"),
+        ],
       ),
     );
   }
@@ -634,12 +645,13 @@ Future<void> _maybeShowOfflineNotice() async {
       child: RichText(
         text: TextSpan(
           children: [
-            WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
+            const WidgetSpan(child: Icon(Icons.timelapse, size: 14)),
             TextSpan(
-              text: " Submitted ${formatTimelapse(getTimelapse(request.timestamp))} ago",
-              style: isStale(getTimelapse(request.timestamp)) 
-                ? TextStyle(color: Colors.red)
-                : TextStyle(color: Colors.black)
+              text:
+                  " Submitted ${formatTimelapse(getTimelapse(request.timestamp))} ago",
+              style: isStale(getTimelapse(request.timestamp))
+                  ? const TextStyle(color: Colors.red)
+                  : const TextStyle(color: Colors.black),
             ),
           ],
         ),
@@ -647,37 +659,58 @@ Future<void> _maybeShowOfflineNotice() async {
     );
   }
 
-  Widget requestButtons(request) {
+  Widget requestButtons(Request request) {
+    final bool canAccept = isGatherer(widget.user) &&
+        widget.user.claims['username'] != request.requester_ID &&
+        request.status_Num == 1;
+
+    if (!canAccept) {
+      return Container();
+    }
+
     return Padding(
-      padding: EdgeInsets.fromLTRB(15, 0, 15, 15),
+      padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
           Flexible(
             child: TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: Color.fromARGB(218, 166, 247, 146),
-                minimumSize: Size(101, 38),
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                backgroundColor: const Color.fromARGB(218, 166, 247, 146),
+                minimumSize: const Size(101, 38),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
               ),
-              // I added: offline reminder before accepting (Scrum-191)
               onPressed: () async {
-                await _maybeShowOfflineNotice(); 
+                await _maybeShowOfflineNotice();
                 await _maybeShowEnvironmentalCareNotice();
-                
-                // I added Accept button action (unchanged)
+
                 setState(() {
                   request.assignGatherer = widget.user.claims['username'];
                   request.updateState = 2;
-                  
-                  // Sends updated request to database        
-                  updateRequest(request);
-                  });
-                  },
-              child: Text(
+                });
+
+                final success = await updateRequest(request);
+
+                if (!mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Request accepted successfully'
+                          : 'Failed to accept request',
+                    ),
+                  ),
+                );
+
+                if (success) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text(
                 'Accept',
                 style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
                 textAlign: TextAlign.center,
@@ -687,10 +720,10 @@ Future<void> _maybeShowOfflineNotice() async {
           Flexible(
             child: TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: Color.fromARGB(218, 250, 250, 250),
-                side: BorderSide(color: Colors.black12),
-                minimumSize: Size(101, 38),
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                backgroundColor: const Color.fromARGB(218, 250, 250, 250),
+                side: const BorderSide(color: Colors.black12),
+                minimumSize: const Size(101, 38),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
@@ -698,7 +731,7 @@ Future<void> _maybeShowOfflineNotice() async {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text(
+              child: const Text(
                 'Close',
                 style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
                 textAlign: TextAlign.center,
@@ -711,77 +744,150 @@ Future<void> _maybeShowOfflineNotice() async {
   }
 
   Widget showListings(browseFilter) {
+    final bool acceptedByMe =
+        widget.request.assigned_User_ID == widget.user.claims['username'];
+
+    final bool canSeeListings =
+        isGatherer(widget.user) && widget.request.status_Num == 2 && acceptedByMe;
+
+    if (!canSeeListings) {
+      return Container();
+    }
+
     return TextButton.icon(
       icon: const Icon(Icons.edit_location_outlined),
-      label: Text('See nearby browse'),
+      label: const Text('See nearby browse'),
       onPressed: () {
-          Navigator.of(
-            context,
-            rootNavigator: true,
-          ).pushNamed(
-            '/landowner', 
-            arguments: {'user': widget.user, 'browseFilter': browseFilter},
-            );
-        },
-      );
+        Navigator.of(context, rootNavigator: true).pushNamed(
+          '/landowner',
+          arguments: {
+            'user': widget.user,
+            'browseFilter': browseFilter,
+          },
+        );
+      },
+    );
   }
 
-  // Builder for detail requests
   @override
   Widget build(BuildContext context) {
+    final bool acceptedByMe =
+        widget.request.assigned_User_ID == widget.user.claims['username'];
+
+    final bool canDelete = isGatherer(widget.user) &&
+        widget.request.status_Num == 2 &&
+        acceptedByMe;
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-      appBar: AppBar(title: Text('${widget.request.animal_ID} request')),
-      // Detailed request view
+      appBar: AppBar(
+        title: Text('${widget.request.animal_ID} request'),
+        actions: [
+          if (canDelete)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Delete accepted request',
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Request'),
+                    content: const Text(
+                      'Are you sure you want to delete this accepted request?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  final success = await deleteRequest(
+                    widget.request.request_ID.toString(),
+                    widget.request.status_Num,
+                  );
+
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success ? 'Deleted successfully' : 'Delete failed',
+                      ),
+                    ),
+                  );
+
+                  if (success) {
+                    Navigator.pop(context);
+                  }
+                }
+              },
+            ),
+        ],
+      ),
       body: ListView(
-        padding: EdgeInsets.only(left: 30.0),
+        padding: const EdgeInsets.only(left: 30.0),
         children: <Widget>[
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               header(widget.request),
-              const SizedBox(height: 10.0), // TODO May need to change this to a relative unit
+              const SizedBox(height: 10.0),
               disclaimer(),
               const SizedBox(height: 10.0),
-              browsePanel(widget.request.getBrowseNames(), widget.request.getBrowseQuantities(), widget.request.getBrowseTypes()),
+              browsePanel(
+                widget.request.getBrowseNames(),
+                widget.request.getBrowseQuantities(),
+                widget.request.getBrowseTypes(),
+              ),
               const SizedBox(height: 10.0),
               Align(
                 alignment: Alignment.bottomLeft,
                 child: IntrinsicWidth(
                   child: Container(
                     decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 247, 234, 118),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        offset: Offset.zero,
-                        blurRadius: 4,
-                        spreadRadius: 3,
-                      ),
-                    ]
-                  ),
+                      color: const Color.fromARGB(255, 247, 234, 118),
+                      borderRadius: const BorderRadius.all(Radius.circular(15)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          offset: Offset.zero,
+                          blurRadius: 4,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
                     child: Padding(
-                      padding: EdgeInsets.all(15),
+                      padding: const EdgeInsets.all(15),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          deliveryAddress(widget.request.address.toString().toCapitalCase(), widget.request.postcode),
+                          deliveryAddress(
+                            widget.request.address.toString().toCapitalCase(),
+                            widget.request.postcode,
+                          ),
                           const SizedBox(height: 10.0),
-                          widget.request.requestDetails != null ? requestDetails(widget.request.requestDetails): Container(),
+                          widget.request.requestDetails != null
+                              ? requestDetails(widget.request.requestDetails)
+                              : Container(),
                           const SizedBox(height: 10.0),
                           timelapse(widget.request),
-                        ]
-                      )
-                    )
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 20.0),
-              // Checks if the user viewing isn't the creator of the request and that the request isn't WIP, if both true then show the accept button
-              (widget.user.claims['username'] != widget.request.requester_ID) && (widget.request.status_Num != 2) ? requestButtons(widget.request): Container(),
-              // Checks if the user viewing isn't the creator of the reuqest and that the request IS a WIP, if both true then show landholders with the browse listed on request
-              (widget.user.claims['username'] != widget.request.requester_ID) && (widget.request.status_Num == 2) ? showListings(widget.request.getBrowseNames()): Container(),
+              requestButtons(widget.request),
+              showListings(widget.request.getBrowseNames()),
             ],
           ),
         ],
@@ -790,17 +896,11 @@ Future<void> _maybeShowOfflineNotice() async {
   }
 }
 
-// Could prob shorten this
 bool isActive(state) {
-  if(state == 1) {
-    return true;
-  } else {
-    return false;
-  }
+  return state == 1;
 }
 
 String getTimelapse(requestTime) {
-  // Will need to handle parsing better once dealing with different timezones, use toUTC or toLocal?
   DateTime parsedDate = DateTime.parse(requestTime);
   Duration difference = DateTime.now().difference(parsedDate);
   int parsedDifference = difference.inSeconds;
@@ -809,44 +909,37 @@ String getTimelapse(requestTime) {
   int hoursElapsed = (parsedDifference % (24 * 3600)) ~/ 3600;
   int minutesElapsed = (parsedDifference % 3600) ~/ 60;
 
-  String timelapse = '$daysElapsed:$hoursElapsed:$minutesElapsed';
-
-  return timelapse;
+  return '$daysElapsed:$hoursElapsed:$minutesElapsed';
 }
 
 String formatTimelapse(timelapse) {
-  List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
+  List<int> timeParts =
+      timelapse.split(":").map<int>((str) => int.parse(str)).toList();
 
   int daysElapsed = timeParts[0];
   int hourElapsed = timeParts[1];
   int minElapsed = timeParts[2];
 
-  if(daysElapsed != 0) {
-    timelapse = '$daysElapsed days';
+  if (daysElapsed != 0) {
+    return '$daysElapsed days';
+  } else if (hourElapsed != 0) {
+    return '${hourElapsed}h ${minElapsed}m';
   } else {
-    if(hourElapsed != 0) {
-      timelapse = '${hourElapsed}h ${minElapsed}m';
-      
-    } else {
-      timelapse = '${minElapsed}m';
-    }
+    return '${minElapsed}m';
   }
-
-  return timelapse;
 }
 
 bool isStale(timelapse) {
-  List<int> timeParts = timelapse.split(":").map<int>((str) => int.parse(str)).toList();
+  List<int> timeParts =
+      timelapse.split(":").map<int>((str) => int.parse(str)).toList();
 
-  // timeParts[0] = Days elapsed
-  // timeParts[1] = Hours elapsed
   return timeParts[0] > 0 || timeParts[1] > 15;
 }
 
-void updateRequest(Request updatedRequest) async {
+Future<bool> updateRequest(Request updatedRequest) async {
   try {
-    print('PATCH URL: ${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2');
-    print('PATCH BODY: ${jsonEncode(updatedRequest.toJson())}');
+    debugPrint('PATCH URL: ${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2');
+    debugPrint('PATCH BODY: ${jsonEncode(updatedRequest.toJson())}');
 
     final response = await http.patch(
       Uri.parse('${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2'),
@@ -854,29 +947,32 @@ void updateRequest(Request updatedRequest) async {
       body: jsonEncode(updatedRequest.toJson()),
     );
 
-    print('PATCH status: ${response.statusCode}');
-    print('PATCH response: ${response.body}');
+    debugPrint('PATCH status: ${response.statusCode}');
+    debugPrint('PATCH response: ${response.body}');
 
     if (response.statusCode == 200) {
-      print('Update successfully saved');
+      debugPrint('Update successfully saved');
+      return true;
     } else {
-      print('Server Error: ${response.statusCode}');
+      debugPrint('Server Error: ${response.statusCode}');
       debugPrint(response.body);
+      return false;
     }
   } catch (e) {
-    print('Failed to update request: $e');
+    debugPrint('Failed to update request: $e');
+    return false;
   }
 }
+
 bool isShowAddress(Request request, User user) {
-  // Checks if the user is the one that is working on the request
-  if(!isActive(request.status_Num) && user.claims['username'] == request.assigned_User_ID) {
+  if (!isActive(request.status_Num) &&
+      user.claims['username'] == request.assigned_User_ID) {
     return true;
   }
-  // Checks if the user is the one that created the request
+
   if (user.claims['username'] == request.requester_ID) {
     return false;
-  }  
-  else {
+  } else {
     return false;
   }
 }

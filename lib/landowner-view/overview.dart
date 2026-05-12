@@ -113,10 +113,13 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
             Text('Phone: $phone'),
             if (browseData.isNotEmpty)
               Text('Browse: ${browseData.join(", ")}'),
+            const SizedBox(height: 6),
+            const Text(
+              'Tap to view Landholder Profile',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
-
-        // 🔴 DELETE BUTTON
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () async {
@@ -129,25 +132,25 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
             debugPrint('DELETE RESPONSE: ${response.statusCode}');
             debugPrint(response.body);
 
-            if (response.statusCode == 200 ||
-                response.statusCode == 204) {
+            if (response.statusCode == 200 || response.statusCode == 204) {
               setState(() {
                 futureLandholders = fetchLandholders();
               });
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text('Listing deleted successfully')),
+                  content: Text('Listing deleted successfully'),
+                ),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text('Failed to delete listing')),
+                  content: Text('Failed to delete listing'),
+                ),
               );
             }
           },
         ),
-
         onTap: () {
           Navigator.push(
             context,
@@ -162,12 +165,13 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String username = widget.user.claims['given_name'];
+    final String username =
+        widget.user.claims['given_name']?.toString() ?? 'User';
 
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(
-        title: const Text('Nearby places to find browse'),
+        title: const Text('Landholder Dashboard'),
         actions: [
           TextButton(
             child: const Text('Create Listing'),
@@ -194,7 +198,8 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
-                child: Text('No landholder listings found'));
+              child: Text('No landholder listings found'),
+            );
           }
 
           final landholders = snapshot.data!;

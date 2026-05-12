@@ -4,7 +4,7 @@ import '../donate.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({super.key, required this.username, required this.user});
-  
+
   final User user;
   final String username;
 
@@ -13,67 +13,62 @@ class UserDrawer extends StatefulWidget {
 }
 
 class _UserDrawer extends State<UserDrawer> {
-  
-  // String selectedDrawerPage = '';
-  GestureTapCallback drawerButton(String page, User user) {
+  GestureTapCallback drawerButton(String page) {
     return () {
-      setState(() {
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pushNamed(
-          page,
-          arguments: {'user': widget.user},
-        );
-      });
       Navigator.pop(context);
+
+      Navigator.of(context, rootNavigator: true).pushNamed(
+        page,
+        arguments: {'user': widget.user},
+      );
     };
   }
 
   @override
   Widget build(BuildContext context) {
+    final role = widget.user.claims['custom:role']
+        ?.toString()
+        .replaceAll('[', '')
+        .replaceAll(']', '')
+        .trim()
+        .toLowerCase();
+
     return Drawer(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: BoxDecoration(color: Color.fromRGBO(46, 165, 107, 1)),
+            decoration: const BoxDecoration(
+              color: Color.fromRGBO(46, 165, 107, 1),
+            ),
             child: Text(
               'Hi ${widget.username}',
-              style: TextStyle(color: Colors.white, fontSize: 24),
+              style: const TextStyle(color: Colors.white, fontSize: 24),
             ),
           ),
-          // ListTile(
-          // leading: const Icon(Icons.message),
-          // title: const Text('Messages'),
-          // onTap: drawerButton('Messages'),
-          // ),
+
           ListTile(
             leading: const Icon(Icons.account_circle),
-            title: const Text('Your account'),
-            onTap: drawerButton('/profile', widget.user),
+            title: const Text('Your Account'),
+            onTap: drawerButton('/profile'),
           ),
 
-          // I added: quick access to Landowner Profile (Scrum-153)
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text('Landowner Profile'),
-            onTap: drawerButton('/profile', widget.user),
-          ),
+          if (role == 'landholder')
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('Landholder Profile'),
+              onTap: drawerButton('/landowner'),
+            ),
 
           ListTile(
             leading: const Icon(Icons.volunteer_activism),
             title: const Text('Support / Donate'),
             onTap: () {
-              Donate.openPayPal(); 
+              Navigator.pop(context);
+              Donate.openPayPal();
             },
           ),
-          // ListTile(
-          // leading: const Icon(Icons.settings),
-          // title: const Text('Settings'),
-          // onTap: drawerButton('/settings', widget.user),
-          // ),
         ],
       ),
     );

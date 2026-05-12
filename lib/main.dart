@@ -24,27 +24,45 @@ void main() async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: hasAgreed ? '/login' : '/agreement',
+
       routes: {
         '/agreement': (context) => const AgreementScreen(),
+
         '/login': (context) => const LoginScreen(),
 
+        // =========================
+        // GATHERER
+        // =========================
         '/request-board': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
 
-          return GathererRoute(user: args['user']);
+          return GathererRoute(
+            user: args['user'],
+          );
         },
 
+        // =========================
+        // CARETAKER
+        // =========================
         '/caretaker': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
 
-          return CaretakerRoute(user: args['user']);
+          return CaretakerRoute(
+            user: args['user'],
+          );
         },
 
+        // =========================
+        // LANDHOLDER HOME
+        // =========================
         '/landowner': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
 
           return LandownerRoute(
             user: args['user'],
@@ -53,29 +71,50 @@ void main() async {
           );
         },
 
+        // =========================
+        // LANDHOLDER TUTORIAL
+        // =========================
         '/landholder-tutorial': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
 
-          return LandholderTutorial(user: args['user']);
+          return LandholderTutorial(
+            user: args['user'],
+          );
         },
 
+        // =========================
+        // LANDHOLDER REGISTRATION
+        // =========================
         '/landowner-registration': (context) {
-          final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+  final args =
+      ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-          return LandownerRegistration(user: args['user']);
-        },
+  return LandownerRegistration(
+    user: args['user'],
+    existingListing: args['existingListing'],
+  );
+},
 
+        // =========================
+        // EDUCATION
+        // =========================
         '/education': (context) {
           return BrowseListPage();
         },
 
+        // =========================
+        // PROFILE
+        // =========================
         '/profile': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
 
-          return ProfileRoute(user: args['user']);
+          return ProfileRoute(
+            user: args['user'],
+          );
         },
       },
     ),

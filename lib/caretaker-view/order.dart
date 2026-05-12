@@ -20,10 +20,11 @@ class CaretakerRoute extends StatelessWidget {
       title: 'Order Request',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(46, 165, 107, 1),
+        ),
         useMaterial3: true,
       ),
-      // Set username of caretaker here
       home: CaretakerHomePage(title: 'Order Request', user: user),
     );
   }
@@ -39,14 +40,17 @@ class DeliveryItem {
     required this.browseName,
     required this.browseAmount,
     required this.amountType,
-
     this.isSelected = false,
   });
 }
 
 class CaretakerHomePage extends StatefulWidget {
-  const CaretakerHomePage({super.key, required this.title, required this.user});
-  
+  const CaretakerHomePage({
+    super.key,
+    required this.title,
+    required this.user,
+  });
+
   final String title;
   final User user;
 
@@ -54,15 +58,27 @@ class CaretakerHomePage extends StatefulWidget {
   State<CaretakerHomePage> createState() => _CaretakerHomePageState();
 }
 
-class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTickerProviderStateMixin {
+class _CaretakerHomePageState extends State<CaretakerHomePage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormBuilderState>();
-  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = 
-    GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
-  // List of delivery items
   List<DeliveryItem> _deliveryItems = [];
 
   String selectedDrawerPage = '';
+  bool disabledOnAddItem = true;
+
+  bool get isCaretaker {
+    final role = widget.user.claims['custom:role']
+        .toString()
+        .toLowerCase()
+        .replaceAll('[', '')
+        .replaceAll(']', '')
+        .trim();
+
+    return role == 'caretaker';
+  }
 
   GestureTapCallback drawerButton(String page) {
     return () {
@@ -73,21 +89,22 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
     };
   }
 
-  bool disabledOnAddItem = true;
-
   @override
   Widget build(BuildContext context) {
     const String appTitle = 'Order';
-    final String username = widget.user.claims['given_name'].toString().toCapitalCase();
+
+    final String username =
+        widget.user.claims['given_name'].toString().toCapitalCase();
 
     return MaterialApp(
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(46, 165, 107, 1),
+        ),
         useMaterial3: true,
       ),
       title: appTitle,
-      // SafeArea ensures that the view isn't obstructed by phone notch/status bar/bezel
       home: SafeArea(
         minimum: const EdgeInsets.all(12.0),
         child: ScaffoldMessenger(
@@ -96,7 +113,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
             backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
             appBar: AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              title: Text(appTitle),
+              title: const Text(appTitle),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.pageview_outlined),
@@ -105,264 +122,320 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
                     Navigator.of(context, rootNavigator: true).pushNamed(
                       '/request-board',
                       arguments: {'user': widget.user},
-                      );
+                    );
                   },
                 ),
+
+                // Landholder listing button
                 IconButton(
                   icon: const Icon(Icons.edit_location_outlined),
                   tooltip: 'Register/View your listing',
                   onPressed: () {
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pushNamed(
-                      '/landowner-registration', 
+                    Navigator.of(context, rootNavigator: true).pushNamed(
+                      '/landowner-registration',
                       arguments: {'user': widget.user},
-                      );
+                    );
                   },
                 ),
+
                 IconButton(
                   icon: const Icon(Icons.search),
                   tooltip: 'Explore browse',
                   onPressed: () {
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pushNamed(
-                      '/education'
-                      );
+                    Navigator.of(context, rootNavigator: true)
+                        .pushNamed('/education');
                   },
                 ),
               ],
             ),
             drawer: UserDrawer(username: username, user: widget.user),
-            body: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: FormBuilder(
-                key: _formKey, 
-                child: ListView(
-                children: [
-                  SizedBox(height:16),
-                  FormBuilderTextField(
-                    name: 'caretakerName',
-                    initialValue: "${widget.user.claims['given_name'].toString().toCapitalCase()} ${widget.user.claims['family_name'].toString().toCapitalCase()}",
-                    decoration: const InputDecoration(
-                      labelText: 'Full name',
-                      contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
-                    ),
-                    validator: FormBuilderValidators.compose(
-                        [
-                          FormBuilderValidators.required(),
-                          // Full name regex matches two or more words and handles cases such as O'Connor and Eastman-Smart
-                          FormBuilderValidators.match(
-                            RegExp(r"^[a-zA-Z]+([-' ][a-zA-Z]+)*\s+[a-zA-Z]+([-' ][a-zA-Z]+)*$"), 
-                            errorText: 'Please enter your first and last name'
-                          )
-                        ]),
-                    onChanged: (val) {
-                        print(val); // Print the text value write into TextField
-                    },
-                  ),
-                  SizedBox(height:16),
-                  FormBuilderTextField(
-                      name: 'address',
-                      initialValue: widget.user.claims['custom:address'].toString().toCapitalCase(),
-                      decoration: const InputDecoration(
-                        labelText: 'Address',
-                        contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
-                      ),
-                      validator: FormBuilderValidators.compose(
-                          [
-                            FormBuilderValidators.required(),
-                            // Regex will pass following variations: 407/82 Hay St, A314/1 O'Brien Street, (LOT1022) 60 Johnston Rd, 17 Jump St, LOT1022 Johnston Rd, (LOT1022) Johnston Rd
-                            // Regex uses negative lookaheads in the optional 1st group and 2nd group to not pass if there's a 0 in the format 0/1, A0/1, (LOT0000), LOT0000 or 0
-                            // More advanced validation will require an API
-                            FormBuilderValidators.street(regex: RegExp(r"^(?![A-Za-z]*0|\(?LOT0000)([a-zA-Z0-9\/\(\)]*)\s?(?!0)[1-9]*[0-9]*\s[a-zA-Z']+\s[a-zA-Z]+$")),
-                            FormBuilderValidators.minWordsCount(3)
-                          ]),
-                      onChanged: (val) {
-                          print(val); // Print the text value write into TextField
-                      },
-                  ),
-                  SizedBox(height:16),
-                  FormBuilderTextField(
-                      name: 'postcode',
-                      initialValue: "${widget.user.claims['custom:postcode']}",
-                      decoration: const InputDecoration(
-                        labelText: 'Postcode',
-                        contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
-                      ),
-                      validator: FormBuilderValidators.compose(
-                          [
-                            FormBuilderValidators.required(),
-                            FormBuilderValidators.integer(),
-                            FormBuilderValidators.equalLength(4),
-                            FormBuilderValidators.positiveNumber()
+            body: isCaretaker
+                ? _buildCaretakerOrderForm()
+                : _buildAccessDeniedMessage(),
+          ),
+        ),
+      ),
+    );
+  }
 
-                          ]),
-                      onChanged: (val) {
-                          print(val); // Print the text value write into TextField
-                      },
+  Widget _buildAccessDeniedMessage() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Card(
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  size: 48,
+                  color: Colors.redAccent,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Access Denied',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
-                  SizedBox(height:16),
-                  FormBuilderTextField(
-                    name: 'requestDetails',
-                    decoration: const InputDecoration(
-                      labelText: 'Please add additional requests to your request here (Optional)',
-                      contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
-                    ),
-                    onChanged: (val) {
-                        print(val); // Print the text value write into TextField
-                    },
-                  ),
-                  SizedBox(height:16),
-                  FormBuilderDropdown<String>(
-                    name: 'animal_ID', 
-                    initialValue: 'Ring-tailed Possum',
-                    // Prevents changing of animal after a user clicks 'Add delivery item' button
-                    enabled: disabledOnAddItem,
-                    decoration: InputDecoration(
-                      labelText: 'Animal',
-                      hintText: 'Select Animal'
-                    ),
-                    items: ['Koala','Ring-tailed Possum', 'Brush-tailed Possum', 'Kangaroo', 'Wombat', 'Kookaburra']
-                      .map((animal) => DropdownMenuItem(
-                            alignment: AlignmentDirectional.center,
-                            value: animal,
-                            child: Text(animal),
-                          ))
-                      .toList(growable: false),
-                    validator: FormBuilderValidators.compose(
-                      [FormBuilderValidators.required()]
-                    ),
-                    onChanged: (selectedAnimal) {
-                      print(selectedAnimal); // Print the text value write into TextField
-                    },
-                  ),
-                  SizedBox(height:16),
-                  FormBuilderDropdown<String>(
-                    name: 'browseData', 
-                    initialValue: 'Manna Gum (Eucalyptus viminalis)',
-                    decoration: const InputDecoration(
-                      labelText: 'Browse',
-                      hintText: 'Select Browse'
-                    ),
-                    items: ['Tasmanian Blue Gum (Eucalyptus globulus)', 'Manna Gum (Eucalyptus viminalis)', 'Banksia','Callistemon', 'Camellia', 'Correa', 'Grevillea', 'Lilly Pilly', 'Mealworms']
-                      .map((browse) => DropdownMenuItem(
-                            alignment: AlignmentDirectional.center,
-                            value: browse,
-                            child: Text(browse),
-                          ))
-                      .toList(growable: false),
-                    validator: FormBuilderValidators.compose(
-                        [FormBuilderValidators.required()]
-                    ),
-                    onChanged: (val) {
-                      print(val); // Print the text value write into TextField
-                    },
-                  ),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: 
-                          FormBuilderTextField(
-                            name: 'browseAmount',
-                            initialValue: '1',
-                            textAlign: TextAlign.center,
-                            decoration: const InputDecoration(
-                              labelText: 'Amount',
-                              hintText: 'Enter amount of browse needed'
-                            ),
-                            validator: FormBuilderValidators.compose(
-                                [
-                                  FormBuilderValidators.required(),
-                                  FormBuilderValidators.integer(),
-                                  FormBuilderValidators.positiveNumber(),
-                                  FormBuilderValidators.between(1, 50)
-                                ]),
-                            onChanged: (val) {
-                                print(val); // Print the text value write into TextField
-                            },
-                        )
-                      ),
-                      Flexible(
-                        child:
-                        FormBuilderDropdown<String>(
-                          name: 'amountType', 
-                          initialValue: 'branch/es',
-                          decoration: const InputDecoration(
-                            labelText: 'Amount type',
-                            hintText: 'Select quantity type'
-                          ),
-                          items: ['branch/es', 'bucket/s']
-                            .map((amountType) => DropdownMenuItem(
-                                  alignment: AlignmentDirectional.centerStart,
-                                  value: amountType,
-                                  child: Text(amountType),
-                                ))
-                            .toList(growable: false),
-                          validator: FormBuilderValidators.compose(
-                              [FormBuilderValidators.required()]
-                          ),
-                          onChanged: (val) {
-                            print(val); // Print the text value write into TextField
-                          },
-                        )
-                      )
-                    ]
-                  ),
-                  ..._deliveryItems.map((item) {
-                    // Returns a list of browse added so far to the order
-                    return ListTile(
-                      // Formats each DeliveryItem object in the deliveryItems list in a string format
-                      title: Text("${item.browseName}: ${item.browseAmount} ${item.amountType}"),
-
-                      trailing: Checkbox(
-                        value: item.isSelected,
-                        onChanged: (bool? newValue) {
-                          setState(() {
-                            item.isSelected = newValue!;
-                          });
-                        },
-                      ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Only caretakers can create order requests.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pushNamed(
+                      '/request-board',
+                      arguments: {'user': widget.user},
                     );
-                  }),
-                  SizedBox(height: 8),
-                  // Add delivery item button
-                  ElevatedButton(
-                    onPressed: () {
-                          // This adds to the order request list - not sent to database yet
-                          _addDeliveryItem();                   
-                    },
-                    child: Text('Add delivery item'),
-                  ),
-                  SizedBox(height: 8),
-                  // Remove selected delivery item button
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_deliveryItems.isNotEmpty) {
-                        setState(() {
-                          // Removes all delivery items that are currently selected
-                          _deliveryItems.removeWhere((item) => item.isSelected);
-                        });
-                      }
-                    },
-                    child: const Text('Remove selected items'),
-                  ),
-                  SizedBox(height: 32),
-                  // Button to send data to the DynamoDB Server via AWS Gateway
-                  ElevatedButton(
-                    onPressed: () async {
-                      _submitForm();
-                    },
-                    child: Text('Submit order'),
-                  ),
-                  SizedBox(height: 32),
-                ],
-              ),
-              ),
+                  },
+                  child: const Text('Go to Request Board'),
+                ),
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCaretakerOrderForm() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: FormBuilder(
+        key: _formKey,
+        child: ListView(
+          children: [
+            const SizedBox(height: 16),
+
+            FormBuilderTextField(
+              name: 'caretakerName',
+              initialValue:
+                  "${widget.user.claims['given_name'].toString().toCapitalCase()} ${widget.user.claims['family_name'].toString().toCapitalCase()}",
+              decoration: const InputDecoration(
+                labelText: 'Full name',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+                FormBuilderValidators.match(
+                  RegExp(
+                    r"^[a-zA-Z]+([-' ][a-zA-Z]+)*\s+[a-zA-Z]+([-' ][a-zA-Z]+)*$",
+                  ),
+                  errorText: 'Please enter your first and last name',
+                ),
+              ]),
+            ),
+
+            const SizedBox(height: 16),
+
+            FormBuilderTextField(
+              name: 'address',
+              initialValue:
+                  widget.user.claims['custom:address'].toString().toCapitalCase(),
+              decoration: const InputDecoration(
+                labelText: 'Address',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+                FormBuilderValidators.street(
+                  regex: RegExp(
+                    r"^(?![A-Za-z]*0|\(?LOT0000)([a-zA-Z0-9\/\(\)]*)\s?(?!0)[1-9]*[0-9]*\s[a-zA-Z']+\s[a-zA-Z]+$",
+                  ),
+                ),
+                FormBuilderValidators.minWordsCount(3),
+              ]),
+            ),
+
+            const SizedBox(height: 16),
+
+            FormBuilderTextField(
+              name: 'postcode',
+              initialValue: "${widget.user.claims['custom:postcode']}",
+              decoration: const InputDecoration(
+                labelText: 'Postcode',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+                FormBuilderValidators.integer(),
+                FormBuilderValidators.equalLength(4),
+                FormBuilderValidators.positiveNumber(),
+              ]),
+            ),
+
+            const SizedBox(height: 16),
+
+            FormBuilderTextField(
+              name: 'requestDetails',
+              decoration: const InputDecoration(
+                labelText:
+                    'Please add additional requests to your request here (Optional)',
+                contentPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            FormBuilderDropdown<String>(
+              name: 'animal_ID',
+              initialValue: 'Ring-tailed Possum',
+              enabled: disabledOnAddItem,
+              decoration: const InputDecoration(
+                labelText: 'Animal',
+                hintText: 'Select Animal',
+              ),
+              items: [
+                'Koala',
+                'Ring-tailed Possum',
+                'Brush-tailed Possum',
+                'Kangaroo',
+                'Wombat',
+                'Kookaburra',
+              ]
+                  .map(
+                    (animal) => DropdownMenuItem(
+                      alignment: AlignmentDirectional.center,
+                      value: animal,
+                      child: Text(animal),
+                    ),
+                  )
+                  .toList(growable: false),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+              ]),
+            ),
+
+            const SizedBox(height: 16),
+
+            FormBuilderDropdown<String>(
+              name: 'browseData',
+              initialValue: 'Manna Gum (Eucalyptus viminalis)',
+              decoration: const InputDecoration(
+                labelText: 'Browse',
+                hintText: 'Select Browse',
+              ),
+              items: [
+                'Tasmanian Blue Gum (Eucalyptus globulus)',
+                'Manna Gum (Eucalyptus viminalis)',
+                'Banksia',
+                'Callistemon',
+                'Camellia',
+                'Correa',
+                'Grevillea',
+                'Lilly Pilly',
+                'Mealworms',
+              ]
+                  .map(
+                    (browse) => DropdownMenuItem(
+                      alignment: AlignmentDirectional.center,
+                      value: browse,
+                      child: Text(browse),
+                    ),
+                  )
+                  .toList(growable: false),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+              ]),
+            ),
+
+            Row(
+              children: [
+                Flexible(
+                  child: FormBuilderTextField(
+                    name: 'browseAmount',
+                    initialValue: '1',
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      labelText: 'Amount',
+                      hintText: 'Enter amount of browse needed',
+                    ),
+                    validator: FormBuilderValidators.compose([
+                      FormBuilderValidators.required(),
+                      FormBuilderValidators.integer(),
+                      FormBuilderValidators.positiveNumber(),
+                      FormBuilderValidators.between(1, 50),
+                    ]),
+                  ),
+                ),
+                Flexible(
+                  child: FormBuilderDropdown<String>(
+                    name: 'amountType',
+                    initialValue: 'branch/es',
+                    decoration: const InputDecoration(
+                      labelText: 'Amount type',
+                      hintText: 'Select quantity type',
+                    ),
+                    items: ['branch/es', 'bucket/s']
+                        .map(
+                          (amountType) => DropdownMenuItem(
+                            alignment: AlignmentDirectional.centerStart,
+                            value: amountType,
+                            child: Text(amountType),
+                          ),
+                        )
+                        .toList(growable: false),
+                    validator: FormBuilderValidators.compose([
+                      FormBuilderValidators.required(),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            ..._deliveryItems.map((item) {
+              return ListTile(
+                title: Text(
+                  "${item.browseName}: ${item.browseAmount} ${item.amountType}",
+                ),
+                trailing: Checkbox(
+                  value: item.isSelected,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      item.isSelected = newValue ?? false;
+                    });
+                  },
+                ),
+              );
+            }),
+
+            const SizedBox(height: 8),
+
+            ElevatedButton(
+              onPressed: _addDeliveryItem,
+              child: const Text('Add delivery item'),
+            ),
+
+            const SizedBox(height: 8),
+
+            ElevatedButton(
+              onPressed: () {
+                if (_deliveryItems.isNotEmpty) {
+                  setState(() {
+                    _deliveryItems.removeWhere((item) => item.isSelected);
+                  });
+                }
+              },
+              child: const Text('Remove selected items'),
+            ),
+
+            const SizedBox(height: 32),
+
+            ElevatedButton(
+              onPressed: _submitForm,
+              child: const Text('Submit order'),
+            ),
+
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -373,16 +446,20 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
       content: Text(
         title,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 15,
-        ),
+        style: const TextStyle(fontSize: 15),
       ),
       backgroundColor: Theme.of(context).colorScheme.primary,
     );
+
     scaffoldMessengerKey.currentState!.showSnackBar(snackbar);
   }
 
   void _addDeliveryItem() {
+    if (!isCaretaker) {
+      showSnack('Only caretakers can add delivery items.');
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -400,76 +477,74 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
       });
     } else {
       debugPrint('Please select a browse, amount and a quantity type');
-      debugPrint(
-        'browseName: ${_formKey.currentState!.fields['browseData']},\nbrowseAmount: ${_formKey.currentState!.fields['browseAmount']},\namountType: ${_formKey.currentState!.fields['amountType']}'
-      );
     }
   }
 
   void _submitForm() async {
-    // Validates the fields including whether the delivery item list has an item in it
+    if (!isCaretaker) {
+      showSnack('Only caretakers can create orders.');
+      return;
+    }
+
     if (_formKey.currentState!.validate() && _deliveryItems.isNotEmpty) {
       _formKey.currentState!.save();
 
       final formData = _formKey.currentState!.value;
 
-      List<Map<String, dynamic>> items =
-        _deliveryItems
-            .map(
-              (item) => {
-                // TODO Browse names currently too long, will need to fix ListTiles in request.dart
-                'name': item.browseName,
-                // Quantity needs to be an int in database
-                'quantity': int.parse(item.browseAmount),
-                'type': item.amountType,
-              },
-            )
-            .toList();
+      List<Map<String, dynamic>> items = _deliveryItems
+          .map(
+            (item) => {
+              'name': item.browseName,
+              'quantity': int.parse(item.browseAmount),
+              'type': item.amountType,
+            },
+          )
+          .toList();
 
       final finalPayload = {
         ...formData,
         'request_ID': "Request_${DateTime.now().millisecondsSinceEpoch}",
         'timestamp': DateTime.now().toIso8601String(),
-        "assigned_User_ID": null,
+        'assigned_User_ID': null,
         'requester_ID': widget.user.claims['username'],
+        'createdByRole': 'Caretaker',
         'status_Num': 1,
         'delivery_items': items,
       };
 
       try {
-        // Send HTTP POST request
         debugPrint('Posting to: ${ApiConfig.requestsAPI}');
+
         final response = await http.post(
           Uri.parse(ApiConfig.requestsAPI),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode(finalPayload),
         );
 
-        // Checks if request was successful (status code 201)
         if (response.statusCode == 201) {
           final responseData = jsonDecode(response.body);
 
-          debugPrint('Request ${responseData['items']?[0]?['request_ID']} successfully sent');
+          debugPrint(
+            'Request ${responseData['items']?[0]?['request_ID']} successfully sent',
+          );
 
-          // Clear form once data sent successfully
           _formKey.currentState!.reset();
-          
-          // setState triggers a rebuild of the widget tree to update based on these updated variables 
-          setState(() {
-            // Re-enables animal field for a new order
-            disabledOnAddItem = true;
 
-            // Empties delivery items list for a new order
+          setState(() {
+            disabledOnAddItem = true;
             _deliveryItems = [];
           });
-          showSnack('Request order ${responseData['items']?[0]?['request_ID']} sent successfully');
+
+          showSnack(
+            'Request order ${responseData['items']?[0]?['request_ID']} sent successfully',
+          );
         } else {
           debugPrint('Server error: ${response.statusCode}');
           debugPrint(response.body);
           showSnack('Something went wrong. Status code: ${response.statusCode}');
         }
       } catch (error) {
-        debugPrint('Failed to send registration data: $error');
+        debugPrint('Failed to send order data: $error');
         showSnack('Something went wrong. Please try again. Error: $error');
       }
     } else {
@@ -477,14 +552,16 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Inputs Missing/Invalid'),
-            content: Text('Please check all fields are filled out correctly.'),
+            title: const Text('Inputs Missing/Invalid'),
+            content: const Text(
+              'Please check all fields are filled out correctly and add at least one delivery item.',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -492,5 +569,4 @@ class _CaretakerHomePageState extends State<CaretakerHomePage> with SingleTicker
       );
     }
   }
-
 }

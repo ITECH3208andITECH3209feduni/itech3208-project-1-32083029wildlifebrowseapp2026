@@ -10,32 +10,40 @@ import '../auth/auth.dart';
 
 class LandownerRegistration extends StatelessWidget {
   final User user;
+  final Map? existingListing;
 
-  const LandownerRegistration({super.key, required this.user});
+  const LandownerRegistration({
+    super.key,
+    required this.user,
+    this.existingListing,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Do not return a new MaterialApp here.
-    // This screen already sits inside the main MaterialApp from main.dart.
-    // Returning another MaterialApp creates a second Navigator and can stop
-    // named routes like /landowner and /landholder-tutorial from working properly.
     return Theme(
       data: Theme.of(context).copyWith(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromRGBO(46, 165, 107, 1),
         ),
-        useMaterial3: true,
       ),
-      child: LandownerFormTabs(user: user),
+      child: LandownerFormTabs(
+        user: user,
+        existingListing: existingListing,
+      ),
     );
   }
 }
 
 class LandownerFormTabs extends StatefulWidget {
-  const LandownerFormTabs({super.key, required this.user});
+  const LandownerFormTabs({
+    super.key,
+    required this.user,
+    this.existingListing,
+  });
 
   final User user;
+  final Map? existingListing;
 
   @override
   State<LandownerFormTabs> createState() => _LandownerFormTabs();
@@ -49,15 +57,48 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
   late TabController _tabController;
   int _currentTab = 0;
 
+  bool get isEditMode => widget.existingListing != null;
+
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {
         _currentTab = _tabController.index;
       });
     });
+  }
+
+  String getUserRole() {
+    return widget.user.claims['custom:role']
+            ?.toString()
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .trim()
+            .toLowerCase() ??
+        '';
+  }
+
+  String getUserEmailOrUsername() {
+    return widget.user.claims['email']?.toString() ??
+        widget.user.claims['username']?.toString() ??
+        '';
+  }
+
+  String getExistingString(String key) {
+    final value = widget.existingListing?[key];
+    if (value == null) return '';
+    return value.toString();
+  }
+
+  List<String> getExistingList(String key) {
+    final value = widget.existingListing?[key];
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return <String>[];
   }
 
   void _goToLandholderOverview({required bool uploadSuccess}) {
@@ -79,17 +120,17 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
-              'How to list your property',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              isEditMode ? 'Edit your listing' : 'How to list your property',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text('1. Select the browse plants available on your property.'),
-            Text('2. Add your address, postcode, and phone number.'),
-            Text('3. Choose the days and times gatherers can visit.'),
-            Text('4. Add access instructions, warnings, or restrictions.'),
-            Text('5. Submit the listing so gatherers can view it.'),
+            const SizedBox(height: 8),
+            const Text('1. Select the browse plants available on your property.'),
+            const Text('2. Add your address, postcode, and phone number.'),
+            const Text('3. Choose the days and times gatherers can visit.'),
+            const Text('4. Add access instructions, warnings, or restrictions.'),
+            const Text('5. Submit the listing so gatherers can view it.'),
           ],
         ),
       ),
@@ -122,7 +163,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
         if (_currentTab == 2)
           ElevatedButton(
             onPressed: _submitForm,
-            child: const Text('Submit'),
+            child: Text(isEditMode ? 'Update Listing' : 'Submit'),
           ),
       ],
     );
@@ -152,30 +193,83 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
 
   void _submitForm() async {
     final user = widget.user;
+    final role = getUserRole();
+    final userId = getUserEmailOrUsername();
+
+    final String? existingCreatedBy =
+        widget.existingListing?['createdBy']?.toString();
+
+    final bool canCreate = role == 'landholder' || role == 'caretaker';
+
+    final bool canEdit =
+        role == 'landholder' && existingCreatedBy == userId;
+
+    if (!isEditMode && !canCreate) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You do not have permission to create a listing.'),
+        ),
+      );
+      return;
+    }
+
+    if (isEditMode && !canEdit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You can only edit listings you created.'),
+        ),
+      );
+      return;
+    }
 
     if (_formKey.currentState!.saveAndValidate()) {
       final formData = _formKey.currentState!.value;
 
-      final finalPayload = {
-        ...formData,
-        'userID': '${user.claims['username']}',
-        'landownerName':
-            '${widget.user.claims['given_name']} ${widget.user.claims['family_name']}',
-        'isActive': 'True',
-        'timestamp': DateTime.now().toIso8601String(),
-      };
+      final fullName =
+          '${widget.user.claims['given_name']} ${widget.user.claims['family_name']}';
+
+      final finalPayload = <String, dynamic>{
+  ...formData,
+  'userID': user.claims['username'].toString(),
+  'createdBy': isEditMode ? existingCreatedBy : userId,
+  'createdByRole': isEditMode
+      ? (widget.existingListing?['createdByRole']?.toString() ?? role)
+      : role,
+  'landownerName': fullName,
+  'landholderName': fullName,
+  'isActive': 'True',
+  'timestamp': isEditMode
+      ? (widget.existingListing?['timestamp']?.toString() ??
+          DateTime.now().toIso8601String())
+      : DateTime.now().toIso8601String(),
+  'updatedAt': DateTime.now().toIso8601String(),
+};
 
       try {
         debugPrint(jsonEncode(finalPayload));
 
-        final response = await http.post(
-          Uri.parse('${ApiConfig.baseUrl}/landholders'),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode(finalPayload),
-        );
+        late http.Response response;
 
-        if (response.statusCode == 201 || response.statusCode == 200) {
-          debugPrint('Landholder registration saved successfully');
+        if (isEditMode) {
+          final id = widget.existingListing?['_id'];
+
+          response = await http.put(
+            Uri.parse('${ApiConfig.baseUrl}/landholders/$id'),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode(finalPayload),
+          );
+        } else {
+          response = await http.post(
+            Uri.parse('${ApiConfig.baseUrl}/landholders'),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode(finalPayload),
+          );
+        }
+
+        if (response.statusCode == 201 ||
+            response.statusCode == 200 ||
+            response.statusCode == 204) {
+          debugPrint('Landholder listing saved successfully');
           debugPrint(response.body);
 
           _goToLandholderOverview(uploadSuccess: true);
@@ -188,10 +282,10 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
           );
         }
       } catch (error) {
-        debugPrint('Failed to send registration data: $error');
+        debugPrint('Failed to save listing: $error');
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save registration: $error')),
+          SnackBar(content: Text('Failed to save listing: $error')),
         );
       }
     } else {
@@ -202,10 +296,34 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
 
   @override
   Widget build(BuildContext context) {
+    final role = getUserRole();
+    final canAccessForm = role == 'landholder' || role == 'caretaker';
+
+    if (!canAccessForm) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Access denied'),
+        ),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Text(
+              'Gatherers cannot create listings. Gatherers can only accept listings and edit accepted listings.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(
-        title: const Text('List your property for browse gathering'),
+        title: Text(
+          isEditMode
+              ? 'Edit landholder listing'
+              : 'List your property for browse gathering',
+        ),
         backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
@@ -234,14 +352,29 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
                   LandDetailsTab(
                     formKey: _formKey,
                     phoneFieldKey: _phoneFieldKey,
+                    initialBrowseData: getExistingList('browseData'),
+                    initialAddress: getExistingString('address'),
+                    initialPostcode: getExistingString('postcode'),
+                    initialAccessDetails: getExistingString('accessDetails'),
+                    initialPhone: getExistingString('phone'),
                   ),
                   AvailabilityTab(
                     formKey: _formKey,
                     phoneFieldKey: _phoneFieldKey,
+                    initialDaysData: getExistingList('daysData'),
+                    initialTimesData: getExistingList('timesData'),
                   ),
                   PreferencesTab(
                     formKey: _formKey,
                     phoneFieldKey: _phoneFieldKey,
+                    initialWarningRequired:
+                        widget.existingListing?['warningRequired'] == false
+                            ? false
+                            : true,
+                    initialRestrictions: getExistingString('restrictions'),
+                    initialExtraDetails: getExistingString('extraDetails'),
+                    initialPrivatePropertyAcknowledgement:
+                        isEditMode ? true : false,
                   ),
                 ],
               ),
@@ -258,9 +391,20 @@ class LandDetailsTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
+  final List<String> initialBrowseData;
+  final String initialAddress;
+  final String initialPostcode;
+  final String initialAccessDetails;
+  final String initialPhone;
+
   const LandDetailsTab({
     required this.formKey,
     required this.phoneFieldKey,
+    required this.initialBrowseData,
+    required this.initialAddress,
+    required this.initialPostcode,
+    required this.initialAccessDetails,
+    required this.initialPhone,
     super.key,
   });
 
@@ -283,6 +427,7 @@ class _LandDetailsTabState extends State<LandDetailsTab>
         children: [
           FormBuilderCheckboxGroup<String>(
             name: 'browseData',
+            initialValue: widget.initialBrowseData,
             decoration: const InputDecoration(
               labelText: 'What browse do you have on your property?',
             ),
@@ -310,12 +455,14 @@ class _LandDetailsTabState extends State<LandDetailsTab>
           const SizedBox(height: 16),
           FormBuilderTextField(
             name: 'address',
+            initialValue: widget.initialAddress,
             decoration: const InputDecoration(labelText: 'Address'),
             validator: FormBuilderValidators.required(),
           ),
           const SizedBox(height: 16),
           FormBuilderTextField(
             name: 'postcode',
+            initialValue: widget.initialPostcode,
             decoration: const InputDecoration(labelText: 'Postcode'),
             keyboardType: TextInputType.number,
             validator: FormBuilderValidators.compose([
@@ -327,6 +474,7 @@ class _LandDetailsTabState extends State<LandDetailsTab>
           const SizedBox(height: 16),
           FormBuilderTextField(
             name: 'accessDetails',
+            initialValue: widget.initialAccessDetails,
             decoration: const InputDecoration(
               labelText: 'How should gatherers access the property? (optional)',
             ),
@@ -335,6 +483,7 @@ class _LandDetailsTabState extends State<LandDetailsTab>
           FormBuilderTextField(
             key: widget.phoneFieldKey,
             name: 'phone',
+            initialValue: widget.initialPhone,
             decoration: const InputDecoration(labelText: 'Phone number'),
             keyboardType: TextInputType.phone,
             validator: FormBuilderValidators.compose([
@@ -352,17 +501,22 @@ class AvailabilityTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
+  final List<String> initialDaysData;
+  final List<String> initialTimesData;
+
   const AvailabilityTab({
     super.key,
     required this.formKey,
     required this.phoneFieldKey,
+    required this.initialDaysData,
+    required this.initialTimesData,
   });
 
   @override
-  State<AvailabilityTab> createState() => _AvalabilityTabState();
+  State<AvailabilityTab> createState() => _AvailabilityTabState();
 }
 
-class _AvalabilityTabState extends State<AvailabilityTab>
+class _AvailabilityTabState extends State<AvailabilityTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -377,6 +531,7 @@ class _AvalabilityTabState extends State<AvailabilityTab>
         children: [
           FormBuilderCheckboxGroup<String>(
             name: 'daysData',
+            initialValue: widget.initialDaysData,
             decoration: const InputDecoration(
               labelText: 'What days is your property open to browsing?',
             ),
@@ -403,6 +558,7 @@ class _AvalabilityTabState extends State<AvailabilityTab>
           const SizedBox(height: 16),
           FormBuilderCheckboxGroup<String>(
             name: 'timesData',
+            initialValue: widget.initialTimesData,
             decoration: const InputDecoration(
               labelText: 'What time of day are you open to browsing?',
             ),
@@ -433,10 +589,19 @@ class PreferencesTab extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
   final GlobalKey<FormBuilderFieldState> phoneFieldKey;
 
+  final bool initialWarningRequired;
+  final String initialRestrictions;
+  final String initialExtraDetails;
+  final bool initialPrivatePropertyAcknowledgement;
+
   const PreferencesTab({
     super.key,
     required this.formKey,
     required this.phoneFieldKey,
+    required this.initialWarningRequired,
+    required this.initialRestrictions,
+    required this.initialExtraDetails,
+    required this.initialPrivatePropertyAcknowledgement,
   });
 
   @override
@@ -458,7 +623,7 @@ class _PreferencesTabState extends State<PreferencesTab>
         children: [
           FormBuilderRadioGroup<bool>(
             name: 'warningRequired',
-            initialValue: true,
+            initialValue: widget.initialWarningRequired,
             decoration: const InputDecoration(
               labelText:
                   'Do you require advance warning from gatherers before entry?',
@@ -474,6 +639,7 @@ class _PreferencesTabState extends State<PreferencesTab>
           const SizedBox(height: 16),
           FormBuilderTextField(
             name: 'restrictions',
+            initialValue: widget.initialRestrictions,
             decoration: const InputDecoration(
               labelText: 'Restrictions (optional)',
               hintText: 'Example: Please avoid the garden bed near the fence.',
@@ -484,6 +650,7 @@ class _PreferencesTabState extends State<PreferencesTab>
           const SizedBox(height: 16),
           FormBuilderTextField(
             name: 'extraDetails',
+            initialValue: widget.initialExtraDetails,
             decoration: const InputDecoration(
               labelText: 'Extra details (optional)',
             ),
@@ -492,6 +659,7 @@ class _PreferencesTabState extends State<PreferencesTab>
           const SizedBox(height: 16),
           FormBuilderCheckbox(
             name: 'privatePropertyAcknowledgement',
+            initialValue: widget.initialPrivatePropertyAcknowledgement,
             title: const Text(
               'I acknowledge that this listing is for private property only and not public or Crown land.',
               style: TextStyle(fontSize: 14),
