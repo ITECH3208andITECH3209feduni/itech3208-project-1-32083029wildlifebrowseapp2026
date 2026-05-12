@@ -24,6 +24,15 @@ class _UserDrawer extends State<UserDrawer> {
     };
   }
 
+  void signOut() {
+    Navigator.pop(context);
+
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      '/login',
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final role = widget.user.claims['custom:role']
@@ -68,6 +77,17 @@ class _UserDrawer extends State<UserDrawer> {
               Navigator.pop(context);
               Donate.openPayPal();
             },
+          ),
+
+          const Divider(),
+
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text(
+              'Sign Out',
+              style: TextStyle(color: Colors.red),
+            ),
+            onTap: signOut,
           ),
         ],
       ),

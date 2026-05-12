@@ -53,6 +53,33 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
     futureLandholders = fetchLandholders();
   }
 
+  String getUserRole() {
+    return widget.user.claims['custom:role']
+            ?.toString()
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .trim()
+            .toLowerCase() ??
+        '';
+  }
+
+  String getUserEmailOrUsername() {
+    return widget.user.claims['email']?.toString() ??
+        widget.user.claims['username']?.toString() ??
+        '';
+  }
+
+  bool isOwner(Map item) {
+    final currentUserId = getUserEmailOrUsername();
+    final createdBy = item['createdBy']?.toString() ?? '';
+    return createdBy == currentUserId;
+  }
+
+  bool canCreateListing() {
+    final role = getUserRole();
+    return role == 'landholder';
+  }
+
   Future<List<dynamic>> fetchLandholders() async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/landholders'),
@@ -89,6 +116,85 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
     return [];
   }
 
+  Future<void> deleteListing(Map item) async {
+    if (!isOwner(item)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You can only delete listings you created.'),
+        ),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Listing'),
+        content: const Text(
+          'Are you sure you want to delete this listing?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final id = item['_id'];
+
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/landholders/$id'),
+    );
+
+    debugPrint('DELETE RESPONSE: ${response.statusCode}');
+    debugPrint(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      setState(() {
+        futureLandholders = fetchLandholders();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Listing deleted successfully'),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete listing'),
+        ),
+      );
+    }
+  }
+
+  void editListing(Map item) {
+    if (!isOwner(item)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You can only edit listings you created.'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context, rootNavigator: true).pushNamed(
+      '/landowner-registration',
+      arguments: {
+        'user': widget.user,
+        'existingListing': item,
+      },
+    );
+  }
+
   Widget landholderTile(Map item) {
     final name = getValue(item, 'landownerName').isNotEmpty
         ? getValue(item, 'landownerName')
@@ -98,6 +204,8 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
     final postcode = getValue(item, 'postcode');
     final phone = getValue(item, 'phone');
     final browseData = getListValue(item, 'browseData');
+
+    final bool owner = isOwner(item);
 
     return Card(
       margin: const EdgeInsets.all(8),
@@ -111,51 +219,45 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
             Text('Address: $address'),
             Text('Postcode: $postcode'),
             Text('Phone: $phone'),
-            if (browseData.isNotEmpty)
-              Text('Browse: ${browseData.join(", ")}'),
+            if (browseData.isNotEmpty) Text('Browse: ${browseData.join(", ")}'),
             const SizedBox(height: 6),
-            const Text(
-              'Tap to view Landholder Profile',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              owner
+                  ? 'Your listing - tap to view or use buttons to edit/delete'
+                  : 'Tap to view Landholder Profile',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
-          onPressed: () async {
-            final id = item['_id'];
-
-            final response = await http.delete(
-              Uri.parse('${ApiConfig.baseUrl}/landholders/$id'),
-            );
-
-            debugPrint('DELETE RESPONSE: ${response.statusCode}');
-            debugPrint(response.body);
-
-            if (response.statusCode == 200 || response.statusCode == 204) {
-              setState(() {
-                futureLandholders = fetchLandholders();
-              });
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Listing deleted successfully'),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Failed to delete listing'),
-                ),
-              );
-            }
-          },
-        ),
+        trailing: owner
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    tooltip: 'Edit listing',
+                    onPressed: () {
+                      editListing(item);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    tooltip: 'Delete listing',
+                    onPressed: () {
+                      deleteListing(item);
+                    },
+                  ),
+                ],
+              )
+            : null,
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => LandholderProfile(item: item),
+              builder: (_) => LandholderProfile(
+                item: item,
+                user: widget.user,
+              ),
             ),
           );
         },
@@ -173,15 +275,16 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
       appBar: AppBar(
         title: const Text('Landholder Dashboard'),
         actions: [
-          TextButton(
-            child: const Text('Create Listing'),
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).pushNamed(
-                '/landowner-registration',
-                arguments: {'user': widget.user},
-              );
-            },
-          ),
+          if (canCreateListing())
+            TextButton(
+              child: const Text('Create Listing'),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pushNamed(
+                  '/landowner-registration',
+                  arguments: {'user': widget.user},
+                );
+              },
+            ),
         ],
       ),
       drawer: UserDrawer(username: username, user: widget.user),
@@ -218,10 +321,12 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
 
 class LandholderProfile extends StatelessWidget {
   final Map item;
+  final User user;
 
   const LandholderProfile({
     super.key,
     required this.item,
+    required this.user,
   });
 
   String getValue(String key) {
@@ -234,6 +339,18 @@ class LandholderProfile extends StatelessWidget {
     final value = item[key];
     if (value is List) return value;
     return [];
+  }
+
+  String getUserEmailOrUsername() {
+    return user.claims['email']?.toString() ??
+        user.claims['username']?.toString() ??
+        '';
+  }
+
+  bool isOwner() {
+    final currentUserId = getUserEmailOrUsername();
+    final createdBy = item['createdBy']?.toString() ?? '';
+    return createdBy == currentUserId;
   }
 
   @override
@@ -249,11 +366,36 @@ class LandholderProfile extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Landholder Profile'),
+        actions: [
+          if (isOwner())
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.blue),
+              tooltip: 'Edit listing',
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pushNamed(
+                  '/landowner-registration',
+                  arguments: {
+                    'user': user,
+                    'existingListing': item,
+                  },
+                );
+              },
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
+            if (isOwner())
+              const Text(
+                'This is your listing',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+            const SizedBox(height: 8),
             Text('Name: $name'),
             Text('Phone: ${getValue('phone')}'),
             Text('Address: ${getValue('address')}'),
