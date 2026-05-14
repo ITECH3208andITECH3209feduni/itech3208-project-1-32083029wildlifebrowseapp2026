@@ -64,10 +64,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
-  List<DeliveryItem> _deliveryItems = [];
+  final List<DeliveryItem> _deliveryItems = [];
 
   String selectedDrawerPage = '';
-  bool disabledOnAddItem = true;
 
   bool get isCaretaker {
     final role = widget.user.claims['custom:role']
@@ -117,7 +116,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
               actions: [
                 IconButton(
                   icon: const Icon(Icons.pageview_outlined),
-                  tooltip: 'View the request board',
+                  tooltip: 'View, edit or delete your order requests',
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true).pushNamed(
                       '/request-board',
@@ -125,19 +124,6 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
                     );
                   },
                 ),
-
-                // Landholder listing button
-                IconButton(
-                  icon: const Icon(Icons.edit_location_outlined),
-                  tooltip: 'Register/View your listing',
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pushNamed(
-                      '/landowner-registration',
-                      arguments: {'user': widget.user},
-                    );
-                  },
-                ),
-
                 IconButton(
                   icon: const Icon(Icons.search),
                   tooltip: 'Explore browse',
@@ -287,8 +273,8 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
 
             FormBuilderDropdown<String>(
               name: 'animal_ID',
-              initialValue: 'Ring-tailed Possum',
-              enabled: disabledOnAddItem,
+              initialValue: null,
+              enabled: true,
               decoration: const InputDecoration(
                 labelText: 'Animal',
                 hintText: 'Select Animal',
@@ -302,7 +288,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
                 'Kookaburra',
               ]
                   .map(
-                    (animal) => DropdownMenuItem(
+                    (animal) => DropdownMenuItem<String>(
                       alignment: AlignmentDirectional.center,
                       value: animal,
                       child: Text(animal),
@@ -335,7 +321,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
                 'Mealworms',
               ]
                   .map(
-                    (browse) => DropdownMenuItem(
+                    (browse) => DropdownMenuItem<String>(
                       alignment: AlignmentDirectional.center,
                       value: browse,
                       child: Text(browse),
@@ -376,7 +362,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
                     ),
                     items: ['branch/es', 'bucket/s']
                         .map(
-                          (amountType) => DropdownMenuItem(
+                          (amountType) => DropdownMenuItem<String>(
                             alignment: AlignmentDirectional.centerStart,
                             value: amountType,
                             child: Text(amountType),
@@ -391,21 +377,31 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
               ],
             ),
 
-            ..._deliveryItems.map((item) {
-              return ListTile(
-                title: Text(
-                  "${item.browseName}: ${item.browseAmount} ${item.amountType}",
+            const SizedBox(height: 8),
+
+            if (_deliveryItems.isNotEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    children: _deliveryItems.map((item) {
+                      return ListTile(
+                        title: Text(
+                          "${item.browseName}: ${item.browseAmount} ${item.amountType}",
+                        ),
+                        trailing: Checkbox(
+                          value: item.isSelected,
+                          onChanged: (bool? newValue) {
+                            setState(() {
+                              item.isSelected = newValue ?? false;
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
-                trailing: Checkbox(
-                  value: item.isSelected,
-                  onChanged: (bool? newValue) {
-                    setState(() {
-                      item.isSelected = newValue ?? false;
-                    });
-                  },
-                ),
-              );
-            }),
+              ),
 
             const SizedBox(height: 8),
 
@@ -417,13 +413,13 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
             const SizedBox(height: 8),
 
             ElevatedButton(
-              onPressed: () {
-                if (_deliveryItems.isNotEmpty) {
-                  setState(() {
-                    _deliveryItems.removeWhere((item) => item.isSelected);
-                  });
-                }
-              },
+              onPressed: _deliveryItems.isEmpty
+                  ? null
+                  : () {
+                      setState(() {
+                        _deliveryItems.removeWhere((item) => item.isSelected);
+                      });
+                    },
               child: const Text('Remove selected items'),
             ),
 
@@ -451,47 +447,55 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
       backgroundColor: Theme.of(context).colorScheme.primary,
     );
 
-    scaffoldMessengerKey.currentState!.showSnackBar(snackbar);
+    scaffoldMessengerKey.currentState?.showSnackBar(snackbar);
   }
 
-  void _addDeliveryItem() {
-    if (!isCaretaker) {
-      showSnack('Only caretakers can add delivery items.');
-      return;
-    }
-
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      final formData = _formKey.currentState!.value;
-
-      final newItem = DeliveryItem(
-        browseName: formData['browseData'],
-        browseAmount: formData['browseAmount'],
-        amountType: formData['amountType'],
-      );
-
-      setState(() {
-        disabledOnAddItem = false;
-        _deliveryItems.add(newItem);
-      });
-    } else {
-      debugPrint('Please select a browse, amount and a quantity type');
-    }
+ void _addDeliveryItem() {
+  if (!isCaretaker) {
+    showSnack('Only caretakers can add delivery items.');
+    return;
   }
 
+  _formKey.currentState?.save();
+
+  final formData = _formKey.currentState!.value;
+
+  final animal = formData['animal_ID'];
+  final browse = formData['browseData'];
+  final amount = formData['browseAmount'];
+  final amountType = formData['amountType'];
+
+  if (animal == null ||
+      browse == null ||
+      amount == null ||
+      amountType == null) {
+    showSnack(
+      'Please select animal, browse, amount and amount type.',
+    );
+    return;
+  }
+
+  setState(() {
+    _deliveryItems.add(
+      DeliveryItem(
+        browseName: browse.toString(),
+        browseAmount: amount.toString(),
+        amountType: amountType.toString(),
+      ),
+    );
+  });
+}
   void _submitForm() async {
     if (!isCaretaker) {
       showSnack('Only caretakers can create orders.');
       return;
     }
 
-    if (_formKey.currentState!.validate() && _deliveryItems.isNotEmpty) {
-      _formKey.currentState!.save();
-
+    if ((_formKey.currentState?.saveAndValidate() ?? false) &&
+        _deliveryItems.isNotEmpty) {
       final formData = _formKey.currentState!.value;
 
-      List<Map<String, dynamic>> items = _deliveryItems
+      final List<Map<String, dynamic>> items = _deliveryItems
           .map(
             (item) => {
               'name': item.browseName,
@@ -507,6 +511,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
         'timestamp': DateTime.now().toIso8601String(),
         'assigned_User_ID': null,
         'requester_ID': widget.user.claims['username'],
+        'createdBy': widget.user.claims['username'],
         'createdByRole': 'Caretaker',
         'status_Num': 1,
         'delivery_items': items,
@@ -521,28 +526,30 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
           body: jsonEncode(finalPayload),
         );
 
-        if (response.statusCode == 201) {
-          final responseData = jsonDecode(response.body);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          dynamic responseData;
+          try {
+            responseData = jsonDecode(response.body);
+          } catch (_) {
+            responseData = null;
+          }
 
-          debugPrint(
-            'Request ${responseData['items']?[0]?['request_ID']} successfully sent',
-          );
+          final requestId =
+              responseData?['items']?[0]?['request_ID'] ??
+              finalPayload['request_ID'];
 
-          _formKey.currentState!.reset();
+          debugPrint('Request $requestId successfully sent');
+
+          _formKey.currentState?.reset();
 
           setState(() {
-            disabledOnAddItem = true;
-            _deliveryItems = [];
+            _deliveryItems.clear();
           });
 
-          showSnack(
-            'Request order ${responseData['items']?[0]?['request_ID']} sent successfully',
-          );
-          Future.delayed(const Duration(milliseconds: 800), () {
-  if (mounted) {
-    Navigator.pop(context, true);
-  }
-});
+          showSnack('Request order $requestId sent successfully');
+
+          // Stay on this same page after submit.
+          // This avoids the blank screen caused by rebuilding /caretaker without valid route args.
         } else {
           debugPrint('Server error: ${response.statusCode}');
           debugPrint(response.body);

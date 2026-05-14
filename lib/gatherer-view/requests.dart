@@ -51,7 +51,9 @@ class GathererHomePage extends StatefulWidget {
 
 Future<List<Request>> fetchRequests() async {
   try {
-    final response = await http.get(Uri.parse(ApiConfig.requestsAPI));
+    final response = await http.get(
+  Uri.parse('${ApiConfig.requestsAPI}?refresh=${DateTime.now().millisecondsSinceEpoch}'),
+);
 
     final Map<String, dynamic> responseData = json.decode(response.body);
     final Response requestResponse = Response.fromJson(responseData);
@@ -99,19 +101,41 @@ bool isGatherer(User user) {
 
   return role == 'gatherer';
 }
+bool isCaretaker(User user) {
+  final role = user.claims['custom:role']
+      .toString()
+      .toLowerCase()
+      .replaceAll('[', '')
+      .replaceAll(']', '')
+      .trim();
 
+  return role == 'caretaker';
+}
+bool isLandholder(User user) {
+  final role = user.claims['custom:role']
+      .toString()
+      .toLowerCase()
+      .replaceAll('[', '')
+      .replaceAll(']', '')
+      .trim();
+
+  return role == 'landholder';
+}
 class _RequestBoardState extends State<GathererHomePage>
     with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
   late Future<List<Request>> futureRequests;
-
+List<Request> currentRequests = [];
   @override
   void initState() {
     super.initState();
 
-    futureRequests = fetchRequests();
+  futureRequests = fetchRequests().then((requests) {
+  currentRequests = requests;
+  return requests;
+});
 
     _fadeController = AnimationController(
       duration: const Duration(seconds: 1),
@@ -126,11 +150,15 @@ class _RequestBoardState extends State<GathererHomePage>
     _fadeController.forward();
   }
 
-  void _refreshRequests() {
-    setState(() {
-      futureRequests = fetchRequests();
-    });
-  }
+  void _refreshRequests() async {
+  await Future.delayed(const Duration(milliseconds: 300));
+
+  if (!mounted) return;
+
+  setState(() {
+    futureRequests = fetchRequests();
+  });
+}
 
   @override
   void dispose() {
@@ -145,7 +173,9 @@ class _RequestBoardState extends State<GathererHomePage>
     final bool acceptedByMe = request.assigned_User_ID == currentUsername;
 
     final bool canDelete =
-        isGatherer(user) && request.status_Num == 2 && acceptedByMe;
+    (isGatherer(user) && request.status_Num == 2 && acceptedByMe) ||
+    (isCaretaker(user) &&
+        (request.requester_ID.toString() == currentUsername.toString()));
 
     if (request.requester_ID == currentUsername) {
       tileColor = const Color.fromARGB(255, 173, 216, 230);
@@ -237,15 +267,22 @@ class _RequestBoardState extends State<GathererHomePage>
                           ),
                         );
 
-                        if (success) {
-                          _refreshRequests();
-                        }
+ if (success) {
+  setState(() {
+    currentRequests.removeWhere(
+      (item) => item.request_ID == request.request_ID,
+    );
+
+    futureRequests = Future.value(currentRequests);
+  });
+}
                       }
                     },
                   ),
               ],
             ),
           ),
+
           tileColor: tileColor,
           onTap: () async {
             final result = await Navigator.push<bool>(
@@ -308,16 +345,17 @@ class _RequestBoardState extends State<GathererHomePage>
                   }
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.edit_location_outlined),
-                tooltip: 'List/Register a listing',
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pushNamed(
-                    '/landholder-tutorial',
-                    arguments: {'user': widget.user},
-                  );
-                },
-              ),
+              if (isLandholder(widget.user))
+  IconButton(
+    icon: const Icon(Icons.edit_location_outlined),
+    tooltip: 'List/Register a listing',
+    onPressed: () {
+      Navigator.of(context, rootNavigator: true).pushNamed(
+        '/landholder-tutorial',
+        arguments: {'user': widget.user},
+      );
+    },
+  ),
               IconButton(
                 icon: const Icon(Icons.search),
                 tooltip: 'Explore browse',
@@ -344,7 +382,8 @@ class _RequestBoardState extends State<GathererHomePage>
                 return const Center(child: Text('No requests found'));
               }
 
-              List<Request> allRequests = snapshot.data!;
+              currentRequests = snapshot.data!;
+List<Request> allRequests = currentRequests;
 
               final filteredRequests = allRequests.where((request) {
                 final isUserAssigned =
@@ -714,9 +753,9 @@ class _DetailedRequestState extends State<DetailedRequest> {
                   ),
                 );
 
-                if (success) {
-                  Navigator.pop(context, true);
-                }
+               if (success) {
+  Navigator.pop(context, true);
+}
               },
               child: const Text(
                 'Accept',

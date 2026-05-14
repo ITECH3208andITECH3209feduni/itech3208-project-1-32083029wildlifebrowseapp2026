@@ -192,7 +192,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
     final String? existingCreatedBy =
         widget.existingListing?['createdBy']?.toString();
 
-    final bool canCreate = role == 'landholder' || role == 'caretaker';
+    final bool canCreate = role == 'landholder';
 
     final bool canEdit =
         role == 'landholder' && existingCreatedBy == userId;
@@ -290,7 +290,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
   @override
   Widget build(BuildContext context) {
     final role = getUserRole();
-    final canAccessForm = role == 'landholder' || role == 'caretaker';
+    final canAccessForm = role == 'landholder';
 
     if (!canAccessForm) {
       return Scaffold(
@@ -301,7 +301,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
           child: Padding(
             padding: EdgeInsets.all(20),
             child: Text(
-              'Gatherers cannot create listings. Gatherers can only accept listings and edit accepted listings.',
+              'Only landholders can create or manage landholder listings.',
               textAlign: TextAlign.center,
             ),
           ),
