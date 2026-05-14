@@ -6,6 +6,7 @@ import 'dart:math';
 import '../templates/drawer.dart';
 import '../templates/browseList.dart';
 import '../auth/auth.dart';
+import '../caretaker-view/order.dart';
 
 import '../models/request.dart';
 import '../models/response.dart';
@@ -176,6 +177,9 @@ List<Request> currentRequests = [];
     (isGatherer(user) && request.status_Num == 2 && acceptedByMe) ||
     (isCaretaker(user) &&
         (request.requester_ID.toString() == currentUsername.toString()));
+    final bool canEdit =
+    isCaretaker(user) &&
+    request.requester_ID.toString() == currentUsername.toString();
 
     if (request.requester_ID == currentUsername) {
       tileColor = const Color.fromARGB(255, 173, 216, 230);
@@ -202,7 +206,7 @@ List<Request> currentRequests = [];
             quantities: request.getBrowseQuantities(),
           ),
           trailing: SizedBox(
-            width: canDelete ? 120 : 85,
+           width: (canDelete || canEdit) ? 170 : 85,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -225,6 +229,27 @@ List<Request> currentRequests = [];
                     ],
                   ),
                 ),
+                if (canEdit)
+  IconButton(
+    icon: const Icon(Icons.edit, color: Colors.blue),
+    onPressed: () async {
+      final result =
+          await Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute(
+          builder: (context) => CaretakerHomePage(
+            title: 'Edit Order',
+            user: widget.user,
+             existingRequest: request,
+          ),
+          
+        ),
+      );
+
+      if (result == true) {
+        _refreshRequests();
+      }
+    },
+  ),
                 if (canDelete)
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),

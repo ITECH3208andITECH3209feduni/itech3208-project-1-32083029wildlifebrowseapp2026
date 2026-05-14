@@ -46,14 +46,15 @@ class DeliveryItem {
 
 class CaretakerHomePage extends StatefulWidget {
   const CaretakerHomePage({
-    super.key,
-    required this.title,
-    required this.user,
-  });
+  super.key,
+  required this.title,
+  required this.user,
+  this.existingRequest,
+});
 
   final String title;
   final User user;
-
+ final dynamic existingRequest;
   @override
   State<CaretakerHomePage> createState() => _CaretakerHomePageState();
 }
@@ -67,7 +68,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
   final List<DeliveryItem> _deliveryItems = [];
 
   String selectedDrawerPage = '';
-
+bool get isEditMode => widget.existingRequest != null;
   bool get isCaretaker {
     final role = widget.user.claims['custom:role']
         .toString()
@@ -262,6 +263,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
 
             FormBuilderTextField(
               name: 'requestDetails',
+              initialValue: isEditMode
+    ? widget.existingRequest.requestDetails
+    : '',
               decoration: const InputDecoration(
                 labelText:
                     'Please add additional requests to your request here (Optional)',
@@ -273,7 +277,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
 
             FormBuilderDropdown<String>(
               name: 'animal_ID',
-              initialValue: null,
+              initialValue: isEditMode
+    ? widget.existingRequest.animal_ID
+    : null,
               enabled: true,
               decoration: const InputDecoration(
                 labelText: 'Animal',
@@ -427,7 +433,7 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
 
             ElevatedButton(
               onPressed: _submitForm,
-              child: const Text('Submit order'),
+              child: Text(isEditMode ? 'Update order' : 'Submit order'),
             ),
 
             const SizedBox(height: 32),
@@ -507,7 +513,9 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
 
       final finalPayload = {
         ...formData,
-        'request_ID': "Request_${DateTime.now().millisecondsSinceEpoch}",
+       'request_ID': isEditMode
+    ? widget.existingRequest.request_ID
+    : "Request_${DateTime.now().millisecondsSinceEpoch}",
         'timestamp': DateTime.now().toIso8601String(),
         'assigned_User_ID': null,
         'requester_ID': widget.user.claims['username'],
@@ -520,11 +528,19 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
       try {
         debugPrint('Posting to: ${ApiConfig.requestsAPI}');
 
-        final response = await http.post(
-          Uri.parse(ApiConfig.requestsAPI),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode(finalPayload),
-        );
+       final response = isEditMode
+    ? await http.patch(
+        Uri.parse(
+          '${ApiConfig.requestsAPI}/${widget.existingRequest.request_ID}/1',
+        ),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(finalPayload),
+      )
+    : await http.post(
+        Uri.parse(ApiConfig.requestsAPI),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(finalPayload),
+      );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           dynamic responseData;
