@@ -53,6 +53,12 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
     futureLandholders = fetchLandholders();
   }
 
+  void _refreshLandholders() {
+    setState(() {
+      futureLandholders = fetchLandholders();
+    });
+  }
+
   String getUserRole() {
     return widget.user.claims['custom:role']
             ?.toString()
@@ -158,16 +164,16 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
     debugPrint(response.body);
 
     if (response.statusCode == 200 || response.statusCode == 204) {
-      setState(() {
-        futureLandholders = fetchLandholders();
-      });
+      _refreshLandholders();
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Listing deleted successfully'),
         ),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to delete listing'),
@@ -176,7 +182,7 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
     }
   }
 
-  void editListing(Map item) {
+  void editListing(Map item) async {
     if (!isOwner(item)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -186,13 +192,17 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
       return;
     }
 
-    Navigator.of(context, rootNavigator: true).pushNamed(
+    final result = await Navigator.of(context, rootNavigator: true).pushNamed(
       '/landowner-registration',
       arguments: {
         'user': widget.user,
         'existingListing': item,
       },
     );
+
+    if (result == true) {
+      _refreshLandholders();
+    }
   }
 
   Widget landholderTile(Map item) {
@@ -250,8 +260,8 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
                 ],
               )
             : null,
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => LandholderProfile(
@@ -260,6 +270,10 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
               ),
             ),
           );
+
+          if (result == true) {
+            _refreshLandholders();
+          }
         },
       ),
     );
@@ -278,11 +292,16 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
           if (canCreateListing())
             TextButton(
               child: const Text('Create Listing'),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pushNamed(
+              onPressed: () async {
+                final result =
+                    await Navigator.of(context, rootNavigator: true).pushNamed(
                   '/landowner-registration',
                   arguments: {'user': widget.user},
                 );
+
+                if (result == true) {
+                  _refreshLandholders();
+                }
               },
             ),
         ],
@@ -371,14 +390,19 @@ class LandholderProfile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.blue),
               tooltip: 'Edit listing',
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pushNamed(
+              onPressed: () async {
+                final result =
+                    await Navigator.of(context, rootNavigator: true).pushNamed(
                   '/landowner-registration',
                   arguments: {
                     'user': user,
                     'existingListing': item,
                   },
                 );
+
+                if (result == true) {
+                  Navigator.pop(context, true);
+                }
               },
             ),
         ],

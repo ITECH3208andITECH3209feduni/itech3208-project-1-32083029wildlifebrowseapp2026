@@ -538,6 +538,11 @@ class _CaretakerHomePageState extends State<CaretakerHomePage>
           showSnack(
             'Request order ${responseData['items']?[0]?['request_ID']} sent successfully',
           );
+          Future.delayed(const Duration(milliseconds: 800), () {
+  if (mounted) {
+    Navigator.pop(context, true);
+  }
+});
         } else {
           debugPrint('Server error: ${response.statusCode}');
           debugPrint(response.body);

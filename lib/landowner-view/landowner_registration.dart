@@ -102,15 +102,8 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
   }
 
   void _goToLandholderOverview({required bool uploadSuccess}) {
-    Navigator.of(context).pushReplacementNamed(
-      '/landowner',
-      arguments: {
-        'user': widget.user,
-        'browseFilter': <String>[],
-        'uploadSuccess': uploadSuccess,
-      },
-    );
-  }
+  Navigator.pop(context, uploadSuccess);
+}
 
   Widget _tutorialBox() {
     return Card(
@@ -327,8 +320,8 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
         backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            _goToLandholderOverview(uploadSuccess: false);
+         onPressed: () {
+  Navigator.pop(context, false);
           },
         ),
         bottom: TabBar(

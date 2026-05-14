@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'auth/login_screen.dart';
 import 'gatherer-view/requests.dart';
+
+import 'caretaker-view/caretaker_dashboard.dart';
 import 'caretaker-view/order.dart';
 
 import 'landowner-view/overview.dart';
@@ -24,7 +26,6 @@ void main() async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: hasAgreed ? '/login' : '/agreement',
-
       routes: {
         '/agreement': (context) => const AgreementScreen(),
 
@@ -35,8 +36,7 @@ void main() async {
         // =========================
         '/request-board': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments
-                  as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
           return GathererRoute(
             user: args['user'],
@@ -44,12 +44,23 @@ void main() async {
         },
 
         // =========================
-        // CARETAKER
+        // CARETAKER DASHBOARD
         // =========================
         '/caretaker': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments
-                  as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
+          return CaretakerDashboard(
+            user: args['user'],
+          );
+        },
+
+        // =========================
+        // CARETAKER CREATE ORDER / REQUEST
+        // =========================
+        '/order': (context) {
+          final args =
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
           return CaretakerRoute(
             user: args['user'],
@@ -61,8 +72,7 @@ void main() async {
         // =========================
         '/landowner': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments
-                  as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
           return LandownerRoute(
             user: args['user'],
@@ -76,8 +86,7 @@ void main() async {
         // =========================
         '/landholder-tutorial': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments
-                  as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
           return LandholderTutorial(
             user: args['user'],
@@ -88,14 +97,14 @@ void main() async {
         // LANDHOLDER REGISTRATION
         // =========================
         '/landowner-registration': (context) {
-  final args =
-      ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final args =
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-  return LandownerRegistration(
-    user: args['user'],
-    existingListing: args['existingListing'],
-  );
-},
+          return LandownerRegistration(
+            user: args['user'],
+            existingListing: args['existingListing'],
+          );
+        },
 
         // =========================
         // EDUCATION
@@ -109,8 +118,7 @@ void main() async {
         // =========================
         '/profile': (context) {
           final args =
-              ModalRoute.of(context)!.settings.arguments
-                  as Map<String, dynamic>;
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
           return ProfileRoute(
             user: args['user'],

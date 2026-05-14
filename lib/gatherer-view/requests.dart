@@ -126,6 +126,12 @@ class _RequestBoardState extends State<GathererHomePage>
     _fadeController.forward();
   }
 
+  void _refreshRequests() {
+    setState(() {
+      futureRequests = fetchRequests();
+    });
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -189,7 +195,6 @@ class _RequestBoardState extends State<GathererHomePage>
                     ],
                   ),
                 ),
-
                 if (canDelete)
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
@@ -233,9 +238,7 @@ class _RequestBoardState extends State<GathererHomePage>
                         );
 
                         if (success) {
-                          setState(() {
-                            futureRequests = fetchRequests();
-                          });
+                          _refreshRequests();
                         }
                       }
                     },
@@ -245,9 +248,9 @@ class _RequestBoardState extends State<GathererHomePage>
           ),
           tileColor: tileColor,
           onTap: () async {
-            await Navigator.push(
+            final result = await Navigator.push<bool>(
               context,
-              MaterialPageRoute<Widget>(
+              MaterialPageRoute<bool>(
                 builder: (BuildContext context) => DetailedRequest(
                   title: 'Request Details',
                   request: request,
@@ -256,9 +259,9 @@ class _RequestBoardState extends State<GathererHomePage>
               ),
             );
 
-            setState(() {
-              futureRequests = fetchRequests();
-            });
+            if (result == true) {
+              _refreshRequests();
+            }
           },
         ),
       ),
@@ -293,11 +296,16 @@ class _RequestBoardState extends State<GathererHomePage>
               IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 tooltip: 'Make an order request',
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pushNamed(
+                onPressed: () async {
+                  final result =
+                      await Navigator.of(context, rootNavigator: true).pushNamed(
                     '/caretaker',
                     arguments: {'user': widget.user},
                   );
+
+                  if (result == true) {
+                    _refreshRequests();
+                  }
                 },
               ),
               IconButton(
@@ -305,7 +313,7 @@ class _RequestBoardState extends State<GathererHomePage>
                 tooltip: 'List/Register a listing',
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pushNamed(
-                    '/landowner-tutorial',
+                    '/landholder-tutorial',
                     arguments: {'user': widget.user},
                   );
                 },
@@ -707,7 +715,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
                 );
 
                 if (success) {
-                  Navigator.pop(context);
+                  Navigator.pop(context, true);
                 }
               },
               child: const Text(
@@ -729,7 +737,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
                 ),
               ),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, false);
               },
               child: const Text(
                 'Close',
@@ -825,7 +833,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
                   );
 
                   if (success) {
-                    Navigator.pop(context);
+                    Navigator.pop(context, true);
                   }
                 }
               },
@@ -938,7 +946,9 @@ bool isStale(timelapse) {
 
 Future<bool> updateRequest(Request updatedRequest) async {
   try {
-    debugPrint('PATCH URL: ${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2');
+    debugPrint(
+      'PATCH URL: ${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/2',
+    );
     debugPrint('PATCH BODY: ${jsonEncode(updatedRequest.toJson())}');
 
     final response = await http.patch(

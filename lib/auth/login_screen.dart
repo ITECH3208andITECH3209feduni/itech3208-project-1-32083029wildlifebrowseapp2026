@@ -9,9 +9,8 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 
 import '../models/image.dart';
 
-// Used to track if the user has just uploaded a new potentail account
-// If so signal to the next page to show the success snackbar
 bool showSignUp = false;
+String? enteredEmail;
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -22,7 +21,9 @@ class LoginScreen extends StatelessWidget {
       title: 'User registration',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 237, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(46, 165, 107, 1)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(46, 165, 107, 1),
+        ),
         useMaterial3: true,
       ),
       home: DefaultTabController(
@@ -30,11 +31,13 @@ class LoginScreen extends StatelessWidget {
         child: Scaffold(
           backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
           appBar: AppBar(
-            title: Row(children: [
-              Image.asset('assets/images/browse_logo.png', height: 40),
-              const SizedBox(width: 10),
-              const Text('Browse App'),
-            ]),
+            title: Row(
+              children: [
+                Image.asset('assets/images/browse_logo.png', height: 40),
+                const SizedBox(width: 10),
+                const Text('Browse App'),
+              ],
+            ),
             bottom: const TabBar(
               tabs: [
                 Tab(text: 'Sign-Up'),
@@ -43,7 +46,7 @@ class LoginScreen extends StatelessWidget {
               ],
             ),
           ),
-          body: TabBarView(
+          body: const TabBarView(
             children: [
               SignUpView(),
               ConfirmSignUpView(),
@@ -60,25 +63,20 @@ class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
 
   @override
-  _SignUpViewState createState() => _SignUpViewState();
+  State<SignUpView> createState() => _SignUpViewState();
 }
 
-// Global scope var should limit it
-String? enteredEmail;
-
 class _SignUpViewState extends State<SignUpView> {
-  String roleTmp = '';
+  String roleTmp = 'Gatherer';
 
   File? galleryFile;
   final ImagePicker picker = ImagePicker();
+
   final _emailController = TextEditingController();
   final _postcodeController = TextEditingController();
   final _addressController = TextEditingController();
-
-  // I added: keep the original hidden controller for the final YYYY-MM-DD we send
   final _birthdateController = TextEditingController();
 
-  // I added: three separate controllers for Year / Month / Day
   final _birthYearCtrl = TextEditingController();
   final _birthMonthCtrl = TextEditingController();
   final _birthDayCtrl = TextEditingController();
@@ -92,7 +90,6 @@ class _SignUpViewState extends State<SignUpView> {
     bucketName: 'profile-pictures33',
   );
 
-  // Default profile picture
   final defaultPicture = 'assets/images/default_profile_pic.jpg';
 
   late final CognitoManager _cognitoManager;
@@ -107,6 +104,7 @@ class _SignUpViewState extends State<SignUpView> {
   Future<void> _redirectIfFirstTime() async {
     final prefs = await SharedPreferences.getInstance();
     final hasAgreed = prefs.getBool('user_agreed') ?? false;
+
     if (!hasAgreed && mounted) {
       Navigator.of(context).pushReplacementNamed('/agreement');
     } else {
@@ -121,42 +119,43 @@ class _SignUpViewState extends State<SignUpView> {
   void _signUp() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // I added: basic validation and compose YYYY-MM-DD from the 3 fields
     final y = _birthYearCtrl.text.trim();
     final m = _birthMonthCtrl.text.trim().padLeft(2, '0');
     final d = _birthDayCtrl.text.trim().padLeft(2, '0');
 
-    // quick checks (kept simple on purpose)
-    final yearOk = RegExp(r'^\d{4}$').hasMatch(y) && int.parse(y) >= 1900 && int.parse(y) <= DateTime.now().year;
+    final yearOk = RegExp(r'^\d{4}$').hasMatch(y) &&
+        int.parse(y) >= 1900 &&
+        int.parse(y) <= DateTime.now().year;
+
     final monthOk = RegExp(r'^(0?[1-9]|1[0-2])$').hasMatch(m);
     final dayOk = RegExp(r'^(0?[1-9]|[12][0-9]|3[01])$').hasMatch(d);
 
     if (!(yearOk && monthOk && dayOk)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid birth date (Year, Month, Day).')),
+        const SnackBar(
+          content: Text('Please enter a valid birth date.'),
+        ),
       );
       return;
     }
 
-    // set the hidden single string that backend expects
     _birthdateController.text = '$y-$m-$d';
-    // I added (end)
 
     final role = roleTmp;
-    final email = _emailController.text;
-    final postcode = _postcodeController.text;
-    final address = _addressController.text;
-    final birthdate = _birthdateController.text; // this is now YYYY-MM-DD
+    final email = _emailController.text.trim();
+    final postcode = _postcodeController.text.trim();
+    final address = _addressController.text.trim();
+    final birthdate = _birthdateController.text.trim();
     final picture = prefs.getString('profilePic') ?? defaultPicture;
-    final givenName = _givenNameController.text;
-    final familyName = _familyNameController.text;
+    final givenName = _givenNameController.text.trim();
+    final familyName = _familyNameController.text.trim();
     final password = _passwordController.text;
 
-    // I ADDED: simple password-strength validation (same rules as I used before)
     final hasLen = password.length >= 8;
     final hasNum = RegExp(r'[0-9]').hasMatch(password);
     final hasUpper = RegExp(r'[A-Z]').hasMatch(password);
     final hasSpecial = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
+
     if (!(hasLen && hasNum && hasUpper && hasSpecial)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -167,14 +166,23 @@ class _SignUpViewState extends State<SignUpView> {
       );
       return;
     }
-    // <<< ADDED
 
     try {
       await _cognitoManager.signUp(
-        role, email, postcode, address, birthdate, picture, givenName, familyName, password,
+        role,
+        email,
+        postcode,
+        address,
+        birthdate,
+        picture,
+        givenName,
+        familyName,
+        password,
       );
-      DefaultTabController.of(context).animateTo(1);
+
+      enteredEmail = email;
       showSignUp = true;
+      DefaultTabController.of(context).animateTo(1);
       _s3Manager.putS3Image(picture);
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -193,8 +201,11 @@ class _SignUpViewState extends State<SignUpView> {
       });
     }
 
-    const List<String> roles = <String>['Gatherer', 'Caretaker', 'Landowner'];
-    roleTmp = roles.first;
+    const List<String> roles = <String>[
+      'Gatherer',
+      'Caretaker',
+      'Landholder',
+    ];
 
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
@@ -205,17 +216,23 @@ class _SignUpViewState extends State<SignUpView> {
       body: ListView(
         padding: const EdgeInsets.all(8.0),
         children: [
-          DropdownButtonFormField(
-            initialValue: roleTmp,
+          DropdownButtonFormField<String>(
+            value: roleTmp,
             icon: const Icon(Icons.arrow_downward),
             elevation: 10,
-            decoration: const InputDecoration(labelText: 'What role are you signing up for?'),
+            decoration: const InputDecoration(
+              labelText: 'What role are you signing up for?',
+            ),
             items: roles.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(value: value, child: Text(value));
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
             }).toList(),
             onChanged: (String? value) {
+              if (value == null) return;
               setState(() {
-                roleTmp = value!;
+                roleTmp = value;
               });
             },
           ),
@@ -230,55 +247,36 @@ class _SignUpViewState extends State<SignUpView> {
           const SizedBox(height: 16),
           addressInputField("Address", _addressController),
           const SizedBox(height: 16),
-
-          // I added this: label for DOB fields to clearly identify them
           const Text(
             'Date of Birth',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.normal,
-              ),
-              ),
-              SizedBox(height: 8),
-
-          // I added: three DOB fields (Year / Month / Day)
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: _birthYearField("Year", _birthYearCtrl),
-              ),
+              Expanded(child: _birthYearField("Year", _birthYearCtrl)),
               const SizedBox(width: 8),
-              Expanded(
-                child: _birthMonthField("Month", _birthMonthCtrl),
-              ),
+              Expanded(child: _birthMonthField("Month", _birthMonthCtrl)),
               const SizedBox(width: 8),
-              Expanded(
-                child: _birthDayField("Day", _birthDayCtrl),
-              ),
+              Expanded(child: _birthDayField("Day", _birthDayCtrl)),
             ],
           ),
           const SizedBox(height: 16),
-
-          // I ADDED: helper text to identify pw requirements + small spacing (same as previous task)
           const Text(
             'Password must be at least 8 characters and include a number, '
             'an uppercase letter, and a special character.',
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 6),
-
           TextField(
             controller: _passwordController,
             decoration: const InputDecoration(labelText: 'Password'),
             obscureText: true,
           ),
           const SizedBox(height: 16),
-
-          // Image picker
           ImagePickerWidget(
             onImageSelected: onImageSelected,
           ),
-          // Image display
           profileImage != null
               ? SizedBox(
                   height: 200.0,
@@ -292,10 +290,7 @@ class _SignUpViewState extends State<SignUpView> {
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
-              enteredEmail = _emailController.text;
-              _signUp();
-            },
+            onPressed: _signUp,
             child: const Text(
               'Submit details',
               textAlign: TextAlign.center,
@@ -305,10 +300,6 @@ class _SignUpViewState extends State<SignUpView> {
       ),
     );
   }
-
-  // -----------------------
-  // I added: the 3 DOB field builders
-  // -----------------------
 
   Widget _digitOnlyField({
     required String label,
@@ -327,9 +318,7 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
-  // Year: 4 digits
   Widget _birthYearField(String label, TextEditingController c) {
-    // I added this to limit to 4 digits
     return _digitOnlyField(
       label: label,
       controller: c,
@@ -341,9 +330,7 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
-  // Month: 1–12 (2 digits max)
   Widget _birthMonthField(String label, TextEditingController c) {
-    // I added this to limit to 2 digits
     return _digitOnlyField(
       label: label,
       controller: c,
@@ -355,9 +342,7 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
-  // Day: 1–31 (2 digits max)
   Widget _birthDayField(String label, TextEditingController c) {
-    // I added this to limit to 2 digits
     return _digitOnlyField(
       label: label,
       controller: c,
@@ -374,12 +359,13 @@ class ConfirmSignUpView extends StatefulWidget {
   const ConfirmSignUpView({super.key});
 
   @override
-  _ConfirmSignUpViewState createState() => _ConfirmSignUpViewState();
+  State<ConfirmSignUpView> createState() => _ConfirmSignUpViewState();
 }
 
 class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
   final _emailController = TextEditingController();
   final _confirmationCodeController = TextEditingController();
+
   late final CognitoManager _cognitoManager;
 
   @override
@@ -392,7 +378,10 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Sign-up successful! Please check your email for the confirmation code.')),
+            content: Text(
+              'Sign-up successful! Please check your email for the confirmation code.',
+            ),
+          ),
         );
       });
       showSignUp = false;
@@ -403,9 +392,9 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
     await _cognitoManager.init();
   }
 
-  void _signUp() async {
-    final email = _emailController.text;
-    final confirmationCode = _confirmationCodeController.text;
+  void _confirmSignUp() async {
+    final email = _emailController.text.trim();
+    final confirmationCode = _confirmationCodeController.text.trim();
 
     try {
       await _cognitoManager.confirmUser(email, confirmationCode);
@@ -419,6 +408,10 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
 
   @override
   Widget build(BuildContext context) {
+    if (enteredEmail != null && _emailController.text.isEmpty) {
+      _emailController.text = enteredEmail!;
+    }
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
       appBar: AppBar(
@@ -429,7 +422,9 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Text('A confirmation code has been sent to ${enteredEmail ?? 'your email'}'),
+            Text(
+              'A confirmation code has been sent to ${enteredEmail ?? 'your email'}',
+            ),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -440,7 +435,7 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _signUp,
+              onPressed: _confirmSignUp,
               child: const Text('Confirm Sign-Up'),
             ),
           ],
@@ -454,12 +449,13 @@ class SignInView extends StatefulWidget {
   const SignInView({super.key});
 
   @override
-  _SignInViewState createState() => _SignInViewState();
+  State<SignInView> createState() => _SignInViewState();
 }
 
 class _SignInViewState extends State<SignInView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   late final CognitoManager _cognitoManager;
 
   @override
@@ -474,40 +470,41 @@ class _SignInViewState extends State<SignInView> {
   }
 
   void _signIn() async {
-    final email = _emailController.text;
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     try {
       await prefs.setString('password', password);
+
       final user = await _cognitoManager.signIn(email, password);
 
-final roleRaw = user.claims['custom:role']?.toString().trim();
+      final roleRaw = user.claims['custom:role']?.toString().trim();
 
-final role = roleRaw
-    ?.replaceAll('[', '')
-    .replaceAll(']', '')
-    .trim()
-    .toLowerCase();
+      final role = roleRaw
+          ?.replaceAll('[', '')
+          .replaceAll(']', '')
+          .trim()
+          .toLowerCase();
 
-debugPrint("ROLE RAW IS: $roleRaw");
-debugPrint("ROLE CLEAN IS: $role");
+      debugPrint("ROLE RAW IS: $roleRaw");
+      debugPrint("ROLE CLEAN IS: $role");
 
-String defaultView;
+      String defaultView;
 
+      if (role == 'gatherer') {
+        defaultView = '/request-board';
+      } else if (role == 'landholder') {
+        defaultView = '/landholder-tutorial';
+      } else if (role == 'caretaker') {
+        defaultView = '/caretaker';
+      } else {
+        defaultView = '/request-board';
+      }
 
+      debugPrint("GOING TO: $defaultView");
 
-if (role == 'Gatherer' || role == 'gatherer') {
-  defaultView = '/request-board';
-} else if (role == 'landholder') {
-  defaultView = '/landholder-tutorial';
-} else if (role == 'Caretaker') {
-  defaultView = '/request-board'; // temporary
-} else {
-  defaultView = '/request-board';
-}
-debugPrint("GOING TO: $defaultView");
       Navigator.of(context, rootNavigator: true).pushNamed(
         defaultView,
         arguments: {'user': user},
@@ -552,7 +549,6 @@ debugPrint("GOING TO: $defaultView");
   }
 }
 
-// For testing
 class UserDetailsPage extends StatelessWidget {
   final User user;
 
@@ -568,7 +564,9 @@ class UserDetailsPage extends StatelessWidget {
         child: ListView(
           children: [
             Text("Token Valid: ${user.sessionValid}"),
-            ...user.claims.entries.map((entry) => Text('${entry.key}: ${entry.value}')),
+            ...user.claims.entries.map(
+              (entry) => Text('${entry.key}: ${entry.value}'),
+            ),
           ],
         ),
       ),
@@ -589,7 +587,6 @@ TextField inputField(
       ),
     );
 
-// Input field that only accepts alphabetical characters - specialised for names
 TextField nameInputField(
   String labelName,
   TextEditingController controller, {
@@ -607,8 +604,6 @@ TextField nameInputField(
       ],
     );
 
-// Input field that accepts only letters and digits. No special characters
-// TODO Add support for - / \ for units
 TextField addressInputField(
   String labelName,
   TextEditingController controller, {
@@ -622,11 +617,6 @@ TextField addressInputField(
       ),
       keyboardType: TextInputType.streetAddress,
     );
-
-// Doesn't work, need to support whitespace
-// inputFormatters: [
-// FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9\s-]+')),
-// ],
 
 TextField postcodeInputField(
   String labelName,
@@ -646,8 +636,6 @@ TextField postcodeInputField(
       ],
     );
 
-// Input field for email
-// TODO add validation that checks if in email format
 TextField emailInputField(
   String labelName,
   TextEditingController controller, {
@@ -662,7 +650,6 @@ TextField emailInputField(
       keyboardType: TextInputType.emailAddress,
     );
 
-// (kept for reference; not used anymore for DoB UI — I kept it because backend still reads from _birthdateController)
 TextFormField birthdateInputField(
   String labelName,
   TextEditingController controller, {
