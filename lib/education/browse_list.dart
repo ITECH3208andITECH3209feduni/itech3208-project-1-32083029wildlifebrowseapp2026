@@ -67,11 +67,11 @@ class _BrowseListPageState extends State<BrowseListPage> {
     ),
     Browse(
       id: '4',
-      commonName: 'Bottle Brush',
+      commonName: 'Bottlebrush',
       latinName: 'Callistemon',
       topImageUrl: 'assets/images/Callistemon_flower.jpg',
       description: 'Callistemon is a genus of shrub in the family Myrtaceae. Callistemon are evergreen plants, they can range from <1 metre to over 5 metres high, depending on the species. Endemic to most temperate and tropical regions of Australia',
-      leafShape: 'The leaves of a bottle brush are generally long, thin and narrow',
+      leafShape: 'The leaves of a bottlebrush plant are generally long, thin and narrow',
       leafImageUrl: 'assets/images/Callistemon_leaf.jpg',
       plantShape: 'Height various between species. All species have a dense bushy foliage',
       plantImageUrl: 'assets/images/Callistemon_tree.jpg',
