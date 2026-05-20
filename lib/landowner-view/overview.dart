@@ -334,7 +334,13 @@ class _LandholderHomePageState extends State<LandholderHomePage> {
           );
         },
       ),
-    );
+    floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.pushNamed(context, '/help-faq');
+  },
+  child: const Icon(Icons.help_outline),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
   }
 }
 
