@@ -166,7 +166,7 @@ class _SignUpViewState extends State<SignUpView> {
       );
       return;
     }
-    
+    //
     //final hasGName = givenName.length >= 30;
 
     //postcode Victorian only
