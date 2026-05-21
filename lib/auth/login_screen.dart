@@ -166,7 +166,29 @@ class _SignUpViewState extends State<SignUpView> {
       );
       return;
     }
+    
+    //final hasGName = givenName.length >= 30;
 
+    //postcode Victorian only
+    final int? parsedPostcode = int.tryParse(postcode);
+
+    if(parsedPostcode == null){
+      debugPrint('postcode is null');
+      return;
+    }
+    
+    if (parsedPostcode < 3000 || parsedPostcode > 3996){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'To use this app you must list a Victorian postcode .',
+          ),
+        ),
+      );
+      debugPrint('postcode out of range(3000-3996)');
+      return;
+    }
+    
     try {
       await _cognitoManager.signUp(
         role,
