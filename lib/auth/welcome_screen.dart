@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'agreement_screen.dart';
+
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -16,12 +16,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.initState();
 
     Timer(const Duration(seconds: 8), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AgreementScreen(),
-        ),
-      );
+      if (!mounted) return;
+Navigator.pushReplacementNamed(context, '/login');
     });
   }
 
