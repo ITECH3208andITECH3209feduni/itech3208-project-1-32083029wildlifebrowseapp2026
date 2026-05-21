@@ -40,17 +40,17 @@ class LoginScreen extends StatelessWidget {
             ),
             bottom: const TabBar(
               tabs: [
+                Tab(text: 'Sign-In'),
                 Tab(text: 'Sign-Up'),
                 Tab(text: 'Confirm Sign-Up'),
-                Tab(text: 'Sign-In'),
               ],
             ),
           ),
           body: const TabBarView(
             children: [
+              SignInView(),
               SignUpView(),
               ConfirmSignUpView(),
-              SignInView(),
             ],
           ),
         ),
@@ -166,7 +166,29 @@ class _SignUpViewState extends State<SignUpView> {
       );
       return;
     }
+    
+    //final hasGName = givenName.length >= 30;
 
+    //postcode Victorian only
+    final int? parsedPostcode = int.tryParse(postcode);
+
+    if(parsedPostcode == null){
+      debugPrint('postcode is null');
+      return;
+    }
+    
+    if (parsedPostcode < 3000 || parsedPostcode > 3996){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'To use this app you must list a Victorian postcode (3000-3996).',
+          ),
+        ),
+      );
+      debugPrint('postcode out of range(3000-3996)');
+      return;
+    }
+    
     try {
       await _cognitoManager.signUp(
         role,
@@ -541,6 +563,16 @@ class _SignInViewState extends State<SignInView> {
             ElevatedButton(
               onPressed: _signIn,
               child: const Text('Sign In'),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                DefaultTabController.of(context).animateTo(0);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[400],
+              ),
+              child: const Text('Create Account'),
             ),
           ],
         ),

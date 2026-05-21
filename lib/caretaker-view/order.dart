@@ -256,6 +256,7 @@ bool get isEditMode => widget.existingRequest != null;
                 FormBuilderValidators.integer(),
                 FormBuilderValidators.equalLength(4),
                 FormBuilderValidators.positiveNumber(),
+                (postNum) => (int.tryParse(postNum ?? '') ?? 0) < 3000 || (int.tryParse(postNum ?? '') ?? 0) > 3996 ? 'Must use a Victorian Postcode (3000-3996)' : null,
               ]),
             ),
 
@@ -319,11 +320,11 @@ bool get isEditMode => widget.existingRequest != null;
                 'Tasmanian Blue Gum (Eucalyptus globulus)',
                 'Manna Gum (Eucalyptus viminalis)',
                 'Banksia',
-                'Callistemon',
+                'Bottlebrush (Callistemon)',
                 'Camellia',
                 'Correa',
-                'Grevillea',
-                'Lilly Pilly',
+                'Spider flowers (Grevillea)',
+                'Lilly Pilly (Syzygium Smithii)',
                 'Mealworms',
               ]
                   .map(
@@ -481,6 +482,23 @@ bool get isEditMode => widget.existingRequest != null;
     return;
   }
 
+  final int? parsedAmount = int.tryParse(amount.toString());
+  //changes the string amount into an int variable for use later
+
+  if (parsedAmount == null) {
+    debugPrint('Amount is null');
+    return;
+  }
+  //checks if the parsedAmount is null
+
+  if (parsedAmount < 1 || parsedAmount > 50){
+    debugPrint('Amount is not null, less than 1 greater than 50');
+    showSnack('You can only order between 1-50 browse per delivery item.');
+    return;
+  }
+  //checks to see if the amount of browse requested is between 1 and 50
+  //if outside does not let that request happen
+
   setState(() {
     _deliveryItems.add(
       DeliveryItem(
@@ -490,6 +508,7 @@ bool get isEditMode => widget.existingRequest != null;
       ),
     );
   });
+
 }
   void _submitForm() async {
     if (!isCaretaker) {

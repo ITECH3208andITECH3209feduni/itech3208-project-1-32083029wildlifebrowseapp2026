@@ -1017,7 +1017,13 @@ Flexible(
           ),
         ],
       ),
-    );
+    floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.pushNamed(context, '/help-faq');
+  },
+  child: const Icon(Icons.help_outline),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
   }
 }
 

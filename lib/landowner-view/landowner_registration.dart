@@ -462,6 +462,7 @@ class _LandDetailsTabState extends State<LandDetailsTab>
               FormBuilderValidators.required(),
               FormBuilderValidators.integer(),
               FormBuilderValidators.equalLength(4),
+              (postNum) => (int.tryParse(postNum ?? '') ?? 0) < 3000 || (int.tryParse(postNum ?? '') ?? 0) > 3996 ? 'Must use a Victorian Postcode (3000-3996)' : null,
             ]),
           ),
           const SizedBox(height: 16),

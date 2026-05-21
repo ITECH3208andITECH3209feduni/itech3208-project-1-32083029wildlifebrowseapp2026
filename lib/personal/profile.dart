@@ -217,7 +217,7 @@ class _Profile extends State<Profile> {
       case 'family_name':
         return FormBuilderValidators.lastName();
       case 'custom:postcode':
-        return FormBuilderValidators.range(999, 9999);
+        return FormBuilderValidators.range(3000, 3996);
       case 'custom:address':
         return FormBuilderValidators.street(
           regex: RegExp(

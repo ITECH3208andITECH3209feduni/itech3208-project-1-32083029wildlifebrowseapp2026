@@ -86,7 +86,13 @@ class CaretakerDashboard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.pushNamed(context, '/help-faq');
+  },
+  child: const Icon(Icons.help_outline),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
   }
 
   Widget _dashboardCard(

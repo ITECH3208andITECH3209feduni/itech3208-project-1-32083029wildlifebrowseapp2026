@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../auth/auth.dart';
 import '../donate.dart';
+import '../Screens/help_faq_screen.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({super.key, required this.username, required this.user});
@@ -78,6 +79,23 @@ class _UserDrawer extends State<UserDrawer> {
               Donate.openPayPal();
             },
           ),
+
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Help & FAQ'),
+            onTap: () {
+              Navigator.pop(context);
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HelpFAQScreen(),
+                ),
+              );
+            },
+          ),
+
+          const Divider(),
 
           const Divider(),
 
