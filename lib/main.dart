@@ -15,6 +15,7 @@ import 'education/browse_list.dart';
 
 import 'personal/profile.dart';
 import 'auth/agreement_screen.dart';
+import 'auth/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,8 +26,9 @@ void main() async {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: hasAgreed ? '/login' : '/agreement',
+      initialRoute: '/welcome',
       routes: {
+        '/welcome': (context) => const WelcomeScreen(),
         '/agreement': (context) => const AgreementScreen(),
 
         '/login': (context) => const LoginScreen(),
