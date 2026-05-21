@@ -732,12 +732,15 @@ class _DetailedRequestState extends State<DetailedRequest> {
   }
 
   Widget requestButtons(Request request) {
-    final bool canAccept = isGatherer(widget.user) &&
-        widget.user.claims['username'] != request.requester_ID &&
-        request.status_Num == 1;
+    
+ final bool canAccept = isGatherer(widget.user) &&
+      request.status_Num == 1;
+    final bool canFinish = isGatherer(widget.user) &&
+    request.status_Num == 2 &&
+    request.assigned_User_ID == widget.user.claims['username'];
 
-    if (!canAccept) {
-      return Container();
+if (!canAccept && !canFinish) {
+  return Container();
     }
 
     return Padding(
@@ -789,10 +792,60 @@ class _DetailedRequestState extends State<DetailedRequest> {
               ),
             ),
           ),
-          Flexible(
-            child: TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: const Color.fromARGB(218, 250, 250, 250),
+          // FINISH BUTTON
+if (request.status_Num == 2 &&
+    request.assigned_User_ID ==
+        widget.user.claims['username'])
+  Flexible(
+    child: TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor:
+            const Color.fromARGB(255, 76, 175, 80),
+        minimumSize: const Size(101, 38),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16),
+        shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.all(Radius.circular(7)),
+        ),
+      ),
+      onPressed: () async {
+        setState(() {
+          request.updateState = 3;
+        });
+
+        final success =
+            await updateFinishedRequest(request);
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? 'Request marked as finished'
+                  : 'Failed to finish request',
+            ),
+          ),
+        );
+
+        if (success) {
+          Navigator.pop(context, true);
+        }
+      },
+      child: const Text(
+        'Finish',
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      ),
+    ),
+  ),
+
+Flexible(
+  child: TextButton(
+    style: TextButton.styleFrom(
+      backgroundColor: const Color.fromARGB(218, 250, 250, 250),
                 side: const BorderSide(color: Colors.black12),
                 minimumSize: const Size(101, 38),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -971,7 +1024,18 @@ class _DetailedRequestState extends State<DetailedRequest> {
 bool isActive(state) {
   return state == 1;
 }
-
+String getStatusText(int status) {
+  switch (status) {
+    case 1:
+      return "Pending";
+    case 2:
+      return "Accepted";
+    case 3:
+      return "Finished";
+    default:
+      return "Unknown";
+  }
+}
 String getTimelapse(requestTime) {
   DateTime parsedDate = DateTime.parse(requestTime);
   Duration difference = DateTime.now().difference(parsedDate);
@@ -1037,7 +1101,28 @@ Future<bool> updateRequest(Request updatedRequest) async {
     return false;
   }
 }
+Future<bool> updateFinishedRequest(Request updatedRequest) async {
+  try {
+    final response = await http.patch(
+      Uri.parse(
+          '${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/3'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(updatedRequest.toJson()),
+    );
 
+    if (response.statusCode == 200) {
+      debugPrint('Request marked as finished');
+      return true;
+    } else {
+      debugPrint('Server Error: ${response.statusCode}');
+      debugPrint(response.body);
+      return false;
+    }
+  } catch (e) {
+    debugPrint('Failed to finish request: $e');
+    return false;
+  }
+}
 bool isShowAddress(Request request, User user) {
   if (!isActive(request.status_Num) &&
       user.claims['username'] == request.assigned_User_ID) {
