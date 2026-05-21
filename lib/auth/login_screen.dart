@@ -40,17 +40,17 @@ class LoginScreen extends StatelessWidget {
             ),
             bottom: const TabBar(
               tabs: [
+                Tab(text: 'Sign-In'),
                 Tab(text: 'Sign-Up'),
                 Tab(text: 'Confirm Sign-Up'),
-                Tab(text: 'Sign-In'),
               ],
             ),
           ),
           body: const TabBarView(
             children: [
+              SignInView(),
               SignUpView(),
               ConfirmSignUpView(),
-              SignInView(),
             ],
           ),
         ),
@@ -181,7 +181,7 @@ class _SignUpViewState extends State<SignUpView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'To use this app you must list a Victorian postcode .',
+            'To use this app you must list a Victorian postcode (3000-3996).',
           ),
         ),
       );
