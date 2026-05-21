@@ -564,6 +564,16 @@ class _SignInViewState extends State<SignInView> {
               onPressed: _signIn,
               child: const Text('Sign In'),
             ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                DefaultTabController.of(context).animateTo(0);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[400],
+              ),
+              child: const Text('Create Account'),
+            ),
           ],
         ),
       ),
