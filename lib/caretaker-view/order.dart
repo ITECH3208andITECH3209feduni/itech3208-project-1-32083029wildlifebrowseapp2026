@@ -256,6 +256,7 @@ bool get isEditMode => widget.existingRequest != null;
                 FormBuilderValidators.integer(),
                 FormBuilderValidators.equalLength(4),
                 FormBuilderValidators.positiveNumber(),
+                (postNum) => (int.tryParse(postNum ?? '') ?? 0) < 3000 || (int.tryParse(postNum ?? '') ?? 0) > 3996 ? 'Must use a Victorian Postcode (3000-3996)' : null,
               ]),
             ),
 
