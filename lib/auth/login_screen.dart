@@ -567,7 +567,12 @@ class _SignInViewState extends State<SignInView> {
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
-                DefaultTabController.of(context).animateTo(0);
+                final tabController = DefaultTabController.of(context);
+                if (tabController != null) {
+                  tabController.animateTo(1);
+                } else {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[400],
