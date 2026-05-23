@@ -27,10 +27,7 @@ class LandownerRegistration extends StatelessWidget {
           seedColor: const Color.fromRGBO(46, 165, 107, 1),
         ),
       ),
-      child: LandownerFormTabs(
-        user: user,
-        existingListing: existingListing,
-      ),
+      child: LandownerFormTabs(user: user, existingListing: existingListing),
     );
   }
 }
@@ -102,8 +99,8 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
   }
 
   void _goToLandholderOverview({required bool uploadSuccess}) {
-  Navigator.pop(context, uploadSuccess);
-}
+    Navigator.pop(context, uploadSuccess);
+  }
 
   Widget _tutorialBox() {
     return Card(
@@ -119,10 +116,14 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text('1. Select the browse plants available on your property.'),
+            const Text(
+              '1. Select the browse plants available on your property.',
+            ),
             const Text('2. Add your address, postcode, and phone number.'),
             const Text('3. Choose the days and times gatherers can visit.'),
-            const Text('4. Add access instructions, warnings, or restrictions.'),
+            const Text(
+              '4. Add access instructions, warnings, or restrictions.',
+            ),
             const Text('5. Submit the listing so gatherers can view it.'),
           ],
         ),
@@ -194,8 +195,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
 
     final bool canCreate = role == 'landholder';
 
-    final bool canEdit =
-        role == 'landholder' && existingCreatedBy == userId;
+    final bool canEdit = role == 'landholder' && existingCreatedBy == userId;
 
     if (!isEditMode && !canCreate) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -222,21 +222,23 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
           '${widget.user.claims['given_name']} ${widget.user.claims['family_name']}';
 
       final finalPayload = <String, dynamic>{
-  ...formData,
-  'userID': user.claims['username'].toString(),
-  'createdBy': isEditMode ? existingCreatedBy : userId,
-  'createdByRole': isEditMode
-      ? (widget.existingListing?['createdByRole']?.toString() ?? role)
-      : role,
-  'landownerName': fullName,
-  'landholderName': fullName,
-  'isActive': 'True',
-  'timestamp': isEditMode
-      ? (widget.existingListing?['timestamp']?.toString() ??
-          DateTime.now().toIso8601String())
-      : DateTime.now().toIso8601String(),
-  'updatedAt': DateTime.now().toIso8601String(),
-};
+        ...formData,
+        'userID': user.claims['username'].toString(),
+        'createdBy': isEditMode ? existingCreatedBy : userId,
+        'createdByRole':
+            isEditMode
+                ? (widget.existingListing?['createdByRole']?.toString() ?? role)
+                : role,
+        'landownerName': fullName,
+        'landholderName': fullName,
+        'isActive': 'True',
+        'timestamp':
+            isEditMode
+                ? (widget.existingListing?['timestamp']?.toString() ??
+                    DateTime.now().toIso8601String())
+                : DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
 
       try {
         debugPrint(jsonEncode(finalPayload));
@@ -294,9 +296,7 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
 
     if (!canAccessForm) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Access denied'),
-        ),
+        appBar: AppBar(title: const Text('Access denied')),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(20),
@@ -320,8 +320,8 @@ class _LandownerFormTabs extends State<LandownerFormTabs>
         backgroundColor: const Color.fromRGBO(245, 245, 237, 1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-         onPressed: () {
-  Navigator.pop(context, false);
+          onPressed: () {
+            Navigator.pop(context, false);
           },
         ),
         bottom: TabBar(
@@ -425,23 +425,44 @@ class _LandDetailsTabState extends State<LandDetailsTab>
               labelText: 'What browse do you have on your property?',
             ),
             validator: FormBuilderValidators.required(),
-            options: [
-              'Banksia',
-              'Callistemon',
-              'Camellia',
-              'Correa',
-              'Manna Gum',
-              'Blue Gum',
-              'Grevillea',
-              'Lilly Pilly',
-            ]
-                .map(
-                  (browse) => FormBuilderFieldOption(
-                    value: browse,
-                    child: Text(browse),
-                  ),
-                )
-                .toList(),
+            options:
+                [
+                      'Banksia',
+                      'Callistemon',
+                      'Camellia',
+                      'Correa',
+                      'Manna Gum',
+                      'Blue Gum',
+                      'Grevillea',
+                      'Lilly Pilly',
+                    ]
+                    .map(
+                      (browse) => FormBuilderFieldOption(
+                        value: browse,
+                        child: GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: Text(browse),
+                                    content: const Text(
+                                      "Show instructions here",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text("Close"),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                          },
+                          child: Text(browse),
+                        ),
+                      ),
+                    )
+                    .toList(),
             controlAffinity: ControlAffinity.leading,
             orientation: OptionsOrientation.wrap,
           ),
@@ -462,7 +483,11 @@ class _LandDetailsTabState extends State<LandDetailsTab>
               FormBuilderValidators.required(),
               FormBuilderValidators.integer(),
               FormBuilderValidators.equalLength(4),
-              (postNum) => (int.tryParse(postNum ?? '') ?? 0) < 3000 || (int.tryParse(postNum ?? '') ?? 0) > 3996 ? 'Must use a Victorian Postcode (3000-3996)' : null,
+              (postNum) =>
+                  (int.tryParse(postNum ?? '') ?? 0) < 3000 ||
+                          (int.tryParse(postNum ?? '') ?? 0) > 3996
+                      ? 'Must use a Victorian Postcode (3000-3996)'
+                      : null,
             ]),
           ),
           const SizedBox(height: 16),
@@ -530,22 +555,23 @@ class _AvailabilityTabState extends State<AvailabilityTab>
               labelText: 'What days is your property open to browsing?',
             ),
             validator: FormBuilderValidators.required(),
-            options: [
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-              'Friday',
-              'Saturday',
-              'Sunday',
-            ]
-                .map(
-                  (value) => FormBuilderFieldOption(
-                    value: value,
-                    child: Text(value),
-                  ),
-                )
-                .toList(),
+            options:
+                [
+                      'Monday',
+                      'Tuesday',
+                      'Wednesday',
+                      'Thursday',
+                      'Friday',
+                      'Saturday',
+                      'Sunday',
+                    ]
+                    .map(
+                      (value) => FormBuilderFieldOption(
+                        value: value,
+                        child: Text(value),
+                      ),
+                    )
+                    .toList(),
             controlAffinity: ControlAffinity.leading,
             orientation: OptionsOrientation.wrap,
           ),
@@ -557,19 +583,20 @@ class _AvailabilityTabState extends State<AvailabilityTab>
               labelText: 'What time of day are you open to browsing?',
             ),
             validator: FormBuilderValidators.required(),
-            options: [
-              'Morning (8am - 11am)',
-              'Noon (11am - 1pm)',
-              'Afternoon (1pm - 5pm)',
-              'Evening (5pm - 8pm)',
-            ]
-                .map(
-                  (value) => FormBuilderFieldOption(
-                    value: value,
-                    child: Text(value),
-                  ),
-                )
-                .toList(),
+            options:
+                [
+                      'Morning (8am - 11am)',
+                      'Noon (11am - 1pm)',
+                      'Afternoon (1pm - 5pm)',
+                      'Evening (5pm - 8pm)',
+                    ]
+                    .map(
+                      (value) => FormBuilderFieldOption(
+                        value: value,
+                        child: Text(value),
+                      ),
+                    )
+                    .toList(),
             controlAffinity: ControlAffinity.leading,
             orientation: OptionsOrientation.wrap,
           ),
