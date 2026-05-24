@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../app_intro.dart';
+
 
 class AgreementScreen extends StatefulWidget {
   const AgreementScreen({super.key});
@@ -12,18 +12,46 @@ class AgreementScreen extends StatefulWidget {
 class _AgreementScreenState extends State<AgreementScreen> {
   bool _saving = false;
 
-  Future<void> _agreeAndContinue() async {
-    if (_saving) return;
-    setState(() => _saving = true);
+ Future<void> _agreeAndContinue() async {
+  if (_saving) return;
+  setState(() => _saving = true);
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('user_agreed', true);
+  final prefs = await SharedPreferences.getInstance();
 
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const AppIntroScreen()),
+  await prefs.setBool('user_agreed', true);
+
+  final isNewUser = prefs.getBool('is_new_user') ?? false;
+  final newUserRole = prefs.getString('new_user_role') ?? '';
+
+  final afterAgreementRoute =
+      prefs.getString('after_agreement_route') ?? '/login';
+
+  final args =
+      ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+  if (!mounted) return;
+
+  if (isNewUser) {
+    await prefs.setBool('is_new_user', false);
+
+    if (newUserRole == 'landholder') {
+      Navigator.of(context).pushReplacementNamed(
+        '/landholder-tutorial',
+        arguments: args,
+      );
+    } else {
+      Navigator.of(context).pushReplacementNamed(
+        '/instruction',
+        arguments: args,
+      );
+    }
+  } else {
+    Navigator.of(context).pushReplacementNamed(
+      afterAgreementRoute,
+      arguments: args,
     );
   }
+}
 
   void _decline() {
     showDialog(

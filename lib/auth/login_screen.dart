@@ -98,7 +98,7 @@ class _SignUpViewState extends State<SignUpView> {
   void initState() {
     super.initState();
     _cognitoManager = CognitoManager();
-    _redirectIfFirstTime();
+    _initCognitoManager();
   }
 
   Future<void> _redirectIfFirstTime() async {
@@ -106,7 +106,8 @@ class _SignUpViewState extends State<SignUpView> {
     final hasAgreed = prefs.getBool('user_agreed') ?? false;
 
     if (!hasAgreed && mounted) {
-      Navigator.of(context).pushReplacementNamed('/agreement');
+      Navigator.of(context, rootNavigator: true)
+        .pushReplacementNamed('/agreement');
     } else {
       _initCognitoManager();
     }
@@ -118,6 +119,7 @@ class _SignUpViewState extends State<SignUpView> {
 
   void _signUp() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+      // await _cognitoManager.init();
 
     final y = _birthYearCtrl.text.trim();
     final m = _birthMonthCtrl.text.trim().padLeft(2, '0');
@@ -142,6 +144,7 @@ class _SignUpViewState extends State<SignUpView> {
     _birthdateController.text = '$y-$m-$d';
 
     final role = roleTmp;
+    await prefs.setString('new_user_role', role.toLowerCase());
     final email = _emailController.text.trim();
     final postcode = _postcodeController.text.trim();
     final address = _addressController.text.trim();
@@ -190,6 +193,9 @@ class _SignUpViewState extends State<SignUpView> {
     }
     
     try {
+      debugPrint('ABOUT TO CALL COGNITO SIGNUP');
+      debugPrint('ROLE: $role');
+      debugPrint('EMAIL: $email');
       await _cognitoManager.signUp(
         role,
         email,
@@ -204,12 +210,23 @@ class _SignUpViewState extends State<SignUpView> {
 
       enteredEmail = email;
       showSignUp = true;
-      DefaultTabController.of(context).animateTo(1);
-      _s3Manager.putS3Image(picture);
+      DefaultTabController.of(context).animateTo(2);
+      // _s3Manager.putS3Image(picture);
     } on CognitoServiceException catch (e) {
+       debugPrint('COGNITO ERROR: ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message)),
+    
+      
       );
+      } catch (e) {
+
+  debugPrint('GENERAL SIGNUP ERROR: $e');
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Signup failed: $e')),
+  );
+
     }
   }
 
@@ -420,7 +437,10 @@ class _ConfirmSignUpViewState extends State<ConfirmSignUpView> {
 
     try {
       await _cognitoManager.confirmUser(email, confirmationCode);
-      DefaultTabController.of(context).animateTo(2);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_new_user', true);
+
+      Navigator.of(context, rootNavigator: true).pushReplacementNamed('/login');
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message)),
@@ -488,7 +508,7 @@ class _SignInViewState extends State<SignInView> {
   }
 
   Future<void> _initCognitoManager() async {
-    await _cognitoManager.init();
+     await _cognitoManager.init();
   }
 
   void _signIn() async {
@@ -512,25 +532,34 @@ class _SignInViewState extends State<SignInView> {
 
       debugPrint("ROLE RAW IS: $roleRaw");
       debugPrint("ROLE CLEAN IS: $role");
+      final showLandholderTutorialAfterLogin =
+    prefs.getBool('show_landholder_tutorial_after_login') ?? false;
 
       String defaultView;
 
-      if (role == 'gatherer') {
-        defaultView = '/request-board';
-      } else if (role == 'landholder') {
-        defaultView = '/landholder-tutorial';
-      } else if (role == 'caretaker') {
-        defaultView = '/caretaker';
-      } else {
-        defaultView = '/request-board';
-      }
+     if (role == 'gatherer') {
+  defaultView = '/request-board';
+} else if (role == 'landholder') {
+  if (showLandholderTutorialAfterLogin) {
+    await prefs.setBool('show_landholder_tutorial_after_login', false);
+    defaultView = '/landholder-tutorial';
+  } else {
+    defaultView = '/landowner';
+  }
+} else if (role == 'caretaker') {
+  defaultView = '/caretaker';
+} else {
+  defaultView = '/request-board';
+}
 
       debugPrint("GOING TO: $defaultView");
 
+      await prefs.setString('after_agreement_route', defaultView);
+
       Navigator.of(context, rootNavigator: true).pushNamed(
-        defaultView,
-        arguments: {'user': user},
-      );
+  '/agreement',
+  arguments: {'user': user},
+);
     } on CognitoServiceException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message)),

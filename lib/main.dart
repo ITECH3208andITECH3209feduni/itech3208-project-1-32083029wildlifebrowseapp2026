@@ -16,6 +16,8 @@ import 'education/browse_list.dart';
 import 'personal/profile.dart';
 import 'auth/agreement_screen.dart';
 import 'auth/welcome_screen.dart';
+import 'instruction_screen.dart';
+import 'onboarding_videos_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +34,15 @@ void main() async {
         '/agreement': (context) => const AgreementScreen(),
 
         '/login': (context) => const LoginScreen(),
+        '/instruction': (context) => const InstructionScreen(),
+        '/onboarding-videos': (context) {
+        final args =
+           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
+         return OnboardingVideosScreen(
+           user: args['user'],
+  );
+},
 
         // =========================
         // GATHERER

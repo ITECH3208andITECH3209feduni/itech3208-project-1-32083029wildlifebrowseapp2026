@@ -94,6 +94,11 @@ class _UserDrawer extends State<UserDrawer> {
               );
             },
           ),
+        ListTile(
+         leading: const Icon(Icons.ondemand_video),
+         title: const Text('Instructions & Onboarding'),
+        onTap: drawerButton('/instruction'),
+),
 
           const Divider(),
 

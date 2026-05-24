@@ -104,14 +104,19 @@ class _InstructionScreenState extends State<InstructionScreen> {
     },
   ];
 
-  void goToVideoScreen() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OnboardingVideosScreen(),
+ void goToVideoScreen() {
+  final args =
+      ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => OnboardingVideosScreen(
+        user: args!,
       ),
-    );
-  }
+    ),
+  );
+}
 
   void nextPage() {
     if (currentIndex < steps.length - 1) {

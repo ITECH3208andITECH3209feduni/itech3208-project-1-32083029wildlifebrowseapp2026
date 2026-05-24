@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingVideosScreen extends StatefulWidget {
-  const OnboardingVideosScreen({super.key});
+
+  final Map<String, dynamic> user;
+
+  const OnboardingVideosScreen({
+    super.key,
+    required this.user,
+  });
 
   @override
   State<OnboardingVideosScreen> createState() =>
@@ -95,7 +102,16 @@ class _OnboardingVideosScreenState extends State<OnboardingVideosScreen> {
       await _loadVideo();
     } else {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/login');
+
+       final prefs = await SharedPreferences.getInstance();
+       final route =
+      prefs.getString('after_agreement_route') ?? '/request-board';
+
+      Navigator.pushReplacementNamed(
+       context,
+       route,
+       arguments: widget.user,
+     );
     }
   }
 
