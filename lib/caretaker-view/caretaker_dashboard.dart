@@ -28,10 +28,7 @@ class CaretakerDashboard extends StatelessWidget {
         children: [
           Text(
             'Welcome, $firstName',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 8),
@@ -49,11 +46,7 @@ class CaretakerDashboard extends StatelessWidget {
             subtitle: 'Request plants or branches for animals.',
             icon: Icons.add_circle_outline,
             onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/order',
-                arguments: {'user': user},
-              );
+              Navigator.pushNamed(context, '/order', arguments: {'user': user});
             },
           ),
 
@@ -77,22 +70,22 @@ class CaretakerDashboard extends StatelessWidget {
             subtitle: 'View your account details.',
             icon: Icons.person_outline,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('My Account screen coming soon'),
-                ),
-              );
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pushNamed('/profile', arguments: {'user': user});
             },
           ),
         ],
       ),
-    floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    Navigator.pushNamed(context, '/help-faq');
-  },
-  child: const Icon(Icons.help_outline),
-),
-floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/help-faq');
+        },
+        child: const Icon(Icons.help_outline),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
   }
 
   Widget _dashboardCard(
@@ -105,9 +98,7 @@ floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: Icon(
@@ -117,10 +108,7 @@ floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
