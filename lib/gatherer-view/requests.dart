@@ -37,11 +37,7 @@ class GathererRoute extends StatelessWidget {
 }
 
 class GathererHomePage extends StatefulWidget {
-  const GathererHomePage({
-    super.key,
-    required this.title,
-    required this.user,
-  });
+  const GathererHomePage({super.key, required this.title, required this.user});
 
   final String title;
   final User user;
@@ -53,8 +49,10 @@ class GathererHomePage extends StatefulWidget {
 Future<List<Request>> fetchRequests() async {
   try {
     final response = await http.get(
-  Uri.parse('${ApiConfig.requestsAPI}?refresh=${DateTime.now().millisecondsSinceEpoch}'),
-);
+      Uri.parse(
+        '${ApiConfig.requestsAPI}?refresh=${DateTime.now().millisecondsSinceEpoch}',
+      ),
+    );
 
     final Map<String, dynamic> responseData = json.decode(response.body);
     final Response requestResponse = Response.fromJson(responseData);
@@ -73,9 +71,7 @@ Future<bool> deleteRequest(String requestId, int statusNum) async {
   try {
     final response = await http.delete(
       Uri.parse('${ApiConfig.requestsAPI}/$requestId/$statusNum'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200 || response.statusCode == 204) {
@@ -93,50 +89,56 @@ Future<bool> deleteRequest(String requestId, int statusNum) async {
 }
 
 bool isGatherer(User user) {
-  final role = user.claims['custom:role']
-      .toString()
-      .toLowerCase()
-      .replaceAll('[', '')
-      .replaceAll(']', '')
-      .trim();
+  final role =
+      user.claims['custom:role']
+          .toString()
+          .toLowerCase()
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .trim();
 
   return role == 'gatherer';
 }
+
 bool isCaretaker(User user) {
-  final role = user.claims['custom:role']
-      .toString()
-      .toLowerCase()
-      .replaceAll('[', '')
-      .replaceAll(']', '')
-      .trim();
+  final role =
+      user.claims['custom:role']
+          .toString()
+          .toLowerCase()
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .trim();
 
   return role == 'caretaker';
 }
+
 bool isLandholder(User user) {
-  final role = user.claims['custom:role']
-      .toString()
-      .toLowerCase()
-      .replaceAll('[', '')
-      .replaceAll(']', '')
-      .trim();
+  final role =
+      user.claims['custom:role']
+          .toString()
+          .toLowerCase()
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .trim();
 
   return role == 'landholder';
 }
+
 class _RequestBoardState extends State<GathererHomePage>
     with TickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
   late Future<List<Request>> futureRequests;
-List<Request> currentRequests = [];
+  List<Request> currentRequests = [];
   @override
   void initState() {
     super.initState();
 
-  futureRequests = fetchRequests().then((requests) {
-  currentRequests = requests;
-  return requests;
-});
+    futureRequests = fetchRequests().then((requests) {
+      currentRequests = requests;
+      return requests;
+    });
 
     _fadeController = AnimationController(
       duration: const Duration(seconds: 1),
@@ -152,14 +154,14 @@ List<Request> currentRequests = [];
   }
 
   void _refreshRequests() async {
-  await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
-  if (!mounted) return;
+    if (!mounted) return;
 
-  setState(() {
-    futureRequests = fetchRequests();
-  });
-}
+    setState(() {
+      futureRequests = fetchRequests();
+    });
+  }
 
   @override
   void dispose() {
@@ -174,12 +176,12 @@ List<Request> currentRequests = [];
     final bool acceptedByMe = request.assigned_User_ID == currentUsername;
 
     final bool canDelete =
-    (isGatherer(user) && request.status_Num == 2 && acceptedByMe) ||
-    (isCaretaker(user) &&
-        (request.requester_ID.toString() == currentUsername.toString()));
+        (isGatherer(user) && request.status_Num == 2 && acceptedByMe) ||
+        (isCaretaker(user) &&
+            (request.requester_ID.toString() == currentUsername.toString()));
     final bool canEdit =
-    isCaretaker(user) &&
-    request.requester_ID.toString() == currentUsername.toString();
+        isCaretaker(user) &&
+        request.requester_ID.toString() == currentUsername.toString();
 
     if (request.requester_ID == currentUsername) {
       tileColor = const Color.fromARGB(255, 173, 216, 230);
@@ -201,12 +203,32 @@ List<Request> currentRequests = [];
             radius: 20,
           ),
           title: Text(request.animal_ID),
-          subtitle: BrowseTileList(
-            browses: request.getBrowseNames(),
-            quantities: request.getBrowseQuantities(),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BrowseTileList(
+                browses: request.getBrowseNames(),
+                quantities: request.getBrowseQuantities(),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                'Status: ${getStatusText(request.status_Num)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color:
+                      request.status_Num == 3
+                          ? Colors.green
+                          : request.status_Num == 2
+                          ? Colors.orange
+                          : Colors.blue,
+                ),
+              ),
+            ],
           ),
           trailing: SizedBox(
-           width: (canDelete || canEdit) ? 170 : 85,
+            width: (canDelete || canEdit) ? 170 : 85,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -217,9 +239,10 @@ List<Request> currentRequests = [];
                     children: [
                       Text(
                         "${formatTimelapse(getTimelapse(request.timestamp))} ago",
-                        style: isStale(getTimelapse(request.timestamp))
-                            ? const TextStyle(color: Colors.red)
-                            : const TextStyle(color: Colors.black),
+                        style:
+                            isStale(getTimelapse(request.timestamp))
+                                ? const TextStyle(color: Colors.red)
+                                : const TextStyle(color: Colors.black),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
@@ -230,48 +253,52 @@ List<Request> currentRequests = [];
                   ),
                 ),
                 if (canEdit)
-  IconButton(
-    icon: const Icon(Icons.edit, color: Colors.blue),
-    onPressed: () async {
-      final result =
-          await Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute(
-          builder: (context) => CaretakerHomePage(
-            title: 'Edit Order',
-            user: widget.user,
-             existingRequest: request,
-          ),
-          
-        ),
-      );
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () async {
+                      final result = await Navigator.of(
+                        context,
+                        rootNavigator: true,
+                      ).push(
+                        MaterialPageRoute(
+                          builder:
+                              (context) => CaretakerHomePage(
+                                title: 'Edit Order',
+                                user: widget.user,
+                                existingRequest: request,
+                              ),
+                        ),
+                      );
 
-      if (result == true) {
-        _refreshRequests();
-      }
-    },
-  ),
+                      if (result == true) {
+                        _refreshRequests();
+                      }
+                    },
+                  ),
                 if (canDelete)
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Request'),
-                          content: const Text(
-                            'Are you sure you want to delete this accepted request?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Delete Request'),
+                              content: const Text(
+                                'Are you sure you want to delete this accepted request?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
                             ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
                       );
 
                       if (confirm == true) {
@@ -292,15 +319,15 @@ List<Request> currentRequests = [];
                           ),
                         );
 
- if (success) {
-  setState(() {
-    currentRequests.removeWhere(
-      (item) => item.request_ID == request.request_ID,
-    );
+                        if (success) {
+                          setState(() {
+                            currentRequests.removeWhere(
+                              (item) => item.request_ID == request.request_ID,
+                            );
 
-    futureRequests = Future.value(currentRequests);
-  });
-}
+                            futureRequests = Future.value(currentRequests);
+                          });
+                        }
                       }
                     },
                   ),
@@ -313,11 +340,12 @@ List<Request> currentRequests = [];
             final result = await Navigator.push<bool>(
               context,
               MaterialPageRoute<bool>(
-                builder: (BuildContext context) => DetailedRequest(
-                  title: 'Request Details',
-                  request: request,
-                  user: user,
-                ),
+                builder:
+                    (BuildContext context) => DetailedRequest(
+                      title: 'Request Details',
+                      request: request,
+                      user: user,
+                    ),
               ),
             );
 
@@ -359,11 +387,10 @@ List<Request> currentRequests = [];
                 icon: const Icon(Icons.shopping_cart_outlined),
                 tooltip: 'Make an order request',
                 onPressed: () async {
-                  final result =
-                      await Navigator.of(context, rootNavigator: true).pushNamed(
-                    '/caretaker',
-                    arguments: {'user': widget.user},
-                  );
+                  final result = await Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pushNamed('/caretaker', arguments: {'user': widget.user});
 
                   if (result == true) {
                     _refreshRequests();
@@ -371,22 +398,24 @@ List<Request> currentRequests = [];
                 },
               ),
               if (isLandholder(widget.user))
-  IconButton(
-    icon: const Icon(Icons.edit_location_outlined),
-    tooltip: 'List/Register a listing',
-    onPressed: () {
-      Navigator.of(context, rootNavigator: true).pushNamed(
-        '/landholder-tutorial',
-        arguments: {'user': widget.user},
-      );
-    },
-  ),
+                IconButton(
+                  icon: const Icon(Icons.edit_location_outlined),
+                  tooltip: 'List/Register a listing',
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pushNamed(
+                      '/landholder-tutorial',
+                      arguments: {'user': widget.user},
+                    );
+                  },
+                ),
               IconButton(
                 icon: const Icon(Icons.search),
                 tooltip: 'Explore browse',
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true)
-                      .pushNamed('/education');
+                  Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pushNamed('/education');
                 },
               ),
             ],
@@ -408,23 +437,37 @@ List<Request> currentRequests = [];
               }
 
               currentRequests = snapshot.data!;
-List<Request> allRequests = currentRequests;
+              List<Request> allRequests = currentRequests;
 
-              final filteredRequests = allRequests.where((request) {
-                final isUserAssigned =
-                    widget.user.claims['username'] == request.assigned_User_ID;
+              final filteredRequests =
+                  allRequests.where((request) {
+                    final isUserAssigned =
+                        widget.user.claims['username'] ==
+                        request.assigned_User_ID;
 
-                return isActive(request.status_Num) ||
-                    (!isActive(request.status_Num) && isUserAssigned);
-              }).toList();
+                    if (isGatherer(widget.user)) {
+                      return request.status_Num == 1 ||
+                          (request.status_Num == 2 && isUserAssigned);
+                    }
 
-              int userLocation =
-                  int.parse(widget.user.claims['custom:postcode']);
+                    if (isCaretaker(widget.user)) {
+                      return request.requester_ID.toString() ==
+                          widget.user.claims['username'].toString();
+                    }
+
+                    return false;
+                  }).toList();
+
+              int userLocation = int.parse(
+                widget.user.claims['custom:postcode'],
+              );
 
               filteredRequests.sort((a, b) {
-                int c = max(a.postcode, userLocation) -
+                int c =
+                    max(a.postcode, userLocation) -
                     min(a.postcode, userLocation);
-                int d = max(b.postcode, userLocation) -
+                int d =
+                    max(b.postcode, userLocation) -
                     min(b.postcode, userLocation);
                 return c.compareTo(d);
               });
@@ -639,9 +682,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const DefaultTextStyle(
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 230, 230, 230),
-                  ),
+                  style: TextStyle(color: Color.fromARGB(255, 230, 230, 230)),
                   child: Text(
                     "Browse Needed",
                     style: TextStyle(fontWeight: FontWeight.bold),
@@ -678,10 +719,7 @@ class _DetailedRequestState extends State<DetailedRequest> {
           ),
           Text(
             details,
-            style: const TextStyle(
-              fontStyle: FontStyle.italic,
-              inherit: false,
-            ),
+            style: const TextStyle(fontStyle: FontStyle.italic, inherit: false),
           ),
         ],
       ),
@@ -721,9 +759,10 @@ class _DetailedRequestState extends State<DetailedRequest> {
             TextSpan(
               text:
                   " Submitted ${formatTimelapse(getTimelapse(request.timestamp))} ago",
-              style: isStale(getTimelapse(request.timestamp))
-                  ? const TextStyle(color: Colors.red)
-                  : const TextStyle(color: Colors.black),
+              style:
+                  isStale(getTimelapse(request.timestamp))
+                      ? const TextStyle(color: Colors.red)
+                      : const TextStyle(color: Colors.black),
             ),
           ],
         ),
@@ -732,15 +771,14 @@ class _DetailedRequestState extends State<DetailedRequest> {
   }
 
   Widget requestButtons(Request request) {
-    
- final bool canAccept = isGatherer(widget.user) &&
-      request.status_Num == 1;
-    final bool canFinish = isGatherer(widget.user) &&
-    request.status_Num == 2 &&
-    request.assigned_User_ID == widget.user.claims['username'];
+    final bool canAccept = isGatherer(widget.user) && request.status_Num == 1;
+    final bool canFinish =
+        isGatherer(widget.user) &&
+        request.status_Num == 2 &&
+        request.assigned_User_ID == widget.user.claims['username'];
 
-if (!canAccept && !canFinish) {
-  return Container();
+    if (!canAccept && !canFinish) {
+      return Container();
     }
 
     return Padding(
@@ -748,104 +786,98 @@ if (!canAccept && !canFinish) {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
+          if (canAccept)
+            Flexible(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(218, 166, 247, 146),
+                  minimumSize: const Size(101, 38),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(7)),
+                  ),
+                ),
+                onPressed: () async {
+                  await _maybeShowOfflineNotice();
+                  await _maybeShowEnvironmentalCareNotice();
+
+                  setState(() {
+                    request.assignGatherer = widget.user.claims['username'];
+                    request.updateState = 2;
+                  });
+
+                  final success = await updateRequest(request);
+
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? 'Request accepted successfully'
+                            : 'Failed to accept request',
+                      ),
+                    ),
+                  );
+
+                  if (success) {
+                    Navigator.pop(context, true);
+                  }
+                },
+                child: const Text(
+                  'Accept',
+                  style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          // FINISH BUTTON
+          if (request.status_Num == 2 &&
+              request.assigned_User_ID == widget.user.claims['username'])
+            Flexible(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 76, 175, 80),
+                  minimumSize: const Size(101, 38),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(7)),
+                  ),
+                ),
+                onPressed: () async {
+                  setState(() {
+                    request.updateState = 3;
+                  });
+
+                  final success = await updateFinishedRequest(request);
+
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? 'Request marked as finished'
+                            : 'Failed to finish request',
+                      ),
+                    ),
+                  );
+
+                  if (success) {
+                    Navigator.pop(context, true);
+                  }
+                },
+                child: const Text(
+                  'Finish',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+
           Flexible(
             child: TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: const Color.fromARGB(218, 166, 247, 146),
-                minimumSize: const Size(101, 38),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(7)),
-                ),
-              ),
-              onPressed: () async {
-                await _maybeShowOfflineNotice();
-                await _maybeShowEnvironmentalCareNotice();
-
-                setState(() {
-                  request.assignGatherer = widget.user.claims['username'];
-                  request.updateState = 2;
-                });
-
-                final success = await updateRequest(request);
-
-                if (!mounted) return;
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'Request accepted successfully'
-                          : 'Failed to accept request',
-                    ),
-                  ),
-                );
-
-               if (success) {
-  Navigator.pop(context, true);
-}
-              },
-              child: const Text(
-                'Accept',
-                style: TextStyle(color: Color.fromRGBO(0, 4, 7, 0.881)),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          // FINISH BUTTON
-if (request.status_Num == 2 &&
-    request.assigned_User_ID ==
-        widget.user.claims['username'])
-  Flexible(
-    child: TextButton(
-      style: TextButton.styleFrom(
-        backgroundColor:
-            const Color.fromARGB(255, 76, 175, 80),
-        minimumSize: const Size(101, 38),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16),
-        shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.all(Radius.circular(7)),
-        ),
-      ),
-      onPressed: () async {
-        setState(() {
-          request.updateState = 3;
-        });
-
-        final success =
-            await updateFinishedRequest(request);
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success
-                  ? 'Request marked as finished'
-                  : 'Failed to finish request',
-            ),
-          ),
-        );
-
-        if (success) {
-          Navigator.pop(context, true);
-        }
-      },
-      child: const Text(
-        'Finish',
-        style: TextStyle(
-          color: Colors.white,
-        ),
-      ),
-    ),
-  ),
-
-Flexible(
-  child: TextButton(
-    style: TextButton.styleFrom(
-      backgroundColor: const Color.fromARGB(218, 250, 250, 250),
+                backgroundColor: const Color.fromARGB(218, 250, 250, 250),
                 side: const BorderSide(color: Colors.black12),
                 minimumSize: const Size(101, 38),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -873,7 +905,9 @@ Flexible(
         widget.request.assigned_User_ID == widget.user.claims['username'];
 
     final bool canSeeListings =
-        isGatherer(widget.user) && widget.request.status_Num == 2 && acceptedByMe;
+        isGatherer(widget.user) &&
+        widget.request.status_Num == 2 &&
+        acceptedByMe;
 
     if (!canSeeListings) {
       return Container();
@@ -885,10 +919,7 @@ Flexible(
       onPressed: () {
         Navigator.of(context, rootNavigator: true).pushNamed(
           '/landowner',
-          arguments: {
-            'user': widget.user,
-            'browseFilter': browseFilter,
-          },
+          arguments: {'user': widget.user, 'browseFilter': browseFilter},
         );
       },
     );
@@ -899,7 +930,8 @@ Flexible(
     final bool acceptedByMe =
         widget.request.assigned_User_ID == widget.user.claims['username'];
 
-    final bool canDelete = isGatherer(widget.user) &&
+    final bool canDelete =
+        isGatherer(widget.user) &&
         widget.request.status_Num == 2 &&
         acceptedByMe;
 
@@ -915,22 +947,23 @@ Flexible(
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Delete Request'),
-                    content: const Text(
-                      'Are you sure you want to delete this accepted request?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Delete Request'),
+                        content: const Text(
+                          'Are you sure you want to delete this accepted request?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Delete'),
+                          ),
+                        ],
                       ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
                 );
 
                 if (confirm == true) {
@@ -1017,19 +1050,21 @@ Flexible(
           ),
         ],
       ),
-    floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    Navigator.pushNamed(context, '/help-faq');
-  },
-  child: const Icon(Icons.help_outline),
-),
-floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,);
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/help-faq');
+        },
+        child: const Icon(Icons.help_outline),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
   }
 }
 
 bool isActive(state) {
   return state == 1;
 }
+
 String getStatusText(int status) {
   switch (status) {
     case 1:
@@ -1042,6 +1077,7 @@ String getStatusText(int status) {
       return "Unknown";
   }
 }
+
 String getTimelapse(requestTime) {
   DateTime parsedDate = DateTime.parse(requestTime);
   Duration difference = DateTime.now().difference(parsedDate);
@@ -1107,11 +1143,11 @@ Future<bool> updateRequest(Request updatedRequest) async {
     return false;
   }
 }
+
 Future<bool> updateFinishedRequest(Request updatedRequest) async {
   try {
     final response = await http.patch(
-      Uri.parse(
-          '${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/3'),
+      Uri.parse('${ApiConfig.requestsAPI}/${updatedRequest.request_ID}/3'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(updatedRequest.toJson()),
     );
@@ -1129,6 +1165,7 @@ Future<bool> updateFinishedRequest(Request updatedRequest) async {
     return false;
   }
 }
+
 bool isShowAddress(Request request, User user) {
   if (!isActive(request.status_Num) &&
       user.claims['username'] == request.assigned_User_ID) {
