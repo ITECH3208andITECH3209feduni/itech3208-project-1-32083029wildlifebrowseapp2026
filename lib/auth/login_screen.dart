@@ -256,7 +256,7 @@ class _SignUpViewState extends State<SignUpView> {
         padding: const EdgeInsets.all(8.0),
         children: [
           DropdownButtonFormField<String>(
-            value: roleTmp,
+            initialValue: roleTmp,
             icon: const Icon(Icons.arrow_downward),
             elevation: 10,
             decoration: const InputDecoration(
@@ -597,12 +597,8 @@ class _SignInViewState extends State<SignInView> {
             ElevatedButton(
               onPressed: () {
                 final tabController = DefaultTabController.of(context);
-                if (tabController != null) {
-                  tabController.animateTo(1);
-                } else {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              },
+                tabController.animateTo(1);
+                            },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[400],
               ),
