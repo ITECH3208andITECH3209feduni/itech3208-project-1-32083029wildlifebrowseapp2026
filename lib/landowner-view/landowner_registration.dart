@@ -409,6 +409,28 @@ class _LandDetailsTabState extends State<LandDetailsTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+  String _getBrowseImage(String browse) {
+    switch (browse) {
+      case 'Banksia':
+        return 'assets/images/Banksia_04_M_Morey_flower_COPYRIGHT.jpg';
+      case 'Callistemon':
+        return 'assets/images/Callistemon_flower.jpg';
+      case 'Camellia':
+        return 'assets/images/Camellia_M_Morey_flower_COPYRIGHT.jpg';
+      case 'Correa':
+        return 'assets/images/Correa_M_Morey_flower_COPYRIGHT.jpg';
+      case 'Manna Gum':
+        return 'assets/images/blueGumNut.jpg';
+      case 'Blue Gum':
+        return 'assets/images/manna_gum_m_morey_01_copyright.jpg';
+      case 'Grevillea':
+        return 'assets/images/Grevillea_M_Morey_flower_COPYRIGHT.jpg';
+      case 'Lilly Pilly':
+        return 'assets/images/Lilly_Pilly_M_Morey_leaf_COPYRIGHT.jpg';
+      default:
+        return 'assets/images/manna_gum_m_morey_01_copyright.jpg';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -439,26 +461,39 @@ class _LandDetailsTabState extends State<LandDetailsTab>
                     .map(
                       (browse) => FormBuilderFieldOption(
                         value: browse,
-                        child: GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: Text(browse),
-                                    content: const Text(
-                                      "Show instructions here",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text("Close"),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder:
+                                      (context) => AlertDialog(
+                                        title: Text(browse),
+                                        content: const Text(
+                                          "Show instructions here",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.pop(context),
+                                            child: const Text("Close"),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                            );
-                          },
-                          child: Text(browse),
+                                );
+                              },
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundImage: AssetImage(
+                                  _getBrowseImage(browse),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(browse),
+                          ],
                         ),
                       ),
                     )
