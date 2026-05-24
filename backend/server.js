@@ -131,6 +131,27 @@ app.post("/landholders", async (req, res) => {
     res.status(500).json({ error: "Failed to save landholder" });
   }
 });
+// UPDATE landholder
+app.put("/landholders/:id", async (req, res) => {
+  try {
+    const updatedData = await Landholder.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { returnDocument: "after" }
+    );
+
+    if (!updatedData) {
+      return res.status(404).json({ error: "Landholder not found" });
+    }
+
+    res.status(200).json({
+      message: "Landholder updated successfully",
+      items: [updatedData],
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
 
 // DELETE landholder
 app.delete("/landholders/:id", async (req, res) => {
