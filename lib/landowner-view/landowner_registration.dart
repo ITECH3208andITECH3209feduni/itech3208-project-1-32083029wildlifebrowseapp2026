@@ -494,8 +494,21 @@ class _LandDetailsTabState extends State<LandDetailsTab>
                                   builder:
                                       (context) => AlertDialog(
                                         title: Text(browse),
-                                        content: Text(
-                                          _getBrowseInstructions(browse),
+                                        content: SingleChildScrollView(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Image.asset(
+                                                _getBrowseImage(browse),
+                                                height: 120,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                _getBrowseInstructions(browse),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                         actions: [
                                           TextButton(
