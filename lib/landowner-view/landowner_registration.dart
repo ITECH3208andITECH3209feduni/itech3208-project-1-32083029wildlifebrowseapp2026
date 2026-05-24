@@ -432,6 +432,29 @@ class _LandDetailsTabState extends State<LandDetailsTab>
     }
   }
 
+  String _getBrowseInstructions(String browse) {
+    switch (browse) {
+      case 'Banksia':
+        return 'Look for woody cones and serrated leaves. Ensure it is clean and pesticide-free.';
+      case 'Callistemon':
+        return 'Identify bottlebrush flowers. Avoid damaged or dry branches.';
+      case 'Camellia':
+        return 'Check glossy leaves and flowers. Only healthy parts should be used.';
+      case 'Correa':
+        return 'Look for small leaves and tubular flowers. Ensure easy access.';
+      case 'Manna Gum':
+        return 'Identify long eucalyptus leaves. Ensure branches are reachable.';
+      case 'Blue Gum':
+        return 'Check smooth bark and blue-green leaves. Avoid unsafe heights.';
+      case 'Grevillea':
+        return 'Identify spider-like flowers. Must be clean and fresh.';
+      case 'Lilly Pilly':
+        return 'Look for glossy dense leaves. Ensure healthy growth.';
+      default:
+        return 'Ensure the plant is healthy and safe for browsing.';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -471,8 +494,8 @@ class _LandDetailsTabState extends State<LandDetailsTab>
                                   builder:
                                       (context) => AlertDialog(
                                         title: Text(browse),
-                                        content: const Text(
-                                          "Show instructions here",
+                                        content: Text(
+                                          _getBrowseInstructions(browse),
                                         ),
                                         actions: [
                                           TextButton(
